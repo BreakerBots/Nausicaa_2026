@@ -69,8 +69,8 @@ public final class Constants {
     // --------------- INTAKE --------------
 
     public static class IntakeConstants {
-        public static final int EXTENDER_MOTOR_ID = 1;
-        public static final int ROLLER_MOTOR_ID = 2;
+        public static final int EXTENDER_MOTOR_ID = 21;
+        public static final int ROLLER_MOTOR_ID = 22;
         public static final Rotation2d POSITION_STOWED = Rotation2d.fromRotations(0.2);
         public static final Rotation2d POSITION_EXTENDED = Rotation2d.fromRotations(0.2);
         public static final Rotation2d POSITION_JIGGLE_HIGH = Rotation2d.fromRotations(0.2);
@@ -84,10 +84,10 @@ public final class Constants {
     // --------------- SHOOTER --------------
 
     public static class ShooterConstants {
-        public static final int SHOOTER_FLYWHEEL_1_MOTOR_ID = 3;
-        public static final int SHOOTER_FLYWHEEL_2_MOTOR_ID = 4;
-        public static final int KICKER_MOTOR_ID = 5;
-        public static final int TRAJECTORY_ADJUSTER_MOTOR_ID = 6;
+        public static final int SHOOTER_FLYWHEEL_1_MOTOR_ID = 23;
+        public static final int SHOOTER_FLYWHEEL_2_MOTOR_ID = 24;
+        public static final int KICKER_MOTOR_ID = 25;
+        public static final int TRAJECTORY_ADJUSTER_MOTOR_ID = 26;
         public static final double SPEED_IDLE = 0;
         public static final double SPEED_FLYWHEEL_1_ACTIVE = 0;
         public static final double SPEED_FLYWHEEL_2_ACTIVE = 0;
