@@ -34,22 +34,23 @@ import frc.robot.subsystems.MinnowRoller;
  * periodic methods (other than the scheduler calls). Instead, the structure of the robot (including
  * subsystems , commands, and trigger mappings) should be declared here.
  */
-public class RobotContainer {
+public class MinnowRobotContainer {
 
     // The robot's subsystems and commands are defined here...
     private final BreakerXboxController controller = new BreakerXboxController(Constants.OperatorConstants.kDriverControllerPort);
     private final Drivetrain drivetrain = new Drivetrain();
-    
+    private final MinnowArm arm = new MinnowArm();
+    private final MinnowRoller roller = new MinnowRoller();
         
     private BreakerInputStream driverX, driverY, driverOmega;
 
     /** The container for the robot. Contains subsystems, OI devices, and commands. */
-    public RobotContainer() {
+    public MinnowRobotContainer() {
         // Disable verbose logging to reduce noise
         // Flip this back on when debugging/troubleshooting
         BreakerLog.setVerboseLogging(false);
 
-        
+        arm.setRoller(roller);
         configureBindings();
     }
 
@@ -88,11 +89,71 @@ public class RobotContainer {
                 .negate();
     
         drivetrain.setDefaultCommand(drivetrain.getTeleopControlCommand(driverX, driverY, driverOmega, Constants.DriveConstants.TELEOP_CONTROL_CONFIG));
+
+        controller.getDPad().getLeft().onTrue(rotateToTagCommand());
+        controller.getDPad().getRight().onTrue(rangeToTagCommand());
+        // TODO: Bind driveToTagCommand() to a controller button
+        // Example: controller.getButtonX().onTrue(driveToTagCommand());
+
+        // ---------------- ARM ----------------
+
+        //D-PAD UP/DOWN --> Manually move arm
+        controller.getDPad().getUp().whileTrue(Commands.runOnce(() -> arm.setVoltageOutput(0.1)));
+        controller.getDPad().getUp().onFalse(Commands.runOnce(() -> arm.setVoltageOutput(0.0)));
+        controller.getDPad().getDown().whileTrue(Commands.runOnce(() -> arm.setVoltageOutput(-0.1)));
+        controller.getDPad().getDown().onFalse(Commands.runOnce(() -> arm.setVoltageOutput(0.0)));
+
+        //RIGHT BUMPER --> Set current position as home position
+        controller.getRightBumper().onTrue(Commands.runOnce(() -> arm.homePosition()));
+
+        // ---------------- ROLLER ----------------
+
+        //TRIGGERS --> Manually spin rollers
+        controller.getLeftTrigger().whileTrue(roller.setSpeedCommand(Constants.RollerConstants.ALGAE_INTAKE_SPEED));
+        controller.getLeftTrigger().onFalse(roller.setSpeedCommand(Constants.RollerConstants.IDLE_SPEED));
+        controller.getRightTrigger().whileTrue(roller.setSpeedCommand(Constants.RollerConstants.ALGAE_EXTAKE_SPEED));
+        controller.getRightTrigger().onFalse(roller.setSpeedCommand(Constants.RollerConstants.IDLE_SPEED));
+
+        // ---------------- STATES ----------------
+
+        //CORAL INTAKE
+        controller.getButtonX().onTrue(
+            Commands.sequence(
+                arm.setStateCommand(MinnowArm.State.UP),
+                roller.setStateCommand(MinnowRoller.State.IDLE)
+            )
+        );
+
+        //CORAL EXTAKE
+        controller.getButtonY().onTrue(
+            Commands.sequence(
+                arm.setStateCommand(MinnowArm.State.EXTAKE),
+                roller.setStateCommand(MinnowRoller.State.CORAL_EXTAKE),
+                Commands.waitSeconds(0.7),   // NEED TEST TODO
+                roller.setStateCommand(MinnowRoller.State.IDLE)
+            )
+        );
+
+        //ALGAE INTAKE
+        controller.getButtonA().onTrue(
+            Commands.sequence(
+                arm.setStateCommand(MinnowArm.State.DOWN),
+                roller.setStateCommand(MinnowRoller.State.ALGAE_INTAKE)
+            )
+        );
+
+        //ALGAE EXTAKE
+        controller.getButtonB().onTrue(
+            Commands.sequence(
+                arm.setStateCommand(MinnowArm.State.UP),
+                roller.setStateCommand(MinnowRoller.State.ALGAE_EXTAKE)
+            )
+        );
     }
 
 
     public Command getAutonomousCommand() {
-       return null;
+        return Autos.moveForward(drivetrain, roller, arm);
     }
 
     // AUTOALIGN TO APRIL TAG

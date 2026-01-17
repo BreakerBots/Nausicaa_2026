@@ -66,6 +66,22 @@ public final class Constants {
         public static final double ROTATIONAL_DEADBAND = 0.1;
     }
 
+    // --------------- INTAKE --------------
+
+    public static class IntakeConstants {
+        public static final int EXTENDER_MOTOR_ID = 1;
+        public static final int ROLLER_MOTOR_ID = 2;
+        public static final Rotation2d POSITION_STOWED = Rotation2d.fromRotations(0.2);
+        public static final Rotation2d POSITION_EXTENDED = Rotation2d.fromRotations(0.2);
+        public static final Rotation2d POSITION_JIGGLE_HIGH = Rotation2d.fromRotations(0.2);
+        public static final Rotation2d POSITION_JIGGLE_LOW = Rotation2d.fromRotations(0.2);
+        public static final double SPEED_IDLE = 0;
+        public static final double SPEED_EXTAKE = 1;
+        public static final double SPEED_INTAKE = -1;
+
+    }
+
+
     // ---------------- ARM ----------------
 
     public static class ArmConstants {
@@ -79,7 +95,7 @@ public final class Constants {
         public static final Rotation2d POSITION_EXTAKE = Rotation2d.fromRotations(0.2); 
         public static final Rotation2d POSITION_STOW = Rotation2d.fromRotations(-5.0);
         public static final Rotation2d POSITION_DOWN = Rotation2d.fromRotations(-9.2);
-        public static final int ARM_MOTOR_ID = 43;
+        public static final int ARM_MOTOR_ID = 1;
         public static final double ARM_CURRENT_LIMIT = 60.0;
         public static final int BEAM_BREAK_DIO_PORT = 9;
 
