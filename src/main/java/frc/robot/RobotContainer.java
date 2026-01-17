@@ -26,6 +26,7 @@ import frc.robot.commands.Autos;
 import frc.robot.subsystems.MinnowArm;
 import frc.robot.subsystems.Drivetrain;
 import frc.robot.subsystems.Intake;
+import frc.robot.subsystems.Shooter;
 import frc.robot.subsystems.MinnowRoller;
 
 
@@ -41,6 +42,7 @@ public class RobotContainer {
     private final BreakerXboxController controller = new BreakerXboxController(Constants.OperatorConstants.kDriverControllerPort);
     private final Drivetrain drivetrain = new Drivetrain();
     private final Intake intake = new Intake();
+    private final Shooter shooter = new Shooter();
     
         
     private BreakerInputStream driverX, driverY, driverOmega;
@@ -94,32 +96,24 @@ public class RobotContainer {
         // ----------------- INTAKE STATES -------------
         
         //EXTENDED INTAKING
-        controller.getButtonX().onTrue(
-            Commands.sequence(
-                intake.setStateCommand(Intake.State.EXTENDED_INTAKING)
-            )
-        );
+        controller.getButtonX().onTrue(intake.setStateCommand(Intake.State.EXTENDED_INTAKING));
 
         //STOWED
-        controller.getButtonY().onTrue(
-            Commands.sequence(
-                intake.setStateCommand(Intake.State.STOWED)
-            )
-        );
+        controller.getButtonY().onTrue(intake.setStateCommand(Intake.State.STOWED));
 
         //EXTENDED IDLE
-        controller.getButtonA().onTrue(
-            Commands.sequence(
-                intake.setStateCommand(Intake.State.EXTENDED_IDLE)
-            )
-        );
+        controller.getButtonA().onTrue(intake.setStateCommand(Intake.State.EXTENDED_IDLE));
 
         //EXTENDED EXTAKING
-        controller.getButtonB().onTrue(
-            Commands.sequence(
-                intake.setStateCommand(Intake.State.EXTENDED_EXTAKING)
-            )
-        );
+        controller.getButtonB().onTrue(intake.setStateCommand(Intake.State.EXTENDED_EXTAKING));
+
+        // ----------------- SHOOTER STATES -------------
+
+        //INACTIVE
+        controller.getDPad().getDown().onTrue(shooter.setStateCommand(Shooter.State.INACTIVE));
+
+        //SHOOTING
+        controller.getDPad().getUp().onTrue(shooter.setStateCommand(Shooter.State.INACTIVE));
     }
 
 

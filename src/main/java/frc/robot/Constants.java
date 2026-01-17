@@ -81,6 +81,19 @@ public final class Constants {
 
     }
 
+    // --------------- SHOOTER --------------
+
+    public static class ShooterConstants {
+        public static final int SHOOTER_FLYWHEEL_1_MOTOR_ID = 3;
+        public static final int SHOOTER_FLYWHEEL_2_MOTOR_ID = 4;
+        public static final int KICKER_MOTOR_ID = 5;
+        public static final int TRAJECTORY_ADJUSTER_MOTOR_ID = 6;
+        public static final double SPEED_IDLE = 0;
+        public static final double SPEED_FLYWHEEL_1_ACTIVE = 0;
+        public static final double SPEED_FLYWHEEL_2_ACTIVE = 0;
+        public static final double SPEED_KICKER_ACTIVE = 0;
+
+    }
 
     // ---------------- ARM ----------------
 

@@ -56,7 +56,7 @@ public class Intake {
         State previousState = state;
         state = newState;
         setIntakePosition(state.getRotation2d().getRotations());
-        setRollerSpeed(state.getRotation2d().getRotations());
+        setRollerSpeed(state.getSpeed());
         
         // Log state change
         // System.out.println("Arm state changed from " + previousState.toString() + " to " + state.toString());
