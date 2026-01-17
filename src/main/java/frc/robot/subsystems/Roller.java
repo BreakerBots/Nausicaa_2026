@@ -14,7 +14,7 @@ import frc.robot.Constants;
  * Controls the motor-driven roller at the end of the robot's arm. 
  * Used to intake/extake game pieces (coral and algae).
  */
-public class MinnowRoller extends SubsystemBase {
+public class Roller extends SubsystemBase {
 
   private final TalonFX rollerMotor = new TalonFX(Constants.RollerConstants.ROLLER_MOTOR_ID, Constants.GeneralConstants.SUPERSTRUCTURE_CANIVORE_BUS);
 
@@ -65,7 +65,7 @@ public class MinnowRoller extends SubsystemBase {
       return Commands.runOnce(() -> setSpeed(speed));
   }
 
-  public MinnowRoller() {
+  public Roller() {
     
     // Configure our roller+ motor
       TalonFXConfiguration talonFXConfig = new TalonFXConfiguration();  

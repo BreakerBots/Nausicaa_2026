@@ -12,7 +12,7 @@ import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
 
-public class MinnowTestArm extends SubsystemBase {
+public class TestArm extends SubsystemBase {
 
     // Driven by a single motor
     private final TalonFX armMotor = new TalonFX(Constants.ArmConstants.ARM_MOTOR_ID, Constants.GeneralConstants.DRIVE_CANIVORE_BUS);
@@ -40,7 +40,7 @@ public class MinnowTestArm extends SubsystemBase {
     }
 
     
-    public MinnowTestArm() {
+    public TestArm() {
 
         // Configure our arm motor
         TalonFXConfiguration talonFXConfig = new TalonFXConfiguration();  

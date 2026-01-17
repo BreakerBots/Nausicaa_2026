@@ -23,11 +23,9 @@ import frc.robot.BreakerLib.driverstation.gamepad.controllers.BreakerXboxControl
 import frc.robot.BreakerLib.util.logging.BreakerLog;
 import frc.robot.BreakerLib.util.math.functions.BreakerLinearizedConstrainedExponential;
 import frc.robot.commands.Autos;
-import frc.robot.subsystems.MinnowArm;
+import frc.robot.subsystems.Arm;
 import frc.robot.subsystems.Drivetrain;
-import frc.robot.subsystems.Intake;
-import frc.robot.subsystems.Shooter;
-import frc.robot.subsystems.MinnowRoller;
+import frc.robot.subsystems.Roller;
 
 
 /**
@@ -41,9 +39,8 @@ public class RobotContainer {
     // The robot's subsystems and commands are defined here...
     private final BreakerXboxController controller = new BreakerXboxController(Constants.OperatorConstants.kDriverControllerPort);
     private final Drivetrain drivetrain = new Drivetrain();
-    private final Intake intake = new Intake();
-    private final Shooter shooter = new Shooter();
-    
+    private final Arm arm = new Arm();
+    private final Roller roller = new Roller();
         
     private BreakerInputStream driverX, driverY, driverOmega;
 
@@ -53,7 +50,7 @@ public class RobotContainer {
         // Flip this back on when debugging/troubleshooting
         BreakerLog.setVerboseLogging(false);
 
-        
+        arm.setRoller(roller);
         configureBindings();
     }
 
@@ -92,33 +89,71 @@ public class RobotContainer {
                 .negate();
     
         drivetrain.setDefaultCommand(drivetrain.getTeleopControlCommand(driverX, driverY, driverOmega, Constants.DriveConstants.TELEOP_CONTROL_CONFIG));
-    
-        // ----------------- INTAKE STATES -------------
-        
-        //EXTENDED INTAKING
-        controller.getButtonX().onTrue(intake.setStateCommand(Intake.State.EXTENDED_INTAKING));
 
-        //STOWED
-        controller.getButtonY().onTrue(intake.setStateCommand(Intake.State.STOWED));
+        controller.getDPad().getLeft().onTrue(rotateToTagCommand());
+        controller.getDPad().getRight().onTrue(rangeToTagCommand());
+        // TODO: Bind driveToTagCommand() to a controller button
+        // Example: controller.getButtonX().onTrue(driveToTagCommand());
 
-        //EXTENDED IDLE
-        controller.getButtonA().onTrue(intake.setStateCommand(Intake.State.EXTENDED_IDLE));
+        // ---------------- ARM ----------------
 
-        //EXTENDED EXTAKING
-        controller.getButtonB().onTrue(intake.setStateCommand(Intake.State.EXTENDED_EXTAKING));
+        //D-PAD UP/DOWN --> Manually move arm
+        controller.getDPad().getUp().whileTrue(Commands.runOnce(() -> arm.setVoltageOutput(0.1)));
+        controller.getDPad().getUp().onFalse(Commands.runOnce(() -> arm.setVoltageOutput(0.0)));
+        controller.getDPad().getDown().whileTrue(Commands.runOnce(() -> arm.setVoltageOutput(-0.1)));
+        controller.getDPad().getDown().onFalse(Commands.runOnce(() -> arm.setVoltageOutput(0.0)));
 
-        // ----------------- SHOOTER STATES -------------
+        //RIGHT BUMPER --> Set current position as home position
+        controller.getRightBumper().onTrue(Commands.runOnce(() -> arm.homePosition()));
 
-        //INACTIVE
-        controller.getDPad().getDown().onTrue(shooter.setStateCommand(Shooter.State.INACTIVE));
+        // ---------------- ROLLER ----------------
 
-        //SHOOTING
-        controller.getDPad().getUp().onTrue(shooter.setStateCommand(Shooter.State.INACTIVE));
+        //TRIGGERS --> Manually spin rollers
+        controller.getLeftTrigger().whileTrue(roller.setSpeedCommand(Constants.RollerConstants.ALGAE_INTAKE_SPEED));
+        controller.getLeftTrigger().onFalse(roller.setSpeedCommand(Constants.RollerConstants.IDLE_SPEED));
+        controller.getRightTrigger().whileTrue(roller.setSpeedCommand(Constants.RollerConstants.ALGAE_EXTAKE_SPEED));
+        controller.getRightTrigger().onFalse(roller.setSpeedCommand(Constants.RollerConstants.IDLE_SPEED));
+
+        // ---------------- STATES ----------------
+
+        //CORAL INTAKE
+        controller.getButtonX().onTrue(
+            Commands.sequence(
+                arm.setStateCommand(Arm.State.UP),
+                roller.setStateCommand(Roller.State.IDLE)
+            )
+        );
+
+        //CORAL EXTAKE
+        controller.getButtonY().onTrue(
+            Commands.sequence(
+                arm.setStateCommand(Arm.State.EXTAKE),
+                roller.setStateCommand(Roller.State.CORAL_EXTAKE),
+                Commands.waitSeconds(0.7),   // NEED TEST TODO
+                roller.setStateCommand(Roller.State.IDLE)
+            )
+        );
+
+        //ALGAE INTAKE
+        controller.getButtonA().onTrue(
+            Commands.sequence(
+                arm.setStateCommand(Arm.State.DOWN),
+                roller.setStateCommand(Roller.State.ALGAE_INTAKE)
+            )
+        );
+
+        //ALGAE EXTAKE
+        controller.getButtonB().onTrue(
+            Commands.sequence(
+                arm.setStateCommand(Arm.State.UP),
+                roller.setStateCommand(Roller.State.ALGAE_EXTAKE)
+            )
+        );
     }
 
 
     public Command getAutonomousCommand() {
-       return null;
+        return Autos.moveForward(drivetrain, roller, arm);
     }
 
     // AUTOALIGN TO APRIL TAG
