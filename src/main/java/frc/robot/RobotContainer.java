@@ -25,6 +25,7 @@ import frc.robot.BreakerLib.util.math.functions.BreakerLinearizedConstrainedExpo
 import frc.robot.commands.Autos;
 import frc.robot.subsystems.MinnowArm;
 import frc.robot.subsystems.Drivetrain;
+import frc.robot.subsystems.Intake;
 import frc.robot.subsystems.MinnowRoller;
 
 
@@ -39,6 +40,7 @@ public class RobotContainer {
     // The robot's subsystems and commands are defined here...
     private final BreakerXboxController controller = new BreakerXboxController(Constants.OperatorConstants.kDriverControllerPort);
     private final Drivetrain drivetrain = new Drivetrain();
+    private final Intake intake = new Intake();
     
         
     private BreakerInputStream driverX, driverY, driverOmega;
@@ -88,6 +90,36 @@ public class RobotContainer {
                 .negate();
     
         drivetrain.setDefaultCommand(drivetrain.getTeleopControlCommand(driverX, driverY, driverOmega, Constants.DriveConstants.TELEOP_CONTROL_CONFIG));
+    
+        // ----------------- INTAKE STATES -------------
+        
+        //EXTENDED INTAKING
+        controller.getButtonX().onTrue(
+            Commands.sequence(
+                intake.setStateCommand(Intake.State.EXTENDED_INTAKING)
+            )
+        );
+
+        //STOWED
+        controller.getButtonY().onTrue(
+            Commands.sequence(
+                intake.setStateCommand(Intake.State.STOWED)
+            )
+        );
+
+        //EXTENDED IDLE
+        controller.getButtonA().onTrue(
+            Commands.sequence(
+                intake.setStateCommand(Intake.State.EXTENDED_IDLE)
+            )
+        );
+
+        //EXTENDED EXTAKING
+        controller.getButtonB().onTrue(
+            Commands.sequence(
+                intake.setStateCommand(Intake.State.EXTENDED_EXTAKING)
+            )
+        );
     }
 
 
