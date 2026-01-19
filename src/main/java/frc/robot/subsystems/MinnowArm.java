@@ -19,12 +19,12 @@ import frc.robot.Constants;
 import frc.robot.BreakerLib.sensors.BreakerDigitalSensor;
 import frc.robot.BreakerLib.util.logging.BreakerLog;
 
-public class Arm extends SubsystemBase {
+public class MinnowArm extends SubsystemBase {
 
     // Driven by a single motor
     private final TalonFX armMotor = new TalonFX(Constants.ArmConstants.ARM_MOTOR_ID,
             Constants.GeneralConstants.SUPERSTRUCTURE_CANIVORE_BUS);
-    private Roller roller;
+    private MinnowRoller roller;
 
     private final BreakerDigitalSensor beamBreak = BreakerDigitalSensor.fromDIO(Constants.ArmConstants.BEAM_BREAK_DIO_PORT, false);
     
@@ -54,7 +54,7 @@ public class Arm extends SubsystemBase {
         }
     }
 
-    public Arm() {
+    public MinnowArm() {
         // Configure our arm motor
         TalonFXConfiguration talonFXConfig = new TalonFXConfiguration();
         talonFXConfig.MotorOutput.NeutralMode = NeutralModeValue.Brake;
@@ -104,7 +104,7 @@ public class Arm extends SubsystemBase {
         return Commands.runOnce(() -> armMotor.setPosition(0.0));
     }
 
-    public void setRoller(Roller roller) {
+    public void setRoller(MinnowRoller roller) {
         this.roller = roller;
     }
 
@@ -138,13 +138,13 @@ public class Arm extends SubsystemBase {
 
        if (state == State.DOWN && debouncer.calculate(beamBreak.isTriggered())) {
             BreakerLog.log("Arm/BeamBreakEvent", "Triggered!");
-            roller.setState(Roller.State.ALGAE_STOW);
+            roller.setState(MinnowRoller.State.ALGAE_STOW);
             setState(State.STOW); 
         }
 
-        if (roller.getState() == Roller.State.ALGAE_EXTAKE && state == State.UP && debouncer.calculate(!beamBreak.isTriggered())) {
+        if (roller.getState() == MinnowRoller.State.ALGAE_EXTAKE && state == State.UP && debouncer.calculate(!beamBreak.isTriggered())) {
             // BreakerLog.log("Arm/BeamBreakEvent", "Triggered!");
-            roller.setState(Roller.State.IDLE);
+            roller.setState(MinnowRoller.State.IDLE);
             setState(State.UP); 
         }
 

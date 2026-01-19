@@ -11,16 +11,16 @@ import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
-import frc.robot.subsystems.Arm;
+import frc.robot.subsystems.MinnowArm;
 import frc.robot.subsystems.Drivetrain;
-import frc.robot.subsystems.Roller;
-import frc.robot.subsystems.Roller.State;
+import frc.robot.subsystems.MinnowRoller;
+import frc.robot.subsystems.MinnowRoller.State;
 
 
 public final class Autos {
   /** Example static factory for an autonomous command. */
 
-  public static Command moveForward(Drivetrain drivetrain, Roller roller, Arm arm) {
+  public static Command moveForward(Drivetrain drivetrain, MinnowRoller roller, MinnowArm arm) {
     final var request = new SwerveRequest.FieldCentric().withDriveRequestType(DriveRequestType.Velocity);
 
     // Makes the auto run positive if red, negative if blue   (flip automation)
@@ -31,10 +31,10 @@ public final class Autos {
       Commands.runOnce(() -> drivetrain.setControl(request.withVelocityX(directionVelocity)), drivetrain),  // make this positive if red, negative if blue
       Commands.waitSeconds(6.5), // 2.2 for CENTER  |  3.05 for 10 ft(angle)  |  6.7 for 22 ft(taxi)   ALL TIMES FOR 1 METER PER SEC
       Commands.runOnce(() -> drivetrain.setControl(request.withVelocityX(0.0)), drivetrain),
-      Commands.runOnce(() -> arm.setStateCommand(Arm.State.EXTAKE)),
-      Commands.runOnce(() -> roller.setState(Roller.State.CORAL_EXTAKE)),
+      Commands.runOnce(() -> arm.setStateCommand(MinnowArm.State.EXTAKE)),
+      Commands.runOnce(() -> roller.setState(MinnowRoller.State.CORAL_EXTAKE)),
       Commands.waitSeconds(1.0),
-      Commands.runOnce(() -> roller.setState(Roller.State.IDLE))
+      Commands.runOnce(() -> roller.setState(MinnowRoller.State.IDLE))
 
     );
   }
