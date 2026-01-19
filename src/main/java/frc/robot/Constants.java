@@ -69,8 +69,8 @@ public final class Constants {
     // --------------- INTAKE --------------
 
     public static class IntakeConstants {
-        public static final int EXTENDER_MOTOR_ID = 21;
-        public static final int ROLLER_MOTOR_ID = 22;
+        public static final int EXTENDER_MOTOR_ID = 20;
+        public static final int ROLLER_MOTOR_ID = 21;
         public static final Rotation2d POSITION_STOWED = Rotation2d.fromRotations(0.2);
         public static final Rotation2d POSITION_EXTENDED = Rotation2d.fromRotations(0.2);
         public static final Rotation2d POSITION_JIGGLE_HIGH = Rotation2d.fromRotations(0.2);
@@ -84,10 +84,10 @@ public final class Constants {
     // --------------- SHOOTER --------------
 
     public static class ShooterConstants {
-        public static final int SHOOTER_FLYWHEEL_1_MOTOR_ID = 23;
-        public static final int SHOOTER_FLYWHEEL_2_MOTOR_ID = 24;
-        public static final int KICKER_MOTOR_ID = 25;
-        public static final int TRAJECTORY_ADJUSTER_MOTOR_ID = 26;
+        public static final int SHOOTER_FLYWHEEL_1_MOTOR_ID = 30;
+        public static final int SHOOTER_FLYWHEEL_2_MOTOR_ID = 31;
+        public static final int KICKER_MOTOR_ID = 32;
+        public static final int TRAJECTORY_ADJUSTER_MOTOR_ID = 33;
         public static final double SPEED_IDLE = 0;
         public static final double SPEED_FLYWHEEL_1_ACTIVE = 0;
         public static final double SPEED_FLYWHEEL_2_ACTIVE = 0;
@@ -95,7 +95,7 @@ public final class Constants {
 
     }
 
-    // ---------------- ARM ----------------
+    // ---------------- MINNOW ARM ----------------
 
     public static class ArmConstants {
         // Test arm
@@ -146,7 +146,7 @@ public final class Constants {
     }
 
 
-    // ---------------- ROLLER ----------------
+    // ---------------- MINNOW ROLLER ----------------
     public static class RollerConstants {
         public static final int ROLLER_MOTOR_ID = 24; 
         public static final double CORAL_EXTAKE_SPEED = 0.15; // -0.5
@@ -273,9 +273,9 @@ public final class Constants {
         private static final boolean kInvertRightSide = true;
         
         // Front Left
-        private static final int kFrontLeftDriveMotorId = 1;
-        private static final int kFrontLeftSteerMotorId = 2;
-        private static final int kFrontLeftEncoderId = 3;
+        private static final int kFrontLeftDriveMotorId = 8;
+        private static final int kFrontLeftSteerMotorId = 9;
+        private static final int kFrontLeftEncoderId = 10;
         private static final Angle kFrontLeftEncoderOffset = Rotations.of(0.20751953125);
         private static final boolean kFrontLeftSteerInvert = true;
         private static final boolean kFrontLeftEncoderInvert = false;
@@ -284,9 +284,9 @@ public final class Constants {
             Units.Inches.of(11.25 ));
 
         // Front Right
-        private static final int kFrontRightDriveMotorId = 4;
-        private static final int kFrontRightSteerMotorId = 5;
-        private static final int kFrontRightEncoderId = 6;
+        private static final int kFrontRightDriveMotorId = 11;
+        private static final int kFrontRightSteerMotorId = 12;
+        private static final int kFrontRightEncoderId = 13;
         private static final Angle kFrontRightEncoderOffset = Rotations.of(-0.321533203125);
         private static final boolean kFrontRightSteerInvert = true;
         private static final boolean kFrontRightEncoderInvert = false;
@@ -296,9 +296,9 @@ public final class Constants {
             Units.Inches.of(-11.25));
 
         // Back Left
-        private static final int kBackLeftDriveMotorId = 7;
-        private static final int kBackLeftSteerMotorId = 8;
-        private static final int kBackLeftEncoderId = 9;
+        private static final int kBackLeftDriveMotorId = 14;
+        private static final int kBackLeftSteerMotorId = 15;
+        private static final int kBackLeftEncoderId = 16;
         private static final Angle kBackLeftEncoderOffset = Rotation.of(0.12451171875);
         private static final boolean kBackLeftSteerInvert = true;
         private static final boolean kBackLeftEncoderInvert = false;
@@ -308,9 +308,9 @@ public final class Constants {
             Units.Inches.of(11.25));
 
         // Back Right
-        private static final int kBackRightDriveMotorId = 10;
-        private static final int kBackRightSteerMotorId = 11;
-        private static final int kBackRightEncoderId = 12;
+        private static final int kBackRightDriveMotorId = 17;
+        private static final int kBackRightSteerMotorId = 18;
+        private static final int kBackRightEncoderId = 19;
         private static final Angle kBackRightEncoderOffset = Rotations.of(-0.49658203125);
         private static final boolean kBackRightSteerInvert = true;
         private static final boolean kBackRightEncoderInvert = false;
