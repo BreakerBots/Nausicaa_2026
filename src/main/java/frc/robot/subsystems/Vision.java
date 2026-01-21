@@ -123,10 +123,19 @@ public class Vision extends SubsystemBase {
     Pose2d currentPose = drivetrain.getLocalizer().getPose();
     double poseDifference = visionPose.getTranslation().getDistance(currentPose.getTranslation());
     
-    // Only add vision measurement if it's within reasonable distance of current estimate
-    if (poseDifference > VisionConstants.MAX_POSE_DIFFERENCE) {
-        return; // Vision measurement seems unreliable
+    // If pose is at origin (or very close), reset with vision measurement instead of rejecting it
+    // This handles the initialization case where the robot starts at (0,0)
+    double distanceFromOrigin = currentPose.getTranslation().getDistance(new Translation2d(0, 0));
+    if (distanceFromOrigin < 0.1) {
+        // Robot is at origin, reset pose with vision measurement
+        drivetrain.getLocalizer().resetPose(visionPose);
+        return;
     }
+    
+    // Only add vision measurement if it's within reasonable distance of current estimate
+    //if (poseDifference > VisionConstants.MAX_POSE_DIFFERENCE) {
+    //    return; // Vision measurement seems unreliable
+    //}
 
     // Calculate timestamp accounting for latency
     // Latency is in milliseconds, convert to seconds
