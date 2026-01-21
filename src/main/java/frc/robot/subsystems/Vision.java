@@ -10,6 +10,8 @@ import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.Timer;
+import edu.wpi.first.wpilibj.smartdashboard.Field2d;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants.VisionConstants;
 import java.util.Optional;
@@ -21,6 +23,7 @@ public class Vision extends SubsystemBase {
   private final Drivetrain drivetrain;
   private final NetworkTable frontCameraData;
   private final NetworkTable backCameraData;
+  private final Field2d field;
 
   /** Creates a new Vision subsystem. */
   public Vision(Drivetrain drivetrain) {
@@ -30,6 +33,10 @@ public class Vision extends SubsystemBase {
       NetworkTableInstance ntInstance = NetworkTableInstance.getDefault();
       frontCameraData = ntInstance.getTable(VisionConstants.FRONT_CAMERA);
       backCameraData = ntInstance.getTable(VisionConstants.BACK_CAMERA);
+      
+      // Set up the field and start sending its info to Elastic
+      field = new Field2d();
+      SmartDashboard.putData("Vision/Field", field);
   }
 
   @Override
@@ -41,6 +48,10 @@ public class Vision extends SubsystemBase {
       // Process vision poses from both cameras
       updatePoseEstimate(frontCameraData, "front");
       updatePoseEstimate(backCameraData, "back");
+  
+      // Update the pose of the robot depicted on the dashboard field
+      Pose2d robotPose = drivetrain.getLocalizer().getPose();
+      field.getRobotObject().setPose(robotPose);
   }
   
   /**

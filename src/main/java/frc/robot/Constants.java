@@ -79,8 +79,8 @@ public final class Constants {
         public static final AprilTagFieldLayout kAprilTagFieldLayout = AprilTagFieldLayout.loadField(AprilTagFields.k2026RebuiltWelded);
 
         // Limelight 4 camera names (configured in Limelight UI)
-        public static final String FRONT_CAMERA = "limelight-front";
-        public static final String BACK_CAMERA = "limelight-back";
+        public static final String FRONT_CAMERA = "limelight-fr";
+        public static final String BACK_CAMERA = "limelight-bl";
         
         // Vision measurement standard deviations (x, y, theta)
         // Increase these values to trust vision measurements less
