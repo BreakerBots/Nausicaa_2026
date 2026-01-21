@@ -10,8 +10,6 @@ import com.ctre.phoenix6.swerve.SwerveRequest;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.networktables.NetworkTable;
-import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.units.Units;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
@@ -22,12 +20,10 @@ import frc.robot.BreakerLib.driverstation.BreakerInputStream2d;
 import frc.robot.BreakerLib.driverstation.gamepad.controllers.BreakerXboxController;
 import frc.robot.BreakerLib.util.logging.BreakerLog;
 import frc.robot.BreakerLib.util.math.functions.BreakerLinearizedConstrainedExponential;
-import frc.robot.commands.Autos;
-import frc.robot.subsystems.MinnowArm;
 import frc.robot.subsystems.Drivetrain;
 import frc.robot.subsystems.Intake;
 import frc.robot.subsystems.Shooter;
-import frc.robot.subsystems.MinnowRoller;
+import frc.robot.subsystems.Vision;
 
 
 /**
@@ -41,6 +37,7 @@ public class RobotContainer {
     // The robot's subsystems and commands are defined here...
     private final BreakerXboxController controller = new BreakerXboxController(Constants.OperatorConstants.kDriverControllerPort);
     private final Drivetrain drivetrain = new Drivetrain();
+    private final Vision vision = new Vision(drivetrain);
     private final Intake intake = new Intake();
     private final Shooter shooter = new Shooter();
     
@@ -121,158 +118,66 @@ public class RobotContainer {
        return null;
     }
 
-    // AUTOALIGN TO APRIL TAG
-    // TODO: Use PID controller for smooth alignment
-        
-    private Command rotateToTagCommand() {
-        NetworkTable limelight = NetworkTableInstance.getDefault().getTable("limelight");
-        final var request = new SwerveRequest.FieldCentric().withDriveRequestType(DriveRequestType.Velocity);
-
-        return Commands.run(() -> {
-            double xOffset = limelight.getEntry("tx").getDouble(0);
-            // double rotationalRate = (-xOffset * 3.14159265358) / 180;
-        
-            double rotationalRate = Math.copySign(0.5, xOffset);
-            drivetrain.setControl(request.withRotationalRate(rotationalRate));
-        }, drivetrain).until(() -> {
-            double xOffset = limelight.getEntry("tx").getDouble(0);
-            return Math.abs(xOffset) <= 1.0;
-        })
-        .andThen(Commands.runOnce(() -> {
-            drivetrain.setControl(request.withRotationalRate(0.0));
-        }, drivetrain));
-    }
-
-
-    // AUTODRIVE TO APRIL TAG
-
     /**
-     * Drives the robot toward the closest AprilTag using PID control for smooth alignment.
-     * Controls three axes simultaneously:
-     * - Rotation: Uses tx (horizontal offset) to rotate toward the tag
-     * - Lateral: Uses tx to strafe left/right to get directly in front of the tag
-     * - Forward/Backward: Uses tag area to control distance to the tag
-     * Stops when the robot is aligned (tx ≈ 0) and at the target distance.
+     * Rotates the robot to face the detected AprilTag using PID control.
+     * Uses the fused pose estimate (combines both cameras + IMU) for accurate field-relative targeting.
+     * Tries front camera first, falls back to back camera if front doesn't see a tag.
      */
-    private Command driveToTagCommand() {
-        NetworkTable limelight = NetworkTableInstance.getDefault().getTable("limelight");
+    private Command rotateToTagCommand() {
         final var request = new SwerveRequest.FieldCentric().withDriveRequestType(DriveRequestType.Velocity);
-    
-        // --- TOLERANCES / TARGETS: TUNE THESE ---
-
-        final double alignmentTolerance = 1.0; // degrees
-        final double distanceTolerance = 0.1;  // meters
-        final double targetTagArea = 0.8; // (larger = closer)
-        final double timeoutSeconds = 5.0;
-
-        // --- PID CONTROLLERS: TUNE THESE ---
-
-        // Rotation PID: controls rotation based on tx (horizontal offset in radians)
-        final PIDController rotationPID = new PIDController(1.15, 0.0, 0.06);
-        rotationPID.setTolerance(Math.toRadians(1.0));
         
-        // Lateral strafe PID: controls left/right movement based on linear lateral offset (meters)
-        final PIDController lateralPID = new PIDController(0.5, 0.0, 0.05);
-        lateralPID.setTolerance(0.05);
-        
-        // Forward PID: controls distance based on tag area
-        final PIDController forwardPID = new PIDController(0.1, 0.0, 0.01);
-        forwardPID.setTolerance(0.1);
-
+        // PID controller for smooth rotation alignment
+        // Tune these values: kP controls responsiveness, kD reduces overshoot
+        PIDController rotationPID = new PIDController(0.05, 0.0, 0.01);
+        rotationPID.setTolerance(Math.toRadians(1.0)); // 1 degree tolerance
+        rotationPID.enableContinuousInput(-Math.PI, Math.PI); // Handle wrap-around
 
         return Commands.run(() -> {
-
-            // If we lose sight of the tag, stop moving
-            double tagDetected = limelight.getEntry("tv").getDouble(0);
-            if (tagDetected < 1.0) {
-                drivetrain.setControl(request
-                    .withVelocityX(0.0)
-                    .withVelocityY(0.0)
-                    .withRotationalRate(0.0));
+            // Get tag ID from any camera
+            int tagId = vision.getDetectedTagId();
+            
+            // If no tag detected, stop rotation
+            if (tagId < 0) {
+                drivetrain.setControl(request.withRotationalRate(0.0));
                 return;
             }
             
-            // Get our current state...
-            Rotation2d heading = drivetrain.getLocalizer().getPose().getRotation(); // Where are we facing, relative to the field?
-            Rotation2d angleToTag = Rotation2d.fromDegrees(limelight.getEntry("tx").getDouble(0));
-            double tagArea = limelight.getEntry("ta").getDouble(0); 
-            double distanceToTag = 2.0 / Math.max(tagArea, 0.1); // meters, TUNE THIS
-
-            System.out.println(
-                "Heading: " + heading.getDegrees() + ", " + 
-                "Angle to Tag: " + angleToTag.getDegrees() + ", " + 
-                "Tag Area: " + tagArea + ", " + 
-                "Distance to Tag: " + distanceToTag);
-
-            // --- ROTATION ---
-
-            // Use our x-offset to calculate rotation rate and use PID
-            double rotationalRate = rotationPID.calculate(angleToTag.getRadians(), 0.0);
-
-
-            // --- STRAFE ---
-
-            // Estimate distance from tag area and convert angular offset to linear offset
-            double lateralDistance = distanceToTag * angleToTag.getTan(); // meters
+            // Calculate angle error using fused pose and field layout (uses both cameras + IMU)
+            double angleError = vision.getAngleToTag(tagId);
             
-            // Use strafe distance as error for lateral PID (setpoint = 0 means centered)
-            double lateralVelocity = lateralPID.calculate(lateralDistance, 0.0);
+            // Use PID controller to calculate rotational rate
+            // Setpoint is 0 (facing target), measurement is the angle error
+            double rotationalRate = rotationPID.calculate(0.0, angleError);
             
-            // Use trig to convert lateral (perpendicular to robot heading) velocity to field coordinates
-            Rotation2d lateralDirection = heading.plus(Rotation2d.fromDegrees(90));
-            double lateralX = lateralVelocity * lateralDirection.getCos();
-            double lateralY = lateralVelocity * lateralDirection.getSin();
+            // Clamp rotational rate to maximum
+            double maxRotRate = Constants.DriveConstants.MAXIMUM_ROTATIONAL_VELOCITY.in(Units.RadiansPerSecond);
+            rotationalRate = Math.max(-maxRotRate, Math.min(maxRotRate, rotationalRate));
             
-
-            // --- FORWARD ---
-
-            // Use tag area to calculate forward velocity using PID 
-            // Negative because the camera's mounted temporarily on the back of the robot
-            double forwardVelocity = -forwardPID.calculate(tagArea, targetTagArea);
-
-            // Use trig to convert forward velocity to field coordinates
-            double forwardX = forwardVelocity * heading.getCos();
-            double forwardY = forwardVelocity * heading.getSin();
-
-
-            // MOVE!
-
-            double velocityX = forwardX + lateralX;
-            double velocityY = forwardY + lateralY;
-
-            System.out.println("velocityX: " + velocityX + ", velocityY: " + velocityY + ", rotationalRate: " + rotationalRate);
-            
-            // Move toward tag (includes both forward and lateral components), and rotate to face it
+            // Apply rotation (field-centric, so no translation)
             drivetrain.setControl(request
-                .withVelocityX(velocityX)
-                .withVelocityY(velocityY)
+                .withVelocityX(0.0)
+                .withVelocityY(0.0)
                 .withRotationalRate(rotationalRate));
-
         }, drivetrain)
-        .withTimeout(timeoutSeconds)
-        .until(() -> { 
-            // If we lose sight of the tag, we're done
-            double tv = limelight.getEntry("tv").getDouble(0);
-            if (tv < 1.0) {;
-                System.out.println("We lost our AprilTag: bailing out!");
-                return true; 
+        .until(() -> {
+            // Check if any tag is still detected
+            if (!vision.isTagDetected()) {
+                return true; // Lost tag, stop command
             }
             
-            // When both aligned AND at target distance, we're done
-            double tx = limelight.getEntry("tx").getDouble(0);
-            double ta = limelight.getEntry("ta").getDouble(0);
-            boolean isAligned = Math.abs(tx) <= alignmentTolerance;
-            boolean isAtTargetDistance = Math.abs(ta - targetTagArea) <= distanceTolerance;
-            System.out.println(
-                "angleToTag: " + tx + "(isAligned? " + isAligned + "), " +
-                "tagArea: " + ta + "(isAtTargetDistance? " + isAtTargetDistance + ")");
-            return (isAligned && isAtTargetDistance);
+            // Get tag ID from any camera
+            int tagId = vision.getDetectedTagId();
+            if (tagId < 0) {
+                return true; // No tag detected
+            }
+            
+            // Check if we're aligned (within tolerance) using fused pose
+            double angleError = vision.getAngleToTag(tagId);
+            return Math.abs(angleError) <= Math.toRadians(1.0); // 1 degree tolerance
         })
         .finallyDo(() -> {
-            // Reset PID controllers and stop movement
+            // Reset PID and stop movement
             rotationPID.reset();
-            lateralPID.reset();
-            forwardPID.reset();
             drivetrain.setControl(request
                 .withVelocityX(0.0)
                 .withVelocityY(0.0)
@@ -280,29 +185,4 @@ public class RobotContainer {
         });
     }
 
-    private Command rangeToTagCommand() {
-        NetworkTable limelight = NetworkTableInstance.getDefault().getTable("limelight");
-        final var request = new SwerveRequest.FieldCentric().withDriveRequestType(DriveRequestType.Velocity);
-        
-        // We're using a negative here because we (temporarily) have the camera on the back of the robot
-        final double forwardVelocity = -0.5;
-
-        return Commands.run(() -> {
-            Rotation2d heading = drivetrain.getLocalizer().getPose().getRotation();
-            
-            // Convert robot-relative forward velocity to field-relative X and Y using trig
-            // since SwerveRequest.FieldCentric uses field-relative coordinates
-            double velocityX = forwardVelocity * heading.getCos();
-            double velocityY = forwardVelocity * heading.getSin();
-
-            drivetrain.setControl(request.withVelocityX(velocityX).withVelocityY(velocityY));
-
-        }, drivetrain).until(() -> {
-            double tagArea = limelight.getEntry("ta").getDouble(0);
-            return tagArea >= 0.8;
-        })
-        .andThen(Commands.runOnce(() -> {
-            drivetrain.setControl(request.withVelocityX(0.0).withVelocityY(0.0));
-        }, drivetrain));
-    }
 }

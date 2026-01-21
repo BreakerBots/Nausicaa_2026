@@ -24,8 +24,14 @@ import com.ctre.phoenix6.swerve.SwerveModuleConstants.SteerMotorArrangement;
 import com.ctre.phoenix6.swerve.SwerveModuleConstantsFactory;
 import com.pathplanner.lib.config.PIDConstants;
 
+import edu.wpi.first.apriltag.AprilTagFieldLayout;
+import edu.wpi.first.apriltag.AprilTagFields;
+import edu.wpi.first.math.Matrix;
+import edu.wpi.first.math.VecBuilder;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.math.numbers.N3;
+import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.units.Units;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.AngularVelocity;
@@ -66,6 +72,29 @@ public final class Constants {
         public static final double ROTATIONAL_DEADBAND = 0.1;
     }
 
+    // ---------------- VISION ----------------
+
+    public static class VisionConstants {
+
+        public static final AprilTagFieldLayout kAprilTagFieldLayout = AprilTagFieldLayout.loadField(AprilTagFields.k2026RebuiltWelded);
+
+        // Limelight 4 camera names (configured in Limelight UI)
+        public static final String FRONT_CAMERA = "limelight-front";
+        public static final String BACK_CAMERA = "limelight-back";
+        
+        // Vision measurement standard deviations (x, y, theta)
+        // Increase these values to trust vision measurements less
+        // Units: meters for x/y, radians for theta
+        public static final Matrix<N3, N1> VISION_STD_DEVS = 
+            VecBuilder.fill(0.5, 0.5, 0.5);
+        
+        // Minimum number of tags required to trust a vision measurement
+        public static final int MIN_TAG_COUNT = 1;
+        
+        // Maximum pose difference from current estimate to accept vision measurement (meters)
+        public static final double MAX_POSE_DIFFERENCE = 1.0;
+    }
+
     // --------------- INTAKE --------------
 
     public static class IntakeConstants {
@@ -78,7 +107,6 @@ public final class Constants {
         public static final double SPEED_IDLE = 0;
         public static final double SPEED_EXTAKE = 1;
         public static final double SPEED_INTAKE = -1;
-
     }
 
     // --------------- SHOOTER --------------
@@ -92,7 +120,6 @@ public final class Constants {
         public static final double SPEED_FLYWHEEL_1_ACTIVE = 0;
         public static final double SPEED_FLYWHEEL_2_ACTIVE = 0;
         public static final double SPEED_KICKER_ACTIVE = 0;
-
     }
 
     // ---------------- MINNOW ARM ----------------
