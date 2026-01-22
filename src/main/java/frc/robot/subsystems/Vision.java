@@ -12,6 +12,7 @@ import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants.VisionConstants;
 import java.util.Optional;
@@ -24,6 +25,11 @@ public class Vision extends SubsystemBase {
   private final NetworkTable frontCameraData;
   private final NetworkTable backCameraData;
   private final Field2d field;
+  
+  // Store latest vision poses for visualization
+  private Pose2d fusedPose = null;
+  private Pose2d frontCameraPose = null;
+  private Pose2d backCameraPose = null;
 
   /** Creates a new Vision subsystem. */
   public Vision(Drivetrain drivetrain) {
@@ -37,6 +43,9 @@ public class Vision extends SubsystemBase {
       // Set up the field and start sending its info to Elastic
       field = new Field2d();
       SmartDashboard.putData("Vision/Field", field);
+      
+      // Register this subsystem with CommandScheduler so periodic() is called
+      CommandScheduler.getInstance().registerSubsystem(this);
   }
 
   @Override
@@ -46,12 +55,20 @@ public class Vision extends SubsystemBase {
       sendRobotOrientationToLimelight(backCameraData);
       
       // Process vision poses from both cameras
-      updatePoseEstimate(frontCameraData, "front");
-      updatePoseEstimate(backCameraData, "back");
+      updatePoseEstimate(frontCameraData, "front_camera");
+      updatePoseEstimate(backCameraData, "back_camera");
   
-      // Update the pose of the robot depicted on the dashboard field
-      Pose2d robotPose = drivetrain.getLocalizer().getPose();
-      field.getRobotObject().setPose(robotPose);
+      // Update Field2d with all poses (fused, and one for each camera) for Elastic dashboard visualization
+      fusedPose = drivetrain.getLocalizer().getPose();
+      field.getRobotObject().setPose(fusedPose); // Fused pose (odometry + vision)
+      
+      // Add camera poses to field visualization
+      if (frontCameraPose != null) {
+          field.getObject("front_camera").setPose(frontCameraPose);
+      }
+      if (backCameraPose != null) {
+          field.getObject("back_camera").setPose(backCameraPose);
+      }
   }
   
   /**
@@ -113,6 +130,13 @@ public class Vision extends SubsystemBase {
 
     // Create pose from vision data (using x, y, and yaw)
     Pose2d visionPose = new Pose2d(x, y, Rotation2d.fromDegrees(yaw));
+    
+    // Store vision pose for visualization
+    if (cameraName.equals("front_camera")) {
+        frontCameraPose = visionPose;
+    } else {
+        backCameraPose = visionPose;
+    }
 
     // Only use vision data if we have enough tags
     if (tagCount < VisionConstants.MIN_TAG_COUNT) {
@@ -122,15 +146,6 @@ public class Vision extends SubsystemBase {
     // Get current pose estimate to check if vision measurement is reasonable
     Pose2d currentPose = drivetrain.getLocalizer().getPose();
     double poseDifference = visionPose.getTranslation().getDistance(currentPose.getTranslation());
-    
-    // If pose is at origin (or very close), reset with vision measurement instead of rejecting it
-    // This handles the initialization case where the robot starts at (0,0)
-    double distanceFromOrigin = currentPose.getTranslation().getDistance(new Translation2d(0, 0));
-    if (distanceFromOrigin < 0.1) {
-        // Robot is at origin, reset pose with vision measurement
-        drivetrain.getLocalizer().resetPose(visionPose);
-        return;
-    }
     
     // Only add vision measurement if it's within reasonable distance of current estimate
     //if (poseDifference > VisionConstants.MAX_POSE_DIFFERENCE) {
