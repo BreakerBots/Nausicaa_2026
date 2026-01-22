@@ -30,9 +30,6 @@ public class Vision extends SubsystemBase {
   private Pose2d fusedPose = null;
   private Pose2d frontCameraPose = null;
   private Pose2d backCameraPose = null;
-  
-  // Track if we've initialized the pose estimator with vision
-  private boolean poseInitialized = false;
 
   /** Creates a new Vision subsystem. */
   public Vision(Drivetrain drivetrain) {
@@ -146,26 +143,11 @@ public class Vision extends SubsystemBase {
         return;
     }
 
-    // Get current pose estimate
-    Pose2d currentPose = drivetrain.getLocalizer().getPose();
-    double distanceFromOrigin = currentPose.getTranslation().getDistance(new Translation2d(0, 0));
-    
-    // If pose is at origin and we haven't initialized yet, reset with vision measurement
-    // This allows localization to work even when the robot isn't moving
-    if (!poseInitialized && distanceFromOrigin < 0.1) {
-        drivetrain.getLocalizer().resetPose(visionPose);
-        poseInitialized = true;
-        return; // Pose reset, no need to add vision measurement
-    }
-    
-    // After initialization, check if vision measurement is reasonable
-    // Skip validation if we're still at origin (allows re-initialization if pose gets reset)
-    if (distanceFromOrigin >= 0.1) {
-        double poseDifference = visionPose.getTranslation().getDistance(currentPose.getTranslation());
-        if (poseDifference > VisionConstants.MAX_POSE_DIFFERENCE) {
-            return; // Vision measurement seems unreliable
-        }
-    }
+    // Only add vision measurement if it's within reasonable distance of current estimate
+    //double poseDifference = visionPose.getTranslation().getDistance(currentPose.getTranslation());
+    //if (poseDifference > VisionConstants.MAX_POSE_DIFFERENCE) {
+    //    return; // Vision measurement seems unreliable
+    //}
 
     // Calculate timestamp accounting for latency
     // Latency is in milliseconds, convert to seconds
@@ -173,7 +155,6 @@ public class Vision extends SubsystemBase {
 
     // Add vision measurement to pose estimator
     drivetrain.addVisionMeasurement(visionPose, timestampSeconds, VisionConstants.VISION_STD_DEVS);
-    poseInitialized = true; // Mark as initialized after first successful vision measurement
   }
 
   /**
