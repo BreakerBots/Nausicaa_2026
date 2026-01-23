@@ -7,8 +7,6 @@ import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableInstance;
-import edu.wpi.first.wpilibj.DriverStation;
-import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
@@ -123,14 +121,10 @@ public class Vision extends SubsystemBase {
      * estimate.
      */
     private void updatePoseEstimate(NetworkTable cameraData, String cameraName) {
-        // Determine which pose entry to use based on alliance
+        // Always use blue alliance coordinate system
+        // PathPlanner and other systems will handle alliance flipping internally
         // The "orb" (orientation-based robot pose) here means we're using MegaTag2
-        String poseEntryName;
-        if (DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Blue) {
-            poseEntryName = "botpose_orb_wpiblue";
-        } else {
-            poseEntryName = "botpose_orb_wpired";
-        }
+        String poseEntryName = "botpose_orb_wpiblue";
 
         // Get pose data array from Limelight
         // Format: [x, y, z, roll, pitch, yaw, latency, tagCount]
@@ -169,6 +163,19 @@ public class Vision extends SubsystemBase {
             logRejection(cameraName,
                     String.format("Insufficient tags (got %.0f, need %d)", tagCount, VisionConstants.MIN_TAG_COUNT));
             return;
+        }
+
+        // Reject vision measurements during very fast rotation (angular velocity > 720 deg/s)
+        // Vision measurements are unreliable during fast spins
+        try {
+            var pigeon = drivetrain.getPigeon2();
+            double angularVelocityDegPerSec = Math.abs(pigeon.getAngularVelocityZWorld().getValueAsDouble());
+            if (angularVelocityDegPerSec > 720.0) {
+                logRejection(cameraName, String.format("Angular velocity too high (%.1f deg/s > 720 deg/s)", angularVelocityDegPerSec));
+                return;
+            }
+        } catch (Exception e) {
+            // If Pigeon is not available, skip angular velocity check
         }
 
         // Get current pose estimate
