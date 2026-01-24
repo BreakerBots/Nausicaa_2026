@@ -15,6 +15,7 @@ import com.ctre.phoenix6.configs.MotorOutputConfigs;
 import com.ctre.phoenix6.configs.Pigeon2Configuration;
 import com.ctre.phoenix6.configs.Slot0Configs;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
+import com.ctre.phoenix6.configs.MountPoseConfigs;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 import com.ctre.phoenix6.swerve.SwerveModuleConstants;
 import com.ctre.phoenix6.swerve.SwerveModuleConstants.ClosedLoopOutputType;
@@ -255,8 +256,11 @@ public final class Constants {
                     .withStatorCurrentLimit(60)
                     .withStatorCurrentLimitEnable(true));
         private static final CANcoderConfiguration cancoderInitialConfigs = new CANcoderConfiguration();
-        // Configs for the Pigeon 2; leave this null to skip applying Pigeon 2 configs
-        private static final Pigeon2Configuration pigeonConfigs = null;
+        // Configs for the Pigeon 2
+        // MountPose: Configure the mounting orientation of the Pigeon 2
+        // Yaw180 = 180 degree rotation around Z-axis (yaw)
+        private static final Pigeon2Configuration pigeonConfigs = 
+            new Pigeon2Configuration().withMountPose(new MountPoseConfigs().withMountPoseYaw(180.0));
 
         // Theoretical free speed (m/s) at 12v applied output;
         // This needs to be tuned to your individual robot

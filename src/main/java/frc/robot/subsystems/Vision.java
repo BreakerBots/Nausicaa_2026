@@ -337,6 +337,30 @@ public class Vision extends SubsystemBase {
         double accelY = pigeon.getAccelerationY().getValueAsDouble();
         SmartDashboard.putNumber("IMU/Accel_X", accelX);
         SmartDashboard.putNumber("IMU/Accel_Y", accelY);
+        
+        // Log chassis speeds to diagnose odometry direction issues
+        var chassisSpeeds = drivetrain.getChassisSpeeds();
+        SmartDashboard.putNumber("Odometry/VelocityX_mps", chassisSpeeds.vxMetersPerSecond);
+        SmartDashboard.putNumber("Odometry/VelocityY_mps", chassisSpeeds.vyMetersPerSecond);
+        SmartDashboard.putNumber("Odometry/VelocityOmega_radps", chassisSpeeds.omegaRadiansPerSecond);
+        
+        // Compare vision pose vs fused pose to diagnose coordinate frame issues
+        if (frontCameraPose != null && fusedPose != null) {
+            double visionX = frontCameraPose.getX();
+            double visionY = frontCameraPose.getY();
+            double fusedX = fusedPose.getX();
+            double fusedY = fusedPose.getY();
+            
+            double diffX = visionX - fusedX;
+            double diffY = visionY - fusedY;
+            
+            SmartDashboard.putNumber("Diagnostics/VisionX", visionX);
+            SmartDashboard.putNumber("Diagnostics/VisionY", visionY);
+            SmartDashboard.putNumber("Diagnostics/FusedX", fusedX);
+            SmartDashboard.putNumber("Diagnostics/FusedY", fusedY);
+            SmartDashboard.putNumber("Diagnostics/DiffX", diffX);
+            SmartDashboard.putNumber("Diagnostics/DiffY", diffY);
+        }
     }
 
     /**
