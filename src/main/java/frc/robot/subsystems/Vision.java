@@ -357,26 +357,36 @@ public class Vision extends SubsystemBase {
     private int[] getTagIds(NetworkTable cameraData) {
         var tidEntry = cameraData.getEntry("tid");
         
-        // Try to read as array first (multiple tags)
-        double[] tidArray = tidEntry.getDoubleArray(new double[0]);
-        
-        // If array is empty, try reading as single number (one tag)
-        if (tidArray.length == 0) {
-            double singleTid = tidEntry.getDouble(-1);
-            if (singleTid >= 0) {
-                // Single tag detected, return as array with one element
-                return new int[] { (int) singleTid };
-            }
-            // No tag detected
+        // Check if entry exists
+        if (!tidEntry.exists()) {
             return new int[0];
         }
         
-        // Multiple tags detected, convert array
-        int[] tagIds = new int[tidArray.length];
-        for (int i = 0; i < tidArray.length; i++) {
-            tagIds[i] = (int) tidArray[i];
+        // Get the raw value to check its type
+        var value = tidEntry.getValue();
+        if (value == null) {
+            return new int[0];
         }
-        return tagIds;
+        
+        // Check the value type and extract accordingly
+        if (value.isDoubleArray()) {
+            double[] values = value.getDoubleArray();
+            if (values.length > 0) {
+                int[] tagIds = new int[values.length];
+                for (int i = 0; i < values.length; i++) {
+                    tagIds[i] = (int) values[i];
+                }
+                return tagIds;
+            }
+        } else if (value.isDouble()) {
+            double singleValue = value.getDouble();
+            if (singleValue >= 1) {
+                return new int[] { (int) singleValue };
+            }
+        }
+        
+        // No tag detected
+        return new int[0];
     }
 
     /**
