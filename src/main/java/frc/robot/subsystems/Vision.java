@@ -5,6 +5,7 @@ import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
@@ -143,7 +144,23 @@ public class Vision extends SubsystemBase {
         
         // Check if we have valid pose data
         if (estimate == null) {
-            logRejection(cameraDisplayName, "No pose data available");
+            // Diagnostic: Check if botpose_orb_wpiblue entry exists and what it contains
+            var ntInstance = NetworkTableInstance.getDefault();
+            var cameraTable = ntInstance.getTable(cameraName);
+            var botposeEntry = cameraTable.getEntry("botpose_orb_wpiblue");
+            double[] botposeArray = botposeEntry.getDoubleArray(new double[0]);
+            
+            String diagnosticMsg = String.format("No pose data (botpose_orb_wpiblue length=%d)", botposeArray.length);
+            if (botposeArray.length == 0) {
+                // Check if standard botpose exists (not MegaTag2)
+                double[] standardBotpose = cameraTable.getEntry("botpose_wpiblue").getDoubleArray(new double[0]);
+                if (standardBotpose.length > 0) {
+                    diagnosticMsg += " - Standard botpose exists but MegaTag2 (botpose_orb_wpiblue) is empty. Is MegaTag2 enabled?";
+                } else {
+                    diagnosticMsg += " - No pose data available. Check camera configuration.";
+                }
+            }
+            logRejection(cameraDisplayName, diagnosticMsg);
             return;
         }
 
@@ -314,6 +331,12 @@ public class Vision extends SubsystemBase {
         
         double yawDeg = Math.toDegrees(rotation.getZ());
         SmartDashboard.putNumber("IMU/Yaw_Deg", yawDeg);
+        
+        // Get accelerometer data (m/s²)
+        double accelX = pigeon.getAccelerationX().getValueAsDouble();
+        double accelY = pigeon.getAccelerationY().getValueAsDouble();
+        SmartDashboard.putNumber("IMU/Accel_X", accelX);
+        SmartDashboard.putNumber("IMU/Accel_Y", accelY);
     }
 
     /**
