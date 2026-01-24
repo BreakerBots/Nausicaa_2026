@@ -348,9 +348,26 @@ public class Vision extends SubsystemBase {
 
     /**
      * Gets tag IDs from a camera's NetworkTable.
+     * Handles both single number and array formats from Limelight.
      */
     private int[] getTagIds(NetworkTable cameraData) {
-        double[] tidArray = cameraData.getEntry("tid").getDoubleArray(new double[0]);
+        var tidEntry = cameraData.getEntry("tid");
+        
+        // Try to read as array first (multiple tags)
+        double[] tidArray = tidEntry.getDoubleArray(new double[0]);
+        
+        // If array is empty, try reading as single number (one tag)
+        if (tidArray.length == 0) {
+            double singleTid = tidEntry.getDouble(-1);
+            if (singleTid >= 0) {
+                // Single tag detected, return as array with one element
+                return new int[] { (int) singleTid };
+            }
+            // No tag detected
+            return new int[0];
+        }
+        
+        // Multiple tags detected, convert array
         int[] tagIds = new int[tidArray.length];
         for (int i = 0; i < tidArray.length; i++) {
             tagIds[i] = (int) tidArray[i];
