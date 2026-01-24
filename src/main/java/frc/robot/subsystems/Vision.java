@@ -100,6 +100,7 @@ public class Vision extends SubsystemBase {
         double currentTime = Timer.getFPGATimestamp();
         if (currentTime - lastLogTime >= 1.0) {
             logVisionData();
+            logIMUData();
             lastLogTime = currentTime;
         }
     }
@@ -301,6 +302,18 @@ public class Vision extends SubsystemBase {
             return -1.0; // Tag not found
         }
         return getDistanceToTarget(tagPosition);
+    }
+
+    /**
+     * Logs IMU data to NetworkTables for diagnostics.
+     * This helps determine if the IMU mounting orientation needs to be configured.
+     */
+    private void logIMUData() {
+        var pigeon = drivetrain.getPigeon2();
+        Rotation3d rotation = pigeon.getRotation3d();
+        
+        double yawDeg = Math.toDegrees(rotation.getZ());
+        SmartDashboard.putNumber("IMU/Yaw_Deg", yawDeg);
     }
 
     /**
