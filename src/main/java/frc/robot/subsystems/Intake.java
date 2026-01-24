@@ -12,10 +12,10 @@ import frc.robot.BreakerLib.util.logging.BreakerLog;
 
 public class Intake {
     private final TalonFX extenderMotor = new TalonFX(Constants.IntakeConstants.EXTENDER_MOTOR_ID,
-            Constants.GeneralConstants.SUPERSTRUCTURE_CANIVORE_BUS);
+            Constants.GeneralConstants.DRIVE_CANIVORE_BUS);
 
     private final TalonFX rollerMotor = new TalonFX(Constants.IntakeConstants.ROLLER_MOTOR_ID,
-            Constants.GeneralConstants.SUPERSTRUCTURE_CANIVORE_BUS);
+            Constants.GeneralConstants.DRIVE_CANIVORE_BUS);
     
     public State state = State.STOWED;
 

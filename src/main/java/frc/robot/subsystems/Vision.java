@@ -14,6 +14,7 @@ import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants.VisionConstants;
 import java.util.Optional;
+import dev.doglog.DogLog;
 
 /**
  * Vision subsystem for handling two LimeLight4 (LL4) cameras for localization.
@@ -77,6 +78,9 @@ public class Vision extends SubsystemBase {
         if (backCameraPose != null) {
             field.getObject("back_camera").setPose(backCameraPose);
         }
+
+        // Try logging a Pose2d type
+        DogLog.log("robot_pose", fusedPose);
 
         // Log vision data once per second
         double currentTime = Timer.getFPGATimestamp();

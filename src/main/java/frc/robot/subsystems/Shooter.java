@@ -12,16 +12,16 @@ import frc.robot.BreakerLib.util.logging.BreakerLog;
 
 public class Shooter {
     private final TalonFX shooterFlywheel1Motor = new TalonFX(Constants.ShooterConstants.SHOOTER_FLYWHEEL_1_MOTOR_ID,
-            Constants.GeneralConstants.SUPERSTRUCTURE_CANIVORE_BUS);
+            Constants.GeneralConstants.DRIVE_CANIVORE_BUS);
 
     private final TalonFX shooterFlywheel2Motor = new TalonFX(Constants.ShooterConstants.SHOOTER_FLYWHEEL_2_MOTOR_ID,
-            Constants.GeneralConstants.SUPERSTRUCTURE_CANIVORE_BUS);
+            Constants.GeneralConstants.DRIVE_CANIVORE_BUS);
 
     private final TalonFX kickerMotor = new TalonFX(Constants.ShooterConstants.KICKER_MOTOR_ID,
-            Constants.GeneralConstants.SUPERSTRUCTURE_CANIVORE_BUS);
+            Constants.GeneralConstants.DRIVE_CANIVORE_BUS);
 
     private final TalonFX trajectoryAdjusterMotor = new TalonFX(Constants.ShooterConstants.TRAJECTORY_ADJUSTER_MOTOR_ID,
-            Constants.GeneralConstants.SUPERSTRUCTURE_CANIVORE_BUS);
+            Constants.GeneralConstants.DRIVE_CANIVORE_BUS);
     
     public State state = State.INACTIVE;
 
