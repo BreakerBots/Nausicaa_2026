@@ -206,8 +206,13 @@ public final class Constants {
         public static final TeleopControlConfig TELEOP_CONTROL_CONFIG = new TeleopControlConfig();
             // .withHeadingCompensation(HEADING_COMPENSATION_CONFIG);
         // .withSetpointGeneration(SETPOINT_GENERATION_CONFIG);
-        public static final LinearVelocity MAXIMUM_TRANSLATIONAL_VELOCITY = Units.MetersPerSecond.of(4.5);
-        public static final AngularVelocity MAXIMUM_ROTATIONAL_VELOCITY = Units.RadiansPerSecond.of(9.5);
+        
+        // Let's slow down for testing
+        public static final LinearVelocity MAXIMUM_TRANSLATIONAL_VELOCITY = Units.MetersPerSecond.of(1.0);
+        public static final AngularVelocity MAXIMUM_ROTATIONAL_VELOCITY = Units.RadiansPerSecond.of(2.0);
+        //public static final LinearVelocity MAXIMUM_TRANSLATIONAL_VELOCITY = Units.MetersPerSecond.of(4.5);
+        //public static final AngularVelocity MAXIMUM_ROTATIONAL_VELOCITY = Units.RadiansPerSecond.of(9.5);
+
         // The steer motor uses any SwerveModule.SteerRequestType control request with
         // the output type specified by SwerveModuleConstants.SteerMotorClosedLoopOutput
         private static final Slot0Configs steerGains = new Slot0Configs()
