@@ -82,6 +82,12 @@ public final class Constants {
         public static final String FRONT_CAMERA = "limelight-fr";
         public static final String BACK_CAMERA = "limelight-bl";
         
+        // Camera pose relative to robot center (meters, degrees)
+        // Format: [forward, side, up, roll, pitch, yaw]
+        // TODO: Measure and configure actual camera positions
+        public static final double[] FRONT_CAMERA_POSE = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
+        public static final double[] BACK_CAMERA_POSE = {0.0, 0.0, 0.0, 0.0, 0.0, 180.0};
+        
         // Vision measurement standard deviations (x, y, theta)
         // Increase these values to trust vision measurements less
         // Units: meters for x/y, radians for theta

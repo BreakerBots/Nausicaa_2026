@@ -5,14 +5,14 @@ import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Translation2d;
-import edu.wpi.first.networktables.NetworkTable;
-import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants.VisionConstants;
+import frc.robot.LimelightHelpers;
+import frc.robot.LimelightHelpers.PoseEstimate;
 import java.util.Optional;
 import dev.doglog.DogLog;
 
@@ -21,14 +21,16 @@ import dev.doglog.DogLog;
  */
 public class Vision extends SubsystemBase {
     private final Drivetrain drivetrain;
-    private final NetworkTable frontCameraData;
-    private final NetworkTable backCameraData;
     private final Field2d field;
 
     // Store latest vision poses for visualization
     private Pose2d fusedPose = null;
     private Pose2d frontCameraPose = null;
     private Pose2d backCameraPose = null;
+    
+    // Store latest pose estimates for metadata
+    private PoseEstimate frontCameraEstimate = null;
+    private PoseEstimate backCameraEstimate = null;
 
     // Timer for periodic logging (once per second)
     private double lastLogTime = 0.0;
@@ -36,19 +38,31 @@ public class Vision extends SubsystemBase {
     // Track measurement acceptance/rejection status for each camera
     private String frontCameraStatus = "No data";
     private String backCameraStatus = "No data";
-    private double frontCameraLatency = 0.0;
-    private double backCameraLatency = 0.0;
-    private double frontCameraTimestamp = 0.0;
-    private double backCameraTimestamp = 0.0;
 
     /** Creates a new Vision subsystem. */
     public Vision(Drivetrain drivetrain) {
         this.drivetrain = drivetrain;
 
-        // Get NetworkTables for both Limelight 4 cameras
-        NetworkTableInstance ntInstance = NetworkTableInstance.getDefault();
-        frontCameraData = ntInstance.getTable(VisionConstants.FRONT_CAMERA);
-        backCameraData = ntInstance.getTable(VisionConstants.BACK_CAMERA);
+        // Configure camera poses relative to robot center
+        LimelightHelpers.setCameraPose_RobotSpace(
+            VisionConstants.FRONT_CAMERA,
+            VisionConstants.FRONT_CAMERA_POSE[0], // forward
+            VisionConstants.FRONT_CAMERA_POSE[1], // side
+            VisionConstants.FRONT_CAMERA_POSE[2], // up
+            VisionConstants.FRONT_CAMERA_POSE[3], // roll
+            VisionConstants.FRONT_CAMERA_POSE[4], // pitch
+            VisionConstants.FRONT_CAMERA_POSE[5]  // yaw
+        );
+        
+        LimelightHelpers.setCameraPose_RobotSpace(
+            VisionConstants.BACK_CAMERA,
+            VisionConstants.BACK_CAMERA_POSE[0], // forward
+            VisionConstants.BACK_CAMERA_POSE[1], // side
+            VisionConstants.BACK_CAMERA_POSE[2], // up
+            VisionConstants.BACK_CAMERA_POSE[3], // roll
+            VisionConstants.BACK_CAMERA_POSE[4], // pitch
+            VisionConstants.BACK_CAMERA_POSE[5]  // yaw
+        );
 
         // Set up the field and start sending its info to Elastic
         field = new Field2d();
@@ -61,12 +75,12 @@ public class Vision extends SubsystemBase {
     @Override
     public void periodic() {
         // Send robot orientation (IMU data) to Limelights for MegaTag2
-        sendRobotOrientationToLimelight(frontCameraData);
-        sendRobotOrientationToLimelight(backCameraData);
+        sendRobotOrientationToLimelight(VisionConstants.FRONT_CAMERA);
+        sendRobotOrientationToLimelight(VisionConstants.BACK_CAMERA);
 
         // Process vision poses from both cameras
-        updatePoseEstimate(frontCameraData, "front_camera");
-        updatePoseEstimate(backCameraData, "back_camera");
+        updatePoseEstimate(VisionConstants.FRONT_CAMERA, "front_camera");
+        updatePoseEstimate(VisionConstants.BACK_CAMERA, "back_camera");
 
         // Update Field2d with all poses (fused, and one for each camera) for Elastic
         // dashboard visualization
@@ -94,26 +108,24 @@ public class Vision extends SubsystemBase {
      * Robot → Limelight
      * Sends robot IMU orientation data to Limelight for MegaTag2 pose estimation.
      */
-    private void sendRobotOrientationToLimelight(NetworkTable cameraData) {
+    private void sendRobotOrientationToLimelight(String cameraName) {
         try {
             // Get Pigeon IMU data
             var pigeon = drivetrain.getPigeon2();
             Rotation3d rotation = pigeon.getRotation3d();
 
             // Get angular velocities (degrees per second)
-            double yawRate = pigeon.getAngularVelocityZWorld().getValueAsDouble();
-            double pitchRate = pigeon.getAngularVelocityYWorld().getValueAsDouble();
-            double rollRate = pigeon.getAngularVelocityXWorld().getValueAsDouble();
+            double yawRate = Math.toDegrees(pigeon.getAngularVelocityZWorld().getValueAsDouble());
+            double pitchRate = Math.toDegrees(pigeon.getAngularVelocityYWorld().getValueAsDouble());
+            double rollRate = Math.toDegrees(pigeon.getAngularVelocityXWorld().getValueAsDouble());
 
             // Convert rotation to degrees (Limelight expects degrees)
             double yaw = Math.toDegrees(rotation.getZ());
             double pitch = Math.toDegrees(rotation.getY());
             double roll = Math.toDegrees(rotation.getX());
 
-            // Send orientation data to Limelight
-            // Format: [yaw, pitch, roll, yawRate, pitchRate, rollRate]
-            double[] robotOrientation = { yaw, pitch, roll, yawRate, pitchRate, rollRate };
-            cameraData.getEntry("robot_orientation_set").setDoubleArray(robotOrientation);
+            // Send orientation data to Limelight using LimelightHelpers
+            LimelightHelpers.SetRobotOrientation(cameraName, yaw, yawRate, pitch, pitchRate, roll, rollRate);
         } catch (Exception e) {
             // If Pigeon is not available, skip orientation update
         }
@@ -124,48 +136,33 @@ public class Vision extends SubsystemBase {
      * Reads pose data from a Limelight camera and updates the drivetrain's pose
      * estimate.
      */
-    private void updatePoseEstimate(NetworkTable cameraData, String cameraName) {
-        // Always use blue alliance coordinate system
-        // PathPlanner and other systems will handle alliance flipping internally
-        // The "orb" (orientation-based robot pose) here means we're using MegaTag2
-        String poseEntryName = "botpose_orb_wpiblue";
-
-        // Get pose data array from Limelight
-        // Format: [x, y, z, roll, pitch, yaw, latency, tagCount]
-        double[] botpose = cameraData.getEntry(poseEntryName).getDoubleArray(new double[0]);
-
+    private void updatePoseEstimate(String cameraName, String cameraDisplayName) {
+        // Get pose estimate using LimelightHelpers (handles MegaTag2 and coordinate frames)
+        PoseEstimate estimate = LimelightHelpers.getBotPoseEstimate_wpiBlue_MegaTag2(cameraName);
+        
         // Check if we have valid pose data
-        if (botpose.length < 8) {
-            logRejection(cameraName, "Invalid data (array length < 8)");
-            return; // Invalid data
+        if (estimate == null) {
+            logRejection(cameraDisplayName, "No pose data available");
+            return;
         }
 
-        double x = botpose[0];
-        double y = botpose[1];
-        double yaw = botpose[5];
-        double latency = botpose[6]; // milliseconds
-        double tagCount = botpose[7];
+        Pose2d visionPose = estimate.pose;
+        double timestampSeconds = estimate.timestampSeconds;
+        int tagCount = estimate.tagCount;
 
-        double timestampSeconds = Timer.getFPGATimestamp() - (latency / 1000.0);
-
-        // Create pose from vision data (using x, y, and yaw)
-        Pose2d visionPose = new Pose2d(x, y, Rotation2d.fromDegrees(yaw));
-
-        // Store vision pose for visualization
-        if (cameraName.equals("front_camera")) {
+        // Store vision pose and estimate for visualization and logging
+        if (cameraDisplayName.equals("front_camera")) {
             frontCameraPose = visionPose;
-            frontCameraLatency = latency;
-            frontCameraTimestamp = timestampSeconds;
+            frontCameraEstimate = estimate;
         } else {
             backCameraPose = visionPose;
-            backCameraLatency = latency;
-            backCameraTimestamp = timestampSeconds;
+            backCameraEstimate = estimate;
         }
 
         // Only use vision data if we have enough tags
         if (tagCount < VisionConstants.MIN_TAG_COUNT) {
-            logRejection(cameraName,
-                    String.format("Insufficient tags (got %.0f, need %d)", tagCount, VisionConstants.MIN_TAG_COUNT));
+            logRejection(cameraDisplayName,
+                    String.format("Insufficient tags (got %d, need %d)", tagCount, VisionConstants.MIN_TAG_COUNT));
             return;
         }
 
@@ -173,9 +170,9 @@ public class Vision extends SubsystemBase {
         // Vision measurements are unreliable during fast spins
         try {
             var pigeon = drivetrain.getPigeon2();
-            double angularVelocityDegPerSec = Math.abs(pigeon.getAngularVelocityZWorld().getValueAsDouble());
+            double angularVelocityDegPerSec = Math.abs(Math.toDegrees(pigeon.getAngularVelocityZWorld().getValueAsDouble()));
             if (angularVelocityDegPerSec > 720.0) {
-                logRejection(cameraName, String.format("Angular velocity too high (%.1f deg/s > 720 deg/s)", angularVelocityDegPerSec));
+                logRejection(cameraDisplayName, String.format("Angular velocity too high (%.1f deg/s > 720 deg/s)", angularVelocityDegPerSec));
                 return;
             }
         } catch (Exception e) {
@@ -198,7 +195,7 @@ public class Vision extends SubsystemBase {
         // Check if vision measurement is within reasonable distance of current estimate
         double poseDifference = visionPose.getTranslation().getDistance(currentPose.getTranslation());
         if (poseDifference > VisionConstants.MAX_POSE_DIFFERENCE) {
-            logRejection(cameraName, String.format("Pose difference too large (%.2fm > %.2fm)", poseDifference,
+            logRejection(cameraDisplayName, String.format("Pose difference too large (%.2fm > %.2fm)", poseDifference,
                     VisionConstants.MAX_POSE_DIFFERENCE));
             return; // Vision measurement seems unreliable
         }
@@ -235,9 +232,14 @@ public class Vision extends SubsystemBase {
      * Checks if any camera detects a tag.
      */
     public boolean isTagDetected() {
-        double frontTag = frontCameraData.getEntry("tv").getDouble(0);
-        double backTag = backCameraData.getEntry("tv").getDouble(0);
-        return frontTag >= 1.0 || backTag >= 1.0;
+        // Check both cameras for valid pose estimates with tags
+        if (frontCameraEstimate != null && frontCameraEstimate.tagCount > 0) {
+            return true;
+        }
+        if (backCameraEstimate != null && backCameraEstimate.tagCount > 0) {
+            return true;
+        }
+        return false;
     }
 
     /**
@@ -245,13 +247,13 @@ public class Vision extends SubsystemBase {
      * Checks both cameras and returns the first tag found.
      */
     public int getDetectedTagId() {
-        double[] frontTid = frontCameraData.getEntry("tid").getDoubleArray(new double[0]);
-        if (frontTid.length > 0) {
-            return (int) frontTid[0];
+        // Check front camera first
+        if (frontCameraEstimate != null && frontCameraEstimate.rawFiducials != null && frontCameraEstimate.rawFiducials.length > 0) {
+            return (int) frontCameraEstimate.rawFiducials[0].id;
         }
-        double[] backTid = backCameraData.getEntry("tid").getDoubleArray(new double[0]);
-        if (backTid.length > 0) {
-            return (int) backTid[0];
+        // Check back camera
+        if (backCameraEstimate != null && backCameraEstimate.rawFiducials != null && backCameraEstimate.rawFiducials.length > 0) {
+            return (int) backCameraEstimate.rawFiducials[0].id;
         }
         return -1; // No tag detected
     }
@@ -305,9 +307,9 @@ public class Vision extends SubsystemBase {
      * Logs vision data to both NetworkTables and System.out once per second.
      */
     private void logVisionData() {
-        // Get tag IDs from both cameras
-        int[] frontTags = getTagIds(frontCameraData);
-        int[] backTags = getTagIds(backCameraData);
+        // Get tag IDs from pose estimates
+        int[] frontTags = getTagIdsFromEstimate(frontCameraEstimate);
+        int[] backTags = getTagIdsFromEstimate(backCameraEstimate);
 
         // Format poses with 2 decimal places
         String frontPoseStr = formatPose(frontCameraPose);
@@ -342,51 +344,31 @@ public class Vision extends SubsystemBase {
         // Log measurement status and latency/timestamp diagnostics
         SmartDashboard.putString("Vision/FrontCamera/Status", frontCameraStatus);
         SmartDashboard.putString("Vision/BackCamera/Status", backCameraStatus);
-        SmartDashboard.putNumber("Vision/FrontCamera/Latency", frontCameraLatency);
-        SmartDashboard.putNumber("Vision/BackCamera/Latency", backCameraLatency);
-        SmartDashboard.putNumber("Vision/FrontCamera/TimestampAge",
-                frontCameraTimestamp > 0 ? Timer.getFPGATimestamp() - frontCameraTimestamp : 0.0);
-        SmartDashboard.putNumber("Vision/BackCamera/TimestampAge",
-                backCameraTimestamp > 0 ? Timer.getFPGATimestamp() - backCameraTimestamp : 0.0);
+        
+        if (frontCameraEstimate != null) {
+            SmartDashboard.putNumber("Vision/FrontCamera/Latency", frontCameraEstimate.latency);
+            SmartDashboard.putNumber("Vision/FrontCamera/TimestampAge",
+                    frontCameraEstimate.timestampSeconds > 0 ? Timer.getFPGATimestamp() - frontCameraEstimate.timestampSeconds : 0.0);
+        }
+        if (backCameraEstimate != null) {
+            SmartDashboard.putNumber("Vision/BackCamera/Latency", backCameraEstimate.latency);
+            SmartDashboard.putNumber("Vision/BackCamera/TimestampAge",
+                    backCameraEstimate.timestampSeconds > 0 ? Timer.getFPGATimestamp() - backCameraEstimate.timestampSeconds : 0.0);
+        }
     }
 
     /**
-     * Gets tag IDs from a camera's NetworkTable.
-     * Handles both single number and array formats from Limelight.
+     * Extracts tag IDs from a PoseEstimate.
      */
-    private int[] getTagIds(NetworkTable cameraData) {
-        var tidEntry = cameraData.getEntry("tid");
-        
-        // Check if entry exists
-        if (!tidEntry.exists()) {
+    private int[] getTagIdsFromEstimate(PoseEstimate estimate) {
+        if (estimate == null || estimate.rawFiducials == null) {
             return new int[0];
         }
-        
-        // Get the raw value to check its type
-        var value = tidEntry.getValue();
-        if (value == null) {
-            return new int[0];
+        int[] tagIds = new int[estimate.rawFiducials.length];
+        for (int i = 0; i < estimate.rawFiducials.length; i++) {
+            tagIds[i] = (int) estimate.rawFiducials[i].id;
         }
-        
-        // Check the value type and extract accordingly
-        if (value.isDoubleArray()) {
-            double[] values = value.getDoubleArray();
-            if (values.length > 0) {
-                int[] tagIds = new int[values.length];
-                for (int i = 0; i < values.length; i++) {
-                    tagIds[i] = (int) values[i];
-                }
-                return tagIds;
-            }
-        } else if (value.isDouble()) {
-            double singleValue = value.getDouble();
-            if (singleValue >= 1) {
-                return new int[] { (int) singleValue };
-            }
-        }
-        
-        // No tag detected
-        return new int[0];
+        return tagIds;
     }
 
     /**
