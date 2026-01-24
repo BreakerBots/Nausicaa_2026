@@ -93,7 +93,7 @@ public final class Constants {
         // Units: meters for x/y, radians for theta
         // Rotation (theta) is set very high to trust IMU for rotation since MegaTag2 already fuses IMU
         public static final Matrix<N3, N1> VISION_STD_DEVS = 
-            VecBuilder.fill(0.0, 0.0, 9999999);
+            VecBuilder.fill(0.5, 0.5, 0.5);
         
         // Minimum number of tags required to trust a vision measurement
         public static final int MIN_TAG_COUNT = 1;
