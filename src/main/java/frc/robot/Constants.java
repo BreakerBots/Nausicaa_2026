@@ -91,18 +91,28 @@ public final class Constants {
         public static final double[] FRONT_CAMERA_POSE = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
         public static final double[] BACK_CAMERA_POSE = {0.0, 0.0, 0.0, 0.0, 0.0, 180.0};
         
-        // Vision measurement standard deviations (x, y, theta)
-        // Increase these values to trust vision measurements less
-        // Units: meters for x/y, radians for theta
-        // Rotation (theta) is set very high to trust IMU for rotation since MegaTag2 already fuses IMU
-        public static final Matrix<N3, N1> VISION_STD_DEVS = 
-            VecBuilder.fill(0.5, 0.5, 0.5);
         
         // Minimum number of tags required to trust a vision measurement
         public static final int MIN_TAG_COUNT = 1;
         
         // Maximum pose difference from current estimate to accept vision measurement (meters)
         public static final double MAX_POSE_DIFFERENCE = 12.0;
+
+        // Vision measurement standard deviations (x, y, theta)
+        // Increase these values to trust vision measurements less
+        // Units: meters for x/y, radians for theta
+        // Theta: 9999999 to fully trust IMU for rotation (vision won't correct heading)
+        public static final Matrix<N3, N1> VISION_STD_DEVS = 
+            VecBuilder.fill(0.5, 0.5, 9999999);        
+        
+        // Dynamic standard deviation scaling factor for tag count
+        // Higher value = more aggressive trust increase with more tags
+        // Formula: stdDev = baseStdDev / (1 + tagCount * TAG_COUNT_SCALE_FACTOR)
+        // With scaleFactor = 0.5:
+        //   1 tag: stdDev = baseStdDev / 1.5 = 0.67x (slightly less trust)
+        //   2 tags: stdDev = baseStdDev / 2.0 = 0.5x (more trust)
+        //   3+ tags: stdDev = baseStdDev / 2.5+ = even more trust
+        public static final double TAG_COUNT_SCALE_FACTOR = 0.5;
     }
 
     // --------------- INTAKE --------------
@@ -314,8 +324,8 @@ public final class Constants {
             .withSteerFrictionVoltage(kSteerFrictionVoltage)
             .withDriveFrictionVoltage(kDriveFrictionVoltage);
 
-        private static final boolean kInvertLeftSide = false;
-        private static final boolean kInvertRightSide = true;
+        private static final boolean kInvertLeftSide = true;
+        private static final boolean kInvertRightSide = false;
         
         // Front Left
         private static final int kFrontLeftDriveMotorId = 8;

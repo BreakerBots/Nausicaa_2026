@@ -1,11 +1,14 @@
 package frc.robot.subsystems;
 
+import edu.wpi.first.math.Matrix;
+import edu.wpi.first.math.VecBuilder;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Translation2d;
-import edu.wpi.first.networktables.NetworkTableInstance;
+import edu.wpi.first.math.numbers.N1;
+import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
@@ -144,23 +147,7 @@ public class Vision extends SubsystemBase {
         
         // Check if we have valid pose data
         if (estimate == null) {
-            // Diagnostic: Check if botpose_orb_wpiblue entry exists and what it contains
-            var ntInstance = NetworkTableInstance.getDefault();
-            var cameraTable = ntInstance.getTable(cameraName);
-            var botposeEntry = cameraTable.getEntry("botpose_orb_wpiblue");
-            double[] botposeArray = botposeEntry.getDoubleArray(new double[0]);
-            
-            String diagnosticMsg = String.format("No pose data (botpose_orb_wpiblue length=%d)", botposeArray.length);
-            if (botposeArray.length == 0) {
-                // Check if standard botpose exists (not MegaTag2)
-                double[] standardBotpose = cameraTable.getEntry("botpose_wpiblue").getDoubleArray(new double[0]);
-                if (standardBotpose.length > 0) {
-                    diagnosticMsg += " - Standard botpose exists but MegaTag2 (botpose_orb_wpiblue) is empty. Is MegaTag2 enabled?";
-                } else {
-                    diagnosticMsg += " - No pose data available. Check camera configuration.";
-                }
-            }
-            logRejection(cameraDisplayName, diagnosticMsg);
+            logRejection(cameraDisplayName, "No pose data available");
             return;
         }
 
@@ -218,8 +205,13 @@ public class Vision extends SubsystemBase {
             return; // Vision measurement seems unreliable
         }
 
+        // Calculate dynamic standard deviations based on tag count
+        // More tags = lower std dev = more trust in vision
+        // Fewer tags = higher std dev = less trust in vision
+        Matrix<N3, N1> dynamicStdDevs = calculateDynamicStdDevs(tagCount);
+        
         // Add vision measurement to pose estimator
-        drivetrain.addVisionMeasurement(visionPose, timestampSeconds, VisionConstants.VISION_STD_DEVS);
+        drivetrain.addVisionMeasurement(visionPose, timestampSeconds, dynamicStdDevs);
     }
 
     /**
@@ -321,6 +313,30 @@ public class Vision extends SubsystemBase {
         return getDistanceToTarget(tagPosition);
     }
 
+
+    /**
+     * Calculates dynamic standard deviations for vision measurements based on tag count.
+     * More tags = lower std dev (more trust), fewer tags = higher std dev (less trust).
+     */
+    private Matrix<N3, N1> calculateDynamicStdDevs(int tagCount) {
+        // Base standard deviations from constants
+        double baseX = VisionConstants.VISION_STD_DEVS.get(0, 0);
+        double baseY = VisionConstants.VISION_STD_DEVS.get(1, 0);
+        double baseTheta = VisionConstants.VISION_STD_DEVS.get(2, 0);
+        
+        // Scale factor: more tags = lower std dev (more trust)
+        // Formula: stdDev = baseStdDev / (1 + tagCount * scaleFactor)
+        double trustMultiplier = 1.0 / (1.0 + tagCount * VisionConstants.TAG_COUNT_SCALE_FACTOR);
+        
+        // Apply scaling to X and Y, but keep theta high (trust IMU for rotation)
+        double dynamicX = baseX * trustMultiplier;
+        double dynamicY = baseY * trustMultiplier;
+        double dynamicTheta = baseTheta; // Keep rotation std dev constant (trust IMU)
+        
+        return VecBuilder.fill(dynamicX, dynamicY, dynamicTheta);
+    }
+
+
     /**
      * Logs IMU data to NetworkTables for diagnostics.
      * This helps determine if the IMU mounting orientation needs to be configured.
@@ -332,11 +348,33 @@ public class Vision extends SubsystemBase {
         double yawDeg = Math.toDegrees(rotation.getZ());
         SmartDashboard.putNumber("IMU/Yaw_Deg", yawDeg);
         
-        // Get accelerometer data (m/s²)
-        double accelX = pigeon.getAccelerationX().getValueAsDouble();
-        double accelY = pigeon.getAccelerationY().getValueAsDouble();
-        SmartDashboard.putNumber("IMU/Accel_X", accelX);
-        SmartDashboard.putNumber("IMU/Accel_Y", accelY);
+        // Compare vision pose vs fused pose to diagnose coordinate frame issues
+        if (frontCameraPose != null && fusedPose != null) {
+            double visionX = frontCameraPose.getX();
+            double visionY = frontCameraPose.getY();
+            double fusedX = fusedPose.getX();
+            double fusedY = fusedPose.getY();
+            
+            double diffX = visionX - fusedX;
+            double diffY = visionY - fusedY;
+            
+            SmartDashboard.putNumber("Diagnostics/VisionX", visionX);
+            SmartDashboard.putNumber("Diagnostics/VisionY", visionY);
+            SmartDashboard.putNumber("Diagnostics/FusedX", fusedX);
+            SmartDashboard.putNumber("Diagnostics/FusedY", fusedY);
+            SmartDashboard.putNumber("Diagnostics/DiffX", diffX);
+            SmartDashboard.putNumber("Diagnostics/DiffY", diffY);
+            
+            // Calculate distance between vision and fused poses
+            double poseDistance = frontCameraPose.getTranslation().getDistance(fusedPose.getTranslation());
+            SmartDashboard.putNumber("Diagnostics/PoseDistance_m", poseDistance);
+            
+            // Log direction indicators: if vision X increases, does fused X also increase?
+            // This helps identify if odometry is tracking in opposite direction
+            SmartDashboard.putString("Diagnostics/DirectionCheck", 
+                String.format("Vision: (%.2f, %.2f) | Fused: (%.2f, %.2f) | Diff: (%.2f, %.2f)", 
+                    visionX, visionY, fusedX, fusedY, diffX, diffY));
+        }
     }
 
     /**
