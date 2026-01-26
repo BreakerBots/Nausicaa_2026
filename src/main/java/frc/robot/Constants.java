@@ -194,6 +194,7 @@ public final class Constants {
 
 
     // ---------------- MINNOW ROLLER ----------------
+
     public static class RollerConstants {
         public static final int ROLLER_MOTOR_ID = 24; 
         public static final double CORAL_EXTAKE_SPEED = 0.15; // -0.5
@@ -208,100 +209,120 @@ public final class Constants {
     // ---------------- SWERVE DRIVE ----------------
 
     public static class DriveConstants {
-        public static final AngularVelocity MAXIMUM_MODULE_AZIMUTH_SPEED = Units.DegreesPerSecond.of(720);
+
+        // Azimuth = the rotation/swivel of each swerve module (how fast modules can turn)
+        // TUNING: Increase if modules turn too slowly, decrease if they overshoot or oscillate
+        //public static final AngularVelocity MAXIMUM_MODULE_AZIMUTH_SPEED = Units.DegreesPerSecond.of(720);
+        //public static final SetpointGenerationConfig SETPOINT_GENERATION_CONFIG = new SetpointGenerationConfig(MAXIMUM_MODULE_AZIMUTH_SPEED);
+
+        // Heading compensation = automatically maintains robot heading when driver isn't rotating
+        // TUNING: Adjust PID values if robot drifts when driver isn't rotating, or fights driver input too much
         public static final HeadingCompensationConfig HEADING_COMPENSATION_CONFIG = new HeadingCompensationConfig(
             Units.MetersPerSecond.of(0.05),
             Units.RadiansPerSecond.of(0.001),
             Units.Seconds.of(0.2),
             new PIDConstants(1.5, 0, 0));// 1.5
-        // public static final SetpointGenerationConfig SETPOINT_GENERATION_CONFIG = new
-        // SetpointGenerationConfig(MAXIMUM_MODULE_AZIMUTH_SPEED);
+        
         public static final TeleopControlConfig TELEOP_CONTROL_CONFIG = new TeleopControlConfig();
             // .withHeadingCompensation(HEADING_COMPENSATION_CONFIG);
-        // .withSetpointGeneration(SETPOINT_GENERATION_CONFIG);
+            // .withSetpointGeneration(SETPOINT_GENERATION_CONFIG);
         
-        // Let's slow down for testing
+        // Maximum robot velocities (currently reduced for testing)
+        // Translational = forward/backward and left/right movement (X and Y on the field)
+        // Rotational = spinning in place (turning)
         public static final LinearVelocity MAXIMUM_TRANSLATIONAL_VELOCITY = Units.MetersPerSecond.of(1.0);
         public static final AngularVelocity MAXIMUM_ROTATIONAL_VELOCITY = Units.RadiansPerSecond.of(2.0);
         //public static final LinearVelocity MAXIMUM_TRANSLATIONAL_VELOCITY = Units.MetersPerSecond.of(4.5);
         //public static final AngularVelocity MAXIMUM_ROTATIONAL_VELOCITY = Units.RadiansPerSecond.of(9.5);
 
-        // The steer motor uses any SwerveModule.SteerRequestType control request with
-        // the output type specified by SwerveModuleConstants.SteerMotorClosedLoopOutput
+        // Motor control gains: PID and feedforward values for steer and drive motors
+        // Steer motor = rotates the swerve module (azimuth/steering)
+        // Drive motor = spins the wheel (forward/backward movement)
+        // PID gains (KP, KI, KD) = how aggressively the motor corrects position errors
+        // Feedforward gains (KS, KV, KA) = predict voltage needed for desired motion (reduces lag)
+        // TUNING: Adjust if modules overshoot targets, oscillate, or respond too slowly
         private static final Slot0Configs steerGains = new Slot0Configs()
             .withKP(100).withKI(0).withKD(0.2)
             .withKS(0).withKV(1.5).withKA(0);
-        // When using closed-loop control, the drive motor uses the control
-        // output type specified by SwerveModuleConstants.DriveMotorClosedLoopOutput
         private static final Slot0Configs driveGains = new Slot0Configs()
             .withKP(0.01).withKI(0).withKD(0)
             .withKS(0.005).withKV(0.15).withKA(0.01);
-
-        // The closed-loop output type to use for the steer motors;
-        // This affects the PID/FF gains for the steer motors
+        
+            // Closed-loop output = how the motor controller applies the calculated control (voltage vs other methods)
         private static final ClosedLoopOutputType steerClosedLoopOutput = ClosedLoopOutputType.Voltage;
-        // The closed-loop output type to use for the drive motors;
-        // This affects the PID/FF gains for the drive motors
         private static final ClosedLoopOutputType driveClosedLoopOutput = ClosedLoopOutputType.Voltage;
 
-        // The stator current at which the wheels start to slip;
-        // This needs to be tuned to your individual robot
+        // Slip current = The stator current at which the wheels start to slip (not gripping the floor)
+        // TUNING: Increase if wheels slip during normal driving, decrease if odometry drifts during acceleration
         private static final Current kSlipCurrent = Amps.of(80.0);
-
+        
+        // Motor arrangements = physical setup (integrated = motor and encoder are in one unit)
         private static final DriveMotorArrangement kDriveMotorType = DriveMotorArrangement.TalonFX_Integrated;
         private static final SteerMotorArrangement kSteerMotorType = SteerMotorArrangement.TalonFX_Integrated;
+        
+        // Feedback source = where we get the module's rotation angle from (CANcoder = absolute encoder on module)
         private static final SteerFeedbackType kSteerFeedbackType = SteerFeedbackType.FusedCANcoder;
 
-        // Initial configs for the drive and steer motors and the CANcoder; these cannot
-        // be null.
-        // Some configs will be overwritten; check the `with*InitialConfigs()` API
-        // documentation.
+        // Initial configs for the drive and steer motors and the CANcoder; these cannot be null.
+        // Some configs will be overwritten; check the `with*InitialConfigs()` API documentation.
+        // Neutral mode = what happens when motor receives 0% power (Brake = stops, Coast = free-spins)
+        // TUNING: Current limits = adjust if motors brown out (lower) or need more power (higher, but watch for brownouts)
         private static final TalonFXConfiguration driveInitialConfigs = new TalonFXConfiguration()
             .withMotorOutput(new MotorOutputConfigs().withNeutralMode(NeutralModeValue.Brake));
         private static final TalonFXConfiguration steerInitialConfigs = new TalonFXConfiguration()
             .withCurrentLimits(
                 new CurrentLimitsConfigs()
-                    // Swerve azimuth does not require much torque output,
-                    // so we can set a relatively low
-                    // stator current limit to help avoid brownouts without
-                    // impacting performance.
+                    // Swerve azimuth does not require much torque output, so we can set a relatively low
+                    // stator current limit to help avoid brownouts without impacting performance.
+                    // Stator current = current through the motor windings (lower limit = less power draw, prevents brownouts)
                     .withStatorCurrentLimit(60)
                     .withStatorCurrentLimitEnable(true));
+        // CANcoder = absolute encoder that tells us the exact rotation angle of each swerve module
         private static final CANcoderConfiguration cancoderInitialConfigs = new CANcoderConfiguration();
-        // Configs for the Pigeon 2; leave this null to skip applying Pigeon 2 configs
+
+        
+        // Theoretical free speed (m/s) at 12v applied output;
+        // TUNING: This needs to be tuned to your individual robot
+        public static final LinearVelocity kSpeedAt12Volts = Units.MetersPerSecond.of(0.0);
+
+        // Every 1 rotation of the azimuth results in kCoupleRatio drive motor turns;
+        // TUNING: This may need to be tuned to your individual robot
+        private static final double kCoupleRatio = 3.125;
+        // Gear ratio = how many motor rotations = 1 wheel rotation (higher = slower but more torque)
+        // TUNING: This may need to be tuned to your individual robot
+        private static final double kDriveGearRatio = 5.357142857142857;
+        private static final double kSteerGearRatio = 21.428571428571427;
+
+        // The radius of the wheel (in inches)
+        private static final Distance kWheelRadius = Units.Inches.of(2.0);
+
+        // These are only used for simulation
+        // Inertia = how much the motor resists changes in speed (higher = slower to change speed)
+        // Friction voltage = the voltage required to overcome friction (higher = more voltage required)
+        // TUNING: Only affects simulation accuracy, not real robot behavior (adjust if simulation doesn't match real robot)
+        private static final double kSteerInertia = 0.00001;
+        private static final double kDriveInertia = 0.001;
+        private static final double kSteerFrictionVoltage = 0.25;
+        private static final double kDriveFrictionVoltage = 0.25;
+
+        // CAN bus = communication network for motors and sensors (like USB for robot parts)
+        private static final String kCANbusName = GeneralConstants.DRIVE_CANIVORE_BUS.getName();
+        
+        // Pigeon = IMU (Inertial Measurement Unit) that measures robot orientation (yaw/pitch/roll) and rotation rates
+        private static final int kPigeonId = 5;
         private static final Pigeon2Configuration pigeonConfigs = new Pigeon2Configuration();
         //private static final MountPoseConfigs mountPose = new MountPoseConfigs();
         //mountPose.withMountPoseYaw(180);
         //pigeonConfigs.withMountPose(mountPose);
 
-        // Theoretical free speed (m/s) at 12v applied output;
-        // This needs to be tuned to your individual robot
-        public static final LinearVelocity kSpeedAt12Volts = Units.MetersPerSecond.of(0.0);
-
-        // Every 1 rotation of the azimuth results in kCoupleRatio drive motor turns;
-        // This may need to be tuned to your individual robot
-        private static final double kCoupleRatio = 3.125;
-
-        private static final double kDriveGearRatio = 5.357142857142857;
-        private static final double kSteerGearRatio = 21.428571428571427;
-        private static final Distance kWheelRadius = Units.Inches.of(2.0);
-
-        private static final String kCANbusName = GeneralConstants.DRIVE_CANIVORE_BUS.getName();
-        private static final int kPigeonId = 5;
-
-        // These are only used for simulation
-        private static final double kSteerInertia = 0.00001;
-        private static final double kDriveInertia = 0.001;
-        // Simulated voltage necessary to overcome friction
-        private static final double kSteerFrictionVoltage = 0.25;
-        private static final double kDriveFrictionVoltage = 0.25;
-
+        // Drivetrain configuration: combines CAN bus, IMU, and autonomous path planning settings
         public static final BreakerSwerveDrivetrainConstants DRIVETRAIN_CONSTANTS = new BreakerSwerveDrivetrainConstants()
             .withCANBusName(kCANbusName)
             .withPigeon2Id(kPigeonId)
             .withPigeon2Configs(pigeonConfigs)
             .withChoreoConfig(AutoConstants.CHOREO_CONFIG);
 
+        // Module factory: creates swerve module constants using shared physical and control parameters
         private static final SwerveModuleConstantsFactory<TalonFXConfiguration, TalonFXConfiguration, CANcoderConfiguration> ConstantCreator = new SwerveModuleConstantsFactory<TalonFXConfiguration, TalonFXConfiguration, CANcoderConfiguration>()
             .withDriveMotorGearRatio(kDriveGearRatio)
             .withSteerMotorGearRatio(kSteerGearRatio)
@@ -324,10 +345,20 @@ public final class Constants {
             .withSteerFrictionVoltage(kSteerFrictionVoltage)
             .withDriveFrictionVoltage(kDriveFrictionVoltage);
 
+        // Module inversion flags: corrects wheel encoder directions (not wheel motor directions) for accurate odometry
+        // If odometry moves opposite to actual movement, flip these flags
+        // These apply to all modules on each side (left = front-left + back-left, right = front-right + back-right)
+        // TUNING: Test by moving robot forward - if odometry shows backward movement, flip both flags
         private static final boolean kInvertLeftSide = true;
         private static final boolean kInvertRightSide = false;
         
-        // Front Left
+        // Individual module configurations
+        // TUNING: Encoder offsets = calibrate each module (find value where module points forward when commanded to 0°)
+        //         Module positions = measure distance from robot center (affects odometry accuracy)
+        //         Inversion flags = adjust if individual module rotates or drives wrong direction
+
+        // ---------------- FRONT LEFT ----------------
+
         private static final int kFrontLeftDriveMotorId = 8;
         private static final int kFrontLeftSteerMotorId = 9;
         private static final int kFrontLeftEncoderId = 10;
@@ -338,31 +369,32 @@ public final class Constants {
             Units.Inches.of(11.25),
             Units.Inches.of(11.25 ));
 
-        // Front Right
+        // ---------------- FRONT RIGHT ----------------
+
         private static final int kFrontRightDriveMotorId = 11;
         private static final int kFrontRightSteerMotorId = 12;
         private static final int kFrontRightEncoderId = 13;
         private static final Angle kFrontRightEncoderOffset = Rotations.of(-0.321533203125);
         private static final boolean kFrontRightSteerInvert = true;
         private static final boolean kFrontRightEncoderInvert = false;
-
         private static final Translation2d kFrontRightModulePosition = new Translation2d(
             Units.Inches.of(11.25),
             Units.Inches.of(-11.25));
 
-        // Back Left
+        // ---------------- BACK LEFT ----------------
+        
         private static final int kBackLeftDriveMotorId = 14;
         private static final int kBackLeftSteerMotorId = 15;
         private static final int kBackLeftEncoderId = 16;
         private static final Angle kBackLeftEncoderOffset = Rotation.of(0.12451171875);
         private static final boolean kBackLeftSteerInvert = true;
         private static final boolean kBackLeftEncoderInvert = false;
-
         private static final Translation2d kBackLeftModulePosition = new Translation2d(
             Units.Inches.of(-11.25),
             Units.Inches.of(11.25));
 
-        // Back Right
+        // ---------------- BACK RIGHT ----------------
+        
         private static final int kBackRightDriveMotorId = 17;
         private static final int kBackRightSteerMotorId = 18;
         private static final int kBackRightEncoderId = 19;
@@ -372,6 +404,7 @@ public final class Constants {
         private static final Translation2d kBackRightModulePosition = new Translation2d(
             Units.Inches.of(-11.25),
             Units.Inches.of(-11.25));
+
 
         public static final SwerveModuleConstants<TalonFXConfiguration, TalonFXConfiguration, CANcoderConfiguration> FrontLeft = ConstantCreator
             .createModuleConstants(
@@ -395,6 +428,13 @@ public final class Constants {
                 kBackRightSteerInvert, kBackRightEncoderInvert);
     }
 
+    // ---------------- AUTONOMOUS ----------------
+
+    // These PID constants control how the robot follows autonomous paths (different from teleop control)
+    // Translation PID = controls forward/backward and left/right movement accuracy when following paths
+    // Rotation PID = controls how accurately the robot rotates to match path heading
+    // Choreo = autonomous path planning library that uses these PID values to follow recorded paths
+    // TUNING: Adjust if robot overshoots path waypoints, oscillates, or doesn't reach targets accurately
     public static class AutoConstants {
         public static final PIDConstants TRANSLATION_PID = new PIDConstants(7.5, 0, 0.8);
         public static final PIDConstants ROTATION_PID = new PIDConstants(1.5, 0, 1);
