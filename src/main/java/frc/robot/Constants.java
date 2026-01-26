@@ -81,6 +81,11 @@ public final class Constants {
 
         public static final AprilTagFieldLayout kAprilTagFieldLayout = AprilTagFieldLayout.loadField(AprilTagFields.k2026RebuiltWelded);
 
+        // Vision system selection: true = MegaTag2, false = MegaTag1
+        // MegaTag2: Uses IMU fusion for improved accuracy, requires SetRobotOrientation() calls
+        // MegaTag1: Original AprilTag localization, no IMU fusion required
+        public static final boolean USE_MEGATAG2 = false;
+
         // Limelight 4 camera names (configured in Limelight UI)
         public static final String FRONT_CAMERA = "limelight-fr";
         public static final String BACK_CAMERA = "limelight-bl";
@@ -288,10 +293,13 @@ public final class Constants {
         // Every 1 rotation of the azimuth results in kCoupleRatio drive motor turns;
         // TUNING: This may need to be tuned to your individual robot
         private static final double kCoupleRatio = 3.125;
+        
         // Gear ratio = how many motor rotations = 1 wheel rotation (higher = slower but more torque)
+        // NOTE: This assumes you have MK4n swerve modules (narrow) in the front and MK4i swerve modules (wide) in the back
         // TUNING: This may need to be tuned to your individual robot
         private static final double kDriveGearRatio = 5.357142857142857;
-        private static final double kSteerGearRatio = 21.428571428571427;
+        private static final double kSteerGearRatio_MK4i = 150.0/7.0;
+        private static final double kSteerGearRatio_MK4n = 18.75; // Narrow
 
         // The radius of the wheel (in inches)
         private static final Distance kWheelRadius = Units.Inches.of(2.0);
@@ -322,10 +330,34 @@ public final class Constants {
             .withPigeon2Configs(pigeonConfigs)
             .withChoreoConfig(AutoConstants.CHOREO_CONFIG);
 
-        // Module factory: creates swerve module constants using shared physical and control parameters
-        private static final SwerveModuleConstantsFactory<TalonFXConfiguration, TalonFXConfiguration, CANcoderConfiguration> ConstantCreator = new SwerveModuleConstantsFactory<TalonFXConfiguration, TalonFXConfiguration, CANcoderConfiguration>()
+        // Module factories: creates swerve module constants using shared physical and control parameters
+        // MK4n (narrow) modules factory - used for front-left and front-right modules
+        private static final SwerveModuleConstantsFactory<TalonFXConfiguration, TalonFXConfiguration, CANcoderConfiguration> MK4nConstantCreator = new SwerveModuleConstantsFactory<TalonFXConfiguration, TalonFXConfiguration, CANcoderConfiguration>()
             .withDriveMotorGearRatio(kDriveGearRatio)
-            .withSteerMotorGearRatio(kSteerGearRatio)
+            .withSteerMotorGearRatio(kSteerGearRatio_MK4n)
+            .withCouplingGearRatio(kCoupleRatio)
+            .withWheelRadius(kWheelRadius)
+            .withSteerMotorGains(steerGains)
+            .withDriveMotorGains(driveGains)
+            .withSteerMotorClosedLoopOutput(steerClosedLoopOutput)
+            .withDriveMotorClosedLoopOutput(driveClosedLoopOutput)
+            .withSlipCurrent(kSlipCurrent)
+            .withSpeedAt12Volts(kSpeedAt12Volts)
+            .withDriveMotorType(kDriveMotorType)
+            .withSteerMotorType(kSteerMotorType)
+            .withFeedbackSource(kSteerFeedbackType)
+            .withDriveMotorInitialConfigs(driveInitialConfigs)
+            .withSteerMotorInitialConfigs(steerInitialConfigs)
+            .withEncoderInitialConfigs(cancoderInitialConfigs)
+            .withSteerInertia(kSteerInertia)
+            .withDriveInertia(kDriveInertia)
+            .withSteerFrictionVoltage(kSteerFrictionVoltage)
+            .withDriveFrictionVoltage(kDriveFrictionVoltage);
+        
+        // MK4i (wide) modules factory - used for back-left and back-right modules
+        private static final SwerveModuleConstantsFactory<TalonFXConfiguration, TalonFXConfiguration, CANcoderConfiguration> MK4iConstantCreator = new SwerveModuleConstantsFactory<TalonFXConfiguration, TalonFXConfiguration, CANcoderConfiguration>()
+            .withDriveMotorGearRatio(kDriveGearRatio)
+            .withSteerMotorGearRatio(kSteerGearRatio_MK4i)
             .withCouplingGearRatio(kCoupleRatio)
             .withWheelRadius(kWheelRadius)
             .withSteerMotorGains(steerGains)
@@ -406,22 +438,24 @@ public final class Constants {
             Units.Inches.of(-11.25));
 
 
-        public static final SwerveModuleConstants<TalonFXConfiguration, TalonFXConfiguration, CANcoderConfiguration> FrontLeft = ConstantCreator
+        // Front modules use MK4n (narrow) gear ratio
+        public static final SwerveModuleConstants<TalonFXConfiguration, TalonFXConfiguration, CANcoderConfiguration> FrontLeft = MK4nConstantCreator
             .createModuleConstants(
                 kFrontLeftSteerMotorId, kFrontLeftDriveMotorId, kFrontLeftEncoderId, kFrontLeftEncoderOffset,
                 kFrontLeftModulePosition.getMeasureX(), kFrontLeftModulePosition.getMeasureY(), kInvertLeftSide,
                 kFrontLeftSteerInvert, kFrontLeftEncoderInvert);
-        public static final SwerveModuleConstants<TalonFXConfiguration, TalonFXConfiguration, CANcoderConfiguration> FrontRight = ConstantCreator
+        public static final SwerveModuleConstants<TalonFXConfiguration, TalonFXConfiguration, CANcoderConfiguration> FrontRight = MK4nConstantCreator
             .createModuleConstants(
                 kFrontRightSteerMotorId, kFrontRightDriveMotorId, kFrontRightEncoderId, kFrontRightEncoderOffset,
                 kFrontRightModulePosition.getMeasureX(), kFrontRightModulePosition.getMeasureY(), kInvertRightSide,
                 kFrontRightSteerInvert, kFrontRightEncoderInvert);
-        public static final SwerveModuleConstants<TalonFXConfiguration, TalonFXConfiguration, CANcoderConfiguration> BackLeft = ConstantCreator
+        // Back modules use MK4i (wide) gear ratio
+        public static final SwerveModuleConstants<TalonFXConfiguration, TalonFXConfiguration, CANcoderConfiguration> BackLeft = MK4iConstantCreator
             .createModuleConstants(
                 kBackLeftSteerMotorId, kBackLeftDriveMotorId, kBackLeftEncoderId, kBackLeftEncoderOffset,
                 kBackLeftModulePosition.getMeasureX(), kBackLeftModulePosition.getMeasureY(), kInvertLeftSide,
                 kBackLeftSteerInvert, kBackLeftEncoderInvert);
-        public static final SwerveModuleConstants<TalonFXConfiguration, TalonFXConfiguration, CANcoderConfiguration> BackRight = ConstantCreator
+        public static final SwerveModuleConstants<TalonFXConfiguration, TalonFXConfiguration, CANcoderConfiguration> BackRight = MK4iConstantCreator
             .createModuleConstants(
                 kBackRightSteerMotorId, kBackRightDriveMotorId, kBackRightEncoderId, kBackRightEncoderOffset,
                 kBackRightModulePosition.getMeasureX(), kBackRightModulePosition.getMeasureY(), kInvertRightSide,

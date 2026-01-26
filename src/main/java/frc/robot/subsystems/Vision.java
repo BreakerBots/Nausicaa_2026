@@ -42,6 +42,8 @@ public class Vision extends SubsystemBase {
     // Track measurement acceptance/rejection status for each camera
     private String frontCameraStatus = "No data";
     private String backCameraStatus = "No data";
+    private String frontCameraLastRejection = "None";
+    private String backCameraLastRejection = "None";
 
     /** Creates a new Vision subsystem. */
     public Vision(Drivetrain drivetrain) {
@@ -78,9 +80,11 @@ public class Vision extends SubsystemBase {
 
     @Override
     public void periodic() {
-        // Send robot orientation (IMU data) to Limelights for MegaTag2
-        sendRobotOrientationToLimelight(VisionConstants.FRONT_CAMERA);
-        sendRobotOrientationToLimelight(VisionConstants.BACK_CAMERA);
+        // Send robot orientation (IMU data) to Limelights for MegaTag2 (only needed for MegaTag2)
+        if (VisionConstants.USE_MEGATAG2) {
+            sendRobotOrientationToLimelight(VisionConstants.FRONT_CAMERA);
+            sendRobotOrientationToLimelight(VisionConstants.BACK_CAMERA);
+        }
 
         // Process vision poses from both cameras
         updatePoseEstimate(VisionConstants.FRONT_CAMERA, "front_camera");
@@ -112,6 +116,7 @@ public class Vision extends SubsystemBase {
     /**
      * Robot → Limelight
      * Sends robot IMU orientation data to Limelight for MegaTag2 pose estimation.
+     * Only called when USE_MEGATAG2 is true.
      */
     private void sendRobotOrientationToLimelight(String cameraName) {
         try {
@@ -142,8 +147,10 @@ public class Vision extends SubsystemBase {
      * estimate.
      */
     private void updatePoseEstimate(String cameraName, String cameraDisplayName) {
-        // Get pose estimate using LimelightHelpers (handles MegaTag2 and coordinate frames)
-        PoseEstimate estimate = LimelightHelpers.getBotPoseEstimate_wpiBlue_MegaTag2(cameraName);
+        // Get pose estimate using LimelightHelpers (handles MegaTag/MegaTag2 and coordinate frames)
+        PoseEstimate estimate = VisionConstants.USE_MEGATAG2
+            ? LimelightHelpers.getBotPoseEstimate_wpiBlue_MegaTag2(cameraName)
+            : LimelightHelpers.getBotPoseEstimate_wpiBlue(cameraName);
         
         // Check if we have valid pose data
         if (estimate == null) {
@@ -166,8 +173,7 @@ public class Vision extends SubsystemBase {
 
         // Only use vision data if we have enough tags
         if (tagCount < VisionConstants.MIN_TAG_COUNT) {
-            logRejection(cameraDisplayName,
-                    String.format("Insufficient tags (got %d, need %d)", tagCount, VisionConstants.MIN_TAG_COUNT));
+            logRejection(cameraDisplayName, String.format("Insufficient tags (got %d, need %d)", tagCount, VisionConstants.MIN_TAG_COUNT));
             return;
         }
 
@@ -193,6 +199,7 @@ public class Vision extends SubsystemBase {
         // whereas addVisionMeasurement() needs odometry buffer entries to fuse with
         if (distanceFromOrigin < 0.1) {
             drivetrain.getLocalizer().resetPose(visionPose);
+            updateStatus(cameraDisplayName, String.format("ACCEPTED: Reset pose (origin, %d tags)", tagCount));
             return;
         }
 
@@ -212,6 +219,8 @@ public class Vision extends SubsystemBase {
         
         // Add vision measurement to pose estimator
         drivetrain.addVisionMeasurement(visionPose, timestampSeconds, dynamicStdDevs);
+        updateStatus(cameraDisplayName, String.format("ACCEPTED: Fused (%.2fm diff, %d tags, %.1fms latency)", 
+            poseDifference, tagCount, estimate.latency));
     }
 
     /**
@@ -417,7 +426,9 @@ public class Vision extends SubsystemBase {
 
         // Log measurement status and latency/timestamp diagnostics
         SmartDashboard.putString("Vision/FrontCamera/Status", frontCameraStatus);
+        SmartDashboard.putString("Vision/FrontCamera/LastRejection", frontCameraLastRejection);
         SmartDashboard.putString("Vision/BackCamera/Status", backCameraStatus);
+        SmartDashboard.putString("Vision/BackCamera/LastRejection", backCameraLastRejection);
         
         if (frontCameraEstimate != null) {
             SmartDashboard.putNumber("Vision/FrontCamera/Latency", frontCameraEstimate.latency);
@@ -477,17 +488,31 @@ public class Vision extends SubsystemBase {
     }
 
     /**
+     * Updates the comprehensive status for a camera (includes accepted and rejected measurements).
+     */
+    private void updateStatus(String cameraName, String status) {
+        if (cameraName.equals("front_camera")) {
+            frontCameraStatus = status;
+        } else {
+            backCameraStatus = status;
+        }
+    }
+
+    /**
      * Logs measurement rejection to NetworkTables.
+     * Stores the rejection reason separately and updates the comprehensive status.
      */
     private void logRejection(String cameraName, String reason) {
-        String keyPrefix = "Vision/" + (cameraName.equals("front_camera") ? "FrontCamera" : "BackCamera")
-                + "/Measurement";
-        SmartDashboard.putString(keyPrefix + "/Status", "REJECTED: " + reason);
-
+        String rejectionMessage = "REJECTED: " + reason;
+        
+        // Store the rejection reason
         if (cameraName.equals("front_camera")) {
-            frontCameraStatus = "REJECTED: " + reason;
+            frontCameraLastRejection = rejectionMessage;
         } else {
-            backCameraStatus = "REJECTED: " + reason;
+            backCameraLastRejection = rejectionMessage;
         }
+        
+        // Update the comprehensive status
+        updateStatus(cameraName, rejectionMessage);
     }
 }
