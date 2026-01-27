@@ -134,6 +134,16 @@ public class Vision extends SubsystemBase {
             double pitch = Math.toDegrees(rotation.getY());
             double roll = Math.toDegrees(rotation.getX());
 
+            // Getting current odometry pose
+            Pose2d odometryPose = drivetrain.getLocalizer().getPose();
+
+            // Log odometry data that is available to Limelight
+            String cameraKey = cameraName.equals(VisionConstants.FRONT_CAMERA) ? "Front" : "Back";
+            SmartDashboard.putNumber("OdometryToLimeLight/" + cameraKey + "/X", odometryPose.getX());
+            SmartDashboard.putNumber("OdometryToLimeLight/" + cameraKey + "/X", odometryPose.getY());
+            SmartDashboard.putNumber("OdometryToLimeLight/" + cameraKey + "/Heading_Deg", odometryPose.getRotation().getDegrees());
+            SmartDashboard.putNumber("OdometryToLimeLight/" + cameraKey + "/IMU_Yaw_Deg", yaw);
+
             // Send orientation data to Limelight using LimelightHelpers
             LimelightHelpers.SetRobotOrientation(cameraName, yaw, yawRate, pitch, pitchRate, roll, rollRate);
         } catch (Exception e) {
@@ -164,11 +174,9 @@ public class Vision extends SubsystemBase {
             return;
         }
 
+
+
         Pose2d visionPose = estimate.pose;
-
-        SmartDashboard.putNumber("OdometryFromLimeLight/" + cameraDisplayName + "/X", visionPose.getX());
-        SmartDashboard.putNumber("OdometryFromLimeLight/" + cameraDisplayName + "/Y", visionPose.getY());
-
         double timestampSeconds = estimate.timestampSeconds;
         int tagCount = estimate.tagCount;
 
@@ -231,11 +239,9 @@ public class Vision extends SubsystemBase {
         drivetrain.addVisionMeasurement(visionPose, timestampSeconds, dynamicStdDevs);
         updateStatus(cameraDisplayName, String.format("ACCEPTED: Fused (%.2fm diff, %d tags, %.1fms latency)", 
             poseDifference, tagCount, estimate.latency));
-
-        Pose2d fusedPose = drivetrain.getLocalizer().getPose();
-        SmartDashboard.putNumber("OdometryFused/" + cameraDisplayName + "/X", fusedPose.getX());
-        SmartDashboard.putNumber("OdometryFused/" + cameraDisplayName + "/Y", fusedPose.getY());
     }
+
+   
 
     /**
      * Calculates the angle error (in radians) to face a target position on the
