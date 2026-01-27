@@ -134,6 +134,16 @@ public class Vision extends SubsystemBase {
             double pitch = Math.toDegrees(rotation.getY());
             double roll = Math.toDegrees(rotation.getX());
 
+            // Getting current odometry pose
+            Pose2d odometryPose = drivetrain.getLocalizer().getPose();
+
+            // Log odometry data that is available to Limelight
+            String cameraKey = cameraName.equals(VisionConstants.FRONT_CAMERA) ? "Front" : "Back";
+            SmartDashboard.putNumber("OdometryToLimeLight/" + cameraKey + "/X", odometryPose.getX());
+            SmartDashboard.putNumber("OdometryToLimeLight/" + cameraKey + "/X", odometryPose.getY());
+            SmartDashboard.putNumber("OdometryToLimeLight/" + cameraKey + "/Heading_Deg", odometryPose.getRotation().getDegrees());
+            SmartDashboard.putNumber("OdometryToLimeLight/" + cameraKey + "/IMU_Yaw_Deg", yaw);
+
             // Send orientation data to Limelight using LimelightHelpers
             LimelightHelpers.SetRobotOrientation(cameraName, yaw, yawRate, pitch, pitchRate, roll, rollRate);
         } catch (Exception e) {
@@ -147,6 +157,14 @@ public class Vision extends SubsystemBase {
      * estimate.
      */
     private void updatePoseEstimate(String cameraName, String cameraDisplayName) {
+
+        // Getting current odometry pose
+        Pose2d odometryPose = drivetrain.getLocalizer().getPose();
+
+        // Log odometry data that is available to Limelight
+        SmartDashboard.putNumber("OdometryToLimeLight/" + cameraDisplayName + "/X", odometryPose.getX());
+        SmartDashboard.putNumber("OdometryToLimeLight/" + cameraDisplayName + "/Y", odometryPose.getY());
+
         // Get pose estimate using LimelightHelpers (handles MegaTag/MegaTag2 and coordinate frames)
         PoseEstimate estimate = VisionConstants.USE_MEGATAG2
             ? LimelightHelpers.getBotPoseEstimate_wpiBlue_MegaTag2(cameraName)

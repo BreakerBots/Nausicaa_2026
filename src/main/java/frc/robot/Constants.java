@@ -381,8 +381,8 @@ public final class Constants {
         // If odometry moves opposite to actual movement, flip these flags
         // These apply to all modules on each side (left = front-left + back-left, right = front-right + back-right)
         // TUNING: Test by moving robot forward - if odometry shows backward movement, flip both flags
-        private static final boolean kInvertLeftSide = true;
-        private static final boolean kInvertRightSide = false;
+        private static final boolean kInvertLeftSide = true; //true
+        private static final boolean kInvertRightSide = false; //false
         
         // Individual module configurations
         // TUNING: Encoder offsets = calibrate each module (find value where module points forward when commanded to 0°)
@@ -395,20 +395,19 @@ public final class Constants {
         private static final int kFrontLeftSteerMotorId = 9;
         private static final int kFrontLeftEncoderId = 10;
         private static final Angle kFrontLeftEncoderOffset = Rotations.of(0.20751953125);
-        private static final boolean kFrontLeftSteerInvert = true;
-        private static final boolean kFrontLeftEncoderInvert = false;
+        private static final boolean kFrontLeftSteerInvert = true; //true
+        private static final boolean kFrontLeftEncoderInvert = false; //false
         private static final Translation2d kFrontLeftModulePosition = new Translation2d(
             Units.Inches.of(11.25),
             Units.Inches.of(11.25 ));
-
         // ---------------- FRONT RIGHT ----------------
 
         private static final int kFrontRightDriveMotorId = 11;
         private static final int kFrontRightSteerMotorId = 12;
         private static final int kFrontRightEncoderId = 13;
-        private static final Angle kFrontRightEncoderOffset = Rotations.of(-0.321533203125);
-        private static final boolean kFrontRightSteerInvert = true;
-        private static final boolean kFrontRightEncoderInvert = false;
+        private static final Angle kFrontRightEncoderOffset = Rotations.of(-0.321533203125); 
+        private static final boolean kFrontRightSteerInvert = true; // true
+        private static final boolean kFrontRightEncoderInvert = false; // false
         private static final Translation2d kFrontRightModulePosition = new Translation2d(
             Units.Inches.of(11.25),
             Units.Inches.of(-11.25));
@@ -419,8 +418,8 @@ public final class Constants {
         private static final int kBackLeftSteerMotorId = 15;
         private static final int kBackLeftEncoderId = 16;
         private static final Angle kBackLeftEncoderOffset = Rotation.of(0.12451171875);
-        private static final boolean kBackLeftSteerInvert = true;
-        private static final boolean kBackLeftEncoderInvert = false;
+        private static final boolean kBackLeftSteerInvert = true; //true
+        private static final boolean kBackLeftEncoderInvert = false; // false
         private static final Translation2d kBackLeftModulePosition = new Translation2d(
             Units.Inches.of(-11.25),
             Units.Inches.of(11.25));
@@ -430,9 +429,9 @@ public final class Constants {
         private static final int kBackRightDriveMotorId = 17;
         private static final int kBackRightSteerMotorId = 18;
         private static final int kBackRightEncoderId = 19;
-        private static final Angle kBackRightEncoderOffset = Rotations.of(-0.49658203125);
-        private static final boolean kBackRightSteerInvert = true;
-        private static final boolean kBackRightEncoderInvert = false;
+        private static final Angle kBackRightEncoderOffset = Rotations.of(-0.49658203125); 
+        private static final boolean kBackRightSteerInvert = true; // true
+        private static final boolean kBackRightEncoderInvert = false; // false
         private static final Translation2d kBackRightModulePosition = new Translation2d(
             Units.Inches.of(-11.25),
             Units.Inches.of(-11.25));
