@@ -381,8 +381,8 @@ public final class Constants {
         // If odometry moves opposite to actual movement, flip these flags
         // These apply to all modules on each side (left = front-left + back-left, right = front-right + back-right)
         // TUNING: Test by moving robot forward - if odometry shows backward movement, flip both flags
-        private static final boolean kInvertLeftSide = true; //true
-        private static final boolean kInvertRightSide = false; //false
+        private static final boolean kInvertLeftSide = true;
+        private static final boolean kInvertRightSide = false;
         
         // Individual module configurations
         // TUNING: Encoder offsets = calibrate each module (find value where module points forward when commanded to 0°)
@@ -400,6 +400,7 @@ public final class Constants {
         private static final Translation2d kFrontLeftModulePosition = new Translation2d(
             Units.Inches.of(11.25),
             Units.Inches.of(11.25 ));
+
         // ---------------- FRONT RIGHT ----------------
 
         private static final int kFrontRightDriveMotorId = 11;

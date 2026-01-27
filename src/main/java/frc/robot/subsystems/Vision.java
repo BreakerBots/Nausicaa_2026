@@ -18,7 +18,6 @@ import frc.robot.Constants.VisionConstants;
 import frc.robot.LimelightHelpers;
 import frc.robot.LimelightHelpers.PoseEstimate;
 import java.util.Optional;
-import dev.doglog.DogLog;
 
 /**
  * Vision subsystem for handling two LimeLight4 (LL4) cameras for localization.
@@ -87,28 +86,24 @@ public class Vision extends SubsystemBase {
         }
 
         // Process vision poses from both cameras
-        updatePoseEstimate(VisionConstants.FRONT_CAMERA, "front_camera");
-        updatePoseEstimate(VisionConstants.BACK_CAMERA, "back_camera");
+        updatePoseEstimate(VisionConstants.FRONT_CAMERA);
+        updatePoseEstimate(VisionConstants.BACK_CAMERA);
 
         // Update Field2d with all poses (fused, and one for each camera) for Elastic
         // dashboard visualization
         fusedPose = drivetrain.getLocalizer().getPose();
         field.getRobotObject().setPose(fusedPose); // Fused pose (odometry + vision)
         if (frontCameraPose != null) {
-            field.getObject("front_camera").setPose(frontCameraPose);
+            field.getObject(VisionConstants.FRONT_CAMERA).setPose(frontCameraPose);
         }
         if (backCameraPose != null) {
-            field.getObject("back_camera").setPose(backCameraPose);
+            field.getObject(VisionConstants.BACK_CAMERA).setPose(backCameraPose);
         }
-
-        // Try logging a Pose2d type
-        DogLog.log("robot_pose", fusedPose);
 
         // Log vision data once per second
         double currentTime = Timer.getFPGATimestamp();
         if (currentTime - lastLogTime >= 1.0) {
             logVisionData();
-            logIMUData();
             lastLogTime = currentTime;
         }
     }
@@ -138,6 +133,7 @@ public class Vision extends SubsystemBase {
             LimelightHelpers.SetRobotOrientation(cameraName, yaw, yawRate, pitch, pitchRate, roll, rollRate);
         } catch (Exception e) {
             // If Pigeon is not available, skip orientation update
+            System.out.println("ERROR getting data from IMU: " + e.getMessage());
         }
     }
 
@@ -146,32 +142,24 @@ public class Vision extends SubsystemBase {
      * Reads pose data from a Limelight camera and updates the drivetrain's pose
      * estimate.
      */
-    private void updatePoseEstimate(String cameraName, String cameraDisplayName) {
-
-        // Getting current odometry pose
-        Pose2d odometryPose = drivetrain.getLocalizer().getPose();
-        SmartDashboard.putNumber("OdometryToLimeLight/" + cameraDisplayName + "/X", odometryPose.getX());
-        SmartDashboard.putNumber("OdometryToLimeLight/" + cameraDisplayName + "/Y", odometryPose.getY());
+    private void updatePoseEstimate(String cameraName) {
 
         // Get pose estimate using LimelightHelpers (handles MegaTag/MegaTag2 and coordinate frames)
         PoseEstimate estimate = VisionConstants.USE_MEGATAG2
             ? LimelightHelpers.getBotPoseEstimate_wpiBlue_MegaTag2(cameraName)
             : LimelightHelpers.getBotPoseEstimate_wpiBlue(cameraName);
         
-        // Check if we have valid pose data
+        // Make sure we have valid pose data
         if (estimate == null) {
-            logRejection(cameraDisplayName, "No pose data available");
+            logRejection(cameraName, "No pose data available");
             return;
         }
 
         Pose2d visionPose = estimate.pose;
         double timestampSeconds = estimate.timestampSeconds;
-        int tagCount = estimate.tagCount;
-
-        SmartDashboard.putNumber("OdometryFromLimeLight/" + cameraName + "/X", visionPose.getX());
-        SmartDashboard.putNumber("OdometryFromLimeLight/" + cameraName + "/X", visionPose.getY());        
+        int tagCount = estimate.tagCount;     
         
-        if (cameraDisplayName.equals("front_camera")) {
+        if (cameraName.equals(VisionConstants.FRONT_CAMERA)) {
             frontCameraPose = visionPose;
             frontCameraEstimate = estimate;
         } else {
@@ -181,7 +169,7 @@ public class Vision extends SubsystemBase {
 
         // Only use vision data if we have enough tags
         if (tagCount < VisionConstants.MIN_TAG_COUNT) {
-            logRejection(cameraDisplayName, String.format("Insufficient tags (got %d, need %d)", tagCount, VisionConstants.MIN_TAG_COUNT));
+            logRejection(cameraName, String.format("Insufficient tags (got %d, need %d)", tagCount, VisionConstants.MIN_TAG_COUNT));
             return;
         }
 
@@ -191,11 +179,12 @@ public class Vision extends SubsystemBase {
             var pigeon = drivetrain.getPigeon2();
             double angularVelocityDegPerSec = Math.abs(Math.toDegrees(pigeon.getAngularVelocityZWorld().getValueAsDouble()));
             if (angularVelocityDegPerSec > 720.0) {
-                logRejection(cameraDisplayName, String.format("Angular velocity too high (%.1f deg/s > 720 deg/s)", angularVelocityDegPerSec));
+                logRejection(cameraName, String.format("Angular velocity too high (%.1f deg/s > 720 deg/s)", angularVelocityDegPerSec));
                 return;
             }
         } catch (Exception e) {
             // If Pigeon is not available, skip angular velocity check
+            System.out.println("ERROR getting data from IMU: " + e.getMessage());
         }
 
         // Get current pose estimate
@@ -207,7 +196,7 @@ public class Vision extends SubsystemBase {
         // whereas addVisionMeasurement() needs odometry buffer entries to fuse with
         if (distanceFromOrigin < 0.1) {
             drivetrain.getLocalizer().resetPose(visionPose);
-            updateStatus(cameraDisplayName, String.format("ACCEPTED: Reset pose (origin, %d tags)", tagCount));
+            updateStatus(cameraName, String.format("ACCEPTED: Reset pose (origin, %d tags)", tagCount));
             return;
         }
 
@@ -215,7 +204,7 @@ public class Vision extends SubsystemBase {
         // Check if vision measurement is within reasonable distance of current estimate
         double poseDifference = visionPose.getTranslation().getDistance(currentPose.getTranslation());
         if (poseDifference > VisionConstants.MAX_POSE_DIFFERENCE) {
-            logRejection(cameraDisplayName, String.format("Pose difference too large (%.2fm > %.2fm)", poseDifference,
+            logRejection(cameraName, String.format("Pose difference too large (%.2fm > %.2fm)", poseDifference,
                     VisionConstants.MAX_POSE_DIFFERENCE));
             return; // Vision measurement seems unreliable
         }
@@ -227,15 +216,10 @@ public class Vision extends SubsystemBase {
         
         // Add vision measurement to pose estimator
         drivetrain.addVisionMeasurement(visionPose, timestampSeconds, dynamicStdDevs);
-        updateStatus(cameraDisplayName, String.format("ACCEPTED: Fused (%.2fm diff, %d tags, %.1fms latency)", 
+        updateStatus(cameraName, String.format("ACCEPTED: Fused (%.2fm diff, %d tags, %.1fms latency)", 
             poseDifference, tagCount, estimate.latency));
-
-        Pose2d fusedPose = drivetrain.getLocalizer().getPose();
-        SmartDashboard.putNumber("OdometryFused/" + cameraName + "/X", fusedPose.getX());
-        SmartDashboard.putNumber("OdometryFused/" + cameraName + "/X", fusedPose.getY());   
     }
 
-   
 
     /**
      * Calculates the angle error (in radians) to face a target position on the
@@ -358,102 +342,45 @@ public class Vision extends SubsystemBase {
         
         return VecBuilder.fill(dynamicX, dynamicY, dynamicTheta);
     }
-
-
-    /**
-     * Logs IMU data to NetworkTables for diagnostics.
-     * This helps determine if the IMU mounting orientation needs to be configured.
-     */
-    private void logIMUData() {
-        var pigeon = drivetrain.getPigeon2();
-        Rotation3d rotation = pigeon.getRotation3d();
-        
-        double yawDeg = Math.toDegrees(rotation.getZ());
-        SmartDashboard.putNumber("IMU/Yaw_Deg", yawDeg);
-        
-        // Compare vision pose vs fused pose to diagnose coordinate frame issues
-        if (frontCameraPose != null && fusedPose != null) {
-            double visionX = frontCameraPose.getX();
-            double visionY = frontCameraPose.getY();
-            double fusedX = fusedPose.getX();
-            double fusedY = fusedPose.getY();
-            
-            double diffX = visionX - fusedX;
-            double diffY = visionY - fusedY;
-            
-            SmartDashboard.putNumber("Diagnostics/VisionX", visionX);
-            SmartDashboard.putNumber("Diagnostics/VisionY", visionY);
-            SmartDashboard.putNumber("Diagnostics/FusedX", fusedX);
-            SmartDashboard.putNumber("Diagnostics/FusedY", fusedY);
-            SmartDashboard.putNumber("Diagnostics/DiffX", diffX);
-            SmartDashboard.putNumber("Diagnostics/DiffY", diffY);
-            
-            // Calculate distance between vision and fused poses
-            double poseDistance = frontCameraPose.getTranslation().getDistance(fusedPose.getTranslation());
-            SmartDashboard.putNumber("Diagnostics/PoseDistance_m", poseDistance);
-            
-            // Log direction indicators: if vision X increases, does fused X also increase?
-            // This helps identify if odometry is tracking in opposite direction
-            SmartDashboard.putString("Diagnostics/DirectionCheck", 
-                String.format("Vision: (%.2f, %.2f) | Fused: (%.2f, %.2f) | Diff: (%.2f, %.2f)", 
-                    visionX, visionY, fusedX, fusedY, diffX, diffY));
-        }
-    }
-
+    
     /**
      * Logs vision data to both NetworkTables and System.out once per second.
      */
     private void logVisionData() {
+
         // Get tag IDs from pose estimates
         int[] frontTags = getTagIdsFromEstimate(frontCameraEstimate);
         int[] backTags = getTagIdsFromEstimate(backCameraEstimate);
+        String frontTagsStr = formatTagArray(frontTags);
+        String backTagsStr = formatTagArray(backTags);
 
         // Format poses with 2 decimal places
         String frontPoseStr = formatPose(frontCameraPose);
         String backPoseStr = formatPose(backCameraPose);
         String fusedPoseStr = formatPose(fusedPose);
 
-        // Format tag arrays
-        String frontTagsStr = formatTagArray(frontTags);
-        String backTagsStr = formatTagArray(backTags);
+        SmartDashboard.putString("Vision/FrontCamera/Tags", frontTagsStr);
+        SmartDashboard.putString("Vision/FrontCamera/Pose", frontPoseStr);
+        SmartDashboard.putString("Vision/FrontCamera/Status", frontCameraStatus);
+        SmartDashboard.putString("Vision/FrontCamera/LastRejection", frontCameraLastRejection);
 
-        // Build log message
+        SmartDashboard.putString("Vision/BackCamera/Tags", backTagsStr);
+        SmartDashboard.putString("Vision/BackCamera/Pose", backPoseStr);
+        SmartDashboard.putString("Vision/BackCamera/Status", backCameraStatus);
+        SmartDashboard.putString("Vision/BackCamera/LastRejection", backCameraLastRejection);
+
         String logMessage = String.format(
                 "------------------------------------------------------\n" +
-                        "- Front Camera: Tags %s, Pose %s\n" +
-                        "- Back Camera: Tags %s, Pose %s\n" +
-                        "- Fused: Pose %s",
+                "- Front Camera: Tags %s, Pose %s\n" +
+                "- Back Camera: Tags %s, Pose %s\n" +
+                "- Fused: Pose %s",
                 frontTagsStr, frontPoseStr,
                 backTagsStr, backPoseStr,
                 fusedPoseStr);
-
-        // Log to System.out
         System.out.println(logMessage);
 
         // Log to NetworkTables
-        SmartDashboard.putString("Vision/Log", logMessage);
-        SmartDashboard.putString("Vision/FrontCamera/Tags", frontTagsStr);
-        SmartDashboard.putString("Vision/FrontCamera/Pose", frontPoseStr);
-        SmartDashboard.putString("Vision/BackCamera/Tags", backTagsStr);
-        SmartDashboard.putString("Vision/BackCamera/Pose", backPoseStr);
-        SmartDashboard.putString("Vision/Fused/Pose", fusedPoseStr);
-
-        // Log measurement status and latency/timestamp diagnostics
-        SmartDashboard.putString("Vision/FrontCamera/Status", frontCameraStatus);
-        SmartDashboard.putString("Vision/FrontCamera/LastRejection", frontCameraLastRejection);
-        SmartDashboard.putString("Vision/BackCamera/Status", backCameraStatus);
-        SmartDashboard.putString("Vision/BackCamera/LastRejection", backCameraLastRejection);
-        
-        if (frontCameraEstimate != null) {
-            SmartDashboard.putNumber("Vision/FrontCamera/Latency", frontCameraEstimate.latency);
-            SmartDashboard.putNumber("Vision/FrontCamera/TimestampAge",
-                    frontCameraEstimate.timestampSeconds > 0 ? Timer.getFPGATimestamp() - frontCameraEstimate.timestampSeconds : 0.0);
-        }
-        if (backCameraEstimate != null) {
-            SmartDashboard.putNumber("Vision/BackCamera/Latency", backCameraEstimate.latency);
-            SmartDashboard.putNumber("Vision/BackCamera/TimestampAge",
-                    backCameraEstimate.timestampSeconds > 0 ? Timer.getFPGATimestamp() - backCameraEstimate.timestampSeconds : 0.0);
-        }
+        SmartDashboard.putString("Vision/Log", logMessage);        
     }
 
     /**
@@ -505,7 +432,7 @@ public class Vision extends SubsystemBase {
      * Updates the comprehensive status for a camera (includes accepted and rejected measurements).
      */
     private void updateStatus(String cameraName, String status) {
-        if (cameraName.equals("front_camera")) {
+        if (cameraName.equals(VisionConstants.FRONT_CAMERA)) {
             frontCameraStatus = status;
         } else {
             backCameraStatus = status;
@@ -520,7 +447,7 @@ public class Vision extends SubsystemBase {
         String rejectionMessage = "REJECTED: " + reason;
         
         // Store the rejection reason
-        if (cameraName.equals("front_camera")) {
+        if (cameraName.equals(VisionConstants.FRONT_CAMERA)) {
             frontCameraLastRejection = rejectionMessage;
         } else {
             backCameraLastRejection = rejectionMessage;
