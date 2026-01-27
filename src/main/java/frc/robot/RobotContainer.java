@@ -85,8 +85,7 @@ public class RobotContainer {
                 .clamp(1.0)
                 .deadband(Constants.OperatorConstants.ROTATIONAL_DEADBAND, 1.0)
                 .map(new BreakerLinearizedConstrainedExponential(0.364, 6.6, true))
-                .scale(Constants.DriveConstants.MAXIMUM_ROTATIONAL_VELOCITY.in(Units.RadiansPerSecond))
-                .negate();
+                .scale(Constants.DriveConstants.MAXIMUM_ROTATIONAL_VELOCITY.in(Units.RadiansPerSecond));
     
         drivetrain.setDefaultCommand(drivetrain.getTeleopControlCommand(driverX, driverY, driverOmega, Constants.DriveConstants.TELEOP_CONTROL_CONFIG));
     
