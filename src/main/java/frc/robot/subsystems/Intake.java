@@ -11,7 +11,7 @@ import frc.robot.Constants;
 import frc.robot.BreakerLib.util.logging.BreakerLog;
 
 public class Intake {
-    private final TalonFX extenderMotor = new TalonFX(Constants.IntakeConstants.EXTENDER_MOTOR_ID,
+    private final TalonFX extenderMotor = new TalonFX(Constants.IntakeConstants.PIVOT_MOTOR_ID,
             Constants.GeneralConstants.DRIVE_CANIVORE_BUS);
 
     private final TalonFX rollerMotor = new TalonFX(Constants.IntakeConstants.ROLLER_MOTOR_ID,

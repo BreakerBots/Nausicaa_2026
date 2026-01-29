@@ -123,8 +123,9 @@ public final class Constants {
     // --------------- INTAKE --------------
 
     public static class IntakeConstants {
-        public static final int EXTENDER_MOTOR_ID = 20;
+        public static final int PIVOT_MOTOR_ID = 20;
         public static final int ROLLER_MOTOR_ID = 21;
+        public static final int PIVOT_ENCODER_ID = 25;
         public static final Rotation2d POSITION_STOWED = Rotation2d.fromRotations(0.2);
         public static final Rotation2d POSITION_EXTENDED = Rotation2d.fromRotations(0.2);
         public static final Rotation2d POSITION_JIGGLE_HIGH = Rotation2d.fromRotations(0.2);
@@ -139,12 +140,33 @@ public final class Constants {
     public static class ShooterConstants {
         public static final int SHOOTER_FLYWHEEL_1_MOTOR_ID = 30;
         public static final int SHOOTER_FLYWHEEL_2_MOTOR_ID = 31;
-        public static final int KICKER_MOTOR_ID = 32;
-        public static final int TRAJECTORY_ADJUSTER_MOTOR_ID = 33;
+        public static final int SHOOTER_FLYWHEEL_3_MOTOR_ID = 32;
+        public static final int FEEDER_MOTOR_ID = 33;
+        public static final int HOOD_MOTOR_ID = 34;
+        public static final int HOOD_ENCODER_ID = 35;
+        public static final int SHOOTER_BEAMBREAK_ID = 36;
         public static final double SPEED_IDLE = 0;
         public static final double SPEED_FLYWHEEL_1_ACTIVE = 0;
         public static final double SPEED_FLYWHEEL_2_ACTIVE = 0;
+        public static final double SPEED_FLYWHEEL_3_ACTIVE = 0;
         public static final double SPEED_KICKER_ACTIVE = 0;
+    }
+
+    // --------------- HOPPER --------------
+
+    public static class HopperConstants {
+        public static final int HOPPER_MOTOR_ID = 40;
+        public static final double SPEED_INACTIVE = 0;
+        public static final double SPEED_FEEDING = 0;
+    }
+
+    // --------------- CLIMB --------------
+
+    public static class ClimbConstants {
+        public static final int CLIMB_MOTOR_ID = 50;
+        public static final int CLIMB_ENCODER_ID = 55;
+        public static final Rotation2d POSITION_UP = Rotation2d.fromRotations(0);
+        public static final Rotation2d POSITION_DOWN = Rotation2d.fromRotations(0);
     }
 
     // ---------------- MINNOW ARM ----------------

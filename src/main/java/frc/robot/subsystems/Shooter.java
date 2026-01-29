@@ -17,10 +17,13 @@ public class Shooter {
     private final TalonFX shooterFlywheel2Motor = new TalonFX(Constants.ShooterConstants.SHOOTER_FLYWHEEL_2_MOTOR_ID,
             Constants.GeneralConstants.DRIVE_CANIVORE_BUS);
 
-    private final TalonFX kickerMotor = new TalonFX(Constants.ShooterConstants.KICKER_MOTOR_ID,
+    private final TalonFX shooterFlywheel3Motor = new TalonFX(Constants.ShooterConstants.SHOOTER_FLYWHEEL_3_MOTOR_ID,
             Constants.GeneralConstants.DRIVE_CANIVORE_BUS);
 
-    private final TalonFX trajectoryAdjusterMotor = new TalonFX(Constants.ShooterConstants.TRAJECTORY_ADJUSTER_MOTOR_ID,
+    private final TalonFX feederMotor = new TalonFX(Constants.ShooterConstants.FEEDER_MOTOR_ID,
+            Constants.GeneralConstants.DRIVE_CANIVORE_BUS);
+
+    private final TalonFX hoodMotor = new TalonFX(Constants.ShooterConstants.HOOD_MOTOR_ID,
             Constants.GeneralConstants.DRIVE_CANIVORE_BUS);
     
     public State state = State.INACTIVE;
@@ -32,18 +35,20 @@ public class Shooter {
      */
     public enum State {
         
-        INACTIVE(Constants.ShooterConstants.SPEED_IDLE, Constants.ShooterConstants.SPEED_IDLE, Constants.ShooterConstants.SPEED_IDLE),
-        SHOOTING(Constants.ShooterConstants.SPEED_FLYWHEEL_1_ACTIVE, Constants.ShooterConstants.SPEED_FLYWHEEL_2_ACTIVE, Constants.ShooterConstants.SPEED_KICKER_ACTIVE);
+        INACTIVE(Constants.ShooterConstants.SPEED_IDLE, Constants.ShooterConstants.SPEED_IDLE, Constants.ShooterConstants.SPEED_IDLE, Constants.ShooterConstants.SPEED_IDLE),
+        SHOOTING(Constants.ShooterConstants.SPEED_FLYWHEEL_1_ACTIVE, Constants.ShooterConstants.SPEED_FLYWHEEL_2_ACTIVE, Constants.ShooterConstants.SPEED_FLYWHEEL_3_ACTIVE, Constants.ShooterConstants.SPEED_KICKER_ACTIVE);
 
         private double flywheel1Speed;
         private double flywheel2Speed;
-        private double kickerSpeed;
+        private double flywheel3Speed;
+        private double feederSpeed;
 
 
-        private State(double flywheel1Speed, double flywheel2Speed, double kickerSpeed) {
+        private State(double flywheel1Speed, double flywheel2Speed, double flywheel3Speed, double kickerSpeed) {
              this.flywheel1Speed = flywheel1Speed;
              this.flywheel2Speed = flywheel2Speed;
-             this.kickerSpeed = kickerSpeed;
+             this.flywheel3Speed = flywheel3Speed;
+             this.feederSpeed = feederSpeed;
         }
 
         public double getFlywheel1Speed() {
@@ -54,8 +59,12 @@ public class Shooter {
           return flywheel2Speed;
         }
 
-        public double getKickerSpeed() {
-          return kickerSpeed;
+        public double getFlywheel3Speed() {
+          return flywheel3Speed;
+        }
+
+        public double getFeederSpeed() {
+          return feederSpeed;
         }
 
     }
@@ -66,7 +75,8 @@ public class Shooter {
         state = newState;
         setFlywheel1Speed(state.getFlywheel1Speed());
         setFlywheel2Speed(state.getFlywheel2Speed());
-        setKickerSpeed(state.getKickerSpeed());
+        setFlywheel3Speed(state.getFlywheel3Speed());
+        setFeederSpeed(state.getFeederSpeed());
         
         // Log state change
         // System.out.println("Arm state changed from " + previousState.toString() + " to " + state.toString());
@@ -87,8 +97,12 @@ public class Shooter {
         shooterFlywheel2Motor.setControl(new DutyCycleOut(speed));
     }
 
-    private void setKickerSpeed(double speed) {
-        kickerMotor.setControl(new DutyCycleOut(speed));
+    private void setFlywheel3Speed(double speed) {
+        shooterFlywheel3Motor.setControl(new DutyCycleOut(speed));
+    }
+
+    private void setFeederSpeed(double speed) {
+        feederMotor.setControl(new DutyCycleOut(speed));
     }
 
 }
