@@ -3,7 +3,6 @@ package frc.robot.subsystems;
 import com.ctre.phoenix6.controls.PositionDutyCycle;
 import com.ctre.phoenix6.hardware.TalonFX;
 
-import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import frc.robot.Constants;
@@ -21,17 +20,17 @@ public class Climb {
      */
     public enum State {
  
-        UP(Constants.ClimbConstants.POSITION_UP),
-        DOWN(Constants.ClimbConstants.POSITION_DOWN);
+        UP(Constants.ClimbConstants.ROTATIONS_UP),
+        DOWN(Constants.ClimbConstants.ROTATIONS_DOWN);
 
-        private double rotation;
+        private double rotations;
 
-        private State(double rotation) {
-             this.rotation = rotation;
+        private State(double rotations) {
+             this.rotations = rotations;
         }
 
         public double getClimbPosition() {
-            return rotation;
+            return rotations;
         }
 
     }
