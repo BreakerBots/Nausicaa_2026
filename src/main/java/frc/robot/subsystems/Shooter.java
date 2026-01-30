@@ -1,7 +1,9 @@
 package frc.robot.subsystems;
 
 import com.ctre.phoenix6.controls.DutyCycleOut;
+import com.ctre.phoenix6.controls.Follower;
 import com.ctre.phoenix6.hardware.TalonFX;
+import com.ctre.phoenix6.signals.MotorAlignmentValue;
 
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
@@ -23,7 +25,15 @@ public class Shooter extends SubsystemBase {
 
     private final TalonFX hoodMotor = new TalonFX(Constants.ShooterConstants.HOOD_MOTOR_ID,
             Constants.GeneralConstants.DRIVE_CANIVORE_BUS);
-    
+
+    public Shooter() {
+        // Flywheels 2 and 3 follow flywheel 1 (same direction)
+        int leaderId = Constants.ShooterConstants.SHOOTER_FLYWHEEL_1_MOTOR_ID;
+        shooterFlywheel2Motor.setControl(new Follower(leaderId, MotorAlignmentValue.Aligned));
+        shooterFlywheel3Motor.setControl(new Follower(leaderId, MotorAlignmentValue.Aligned));
+    }
+
+
     public State state = State.INACTIVE;
 
     /** Shooter states: flywheel and feeder speeds (inactive vs shooting). */
@@ -66,8 +76,7 @@ public class Shooter extends SubsystemBase {
         State previousState = state;
         state = newState;
         setFlywheel1Speed(state.getFlywheel1Speed());
-        setFlywheel2Speed(state.getFlywheel2Speed());
-        setFlywheel3Speed(state.getFlywheel3Speed());
+        // Flywheels 2 and 3 follow flywheel 1 via Follower control in constructor
         setFeederSpeed(state.getFeederSpeed());
 
         BreakerLog.log("Shooter/State/Previous", previousState.toString());
@@ -93,26 +102,14 @@ public class Shooter extends SubsystemBase {
         double v2 = shooterFlywheel2Motor.getVelocity().getValueAsDouble();
         double v3 = shooterFlywheel3Motor.getVelocity().getValueAsDouble();
         double vFeed = feederMotor.getVelocity().getValueAsDouble();
-        double a1 = shooterFlywheel1Motor.getStatorCurrent().getValueAsDouble();
-        double a2 = shooterFlywheel2Motor.getStatorCurrent().getValueAsDouble();
-        double a3 = shooterFlywheel3Motor.getStatorCurrent().getValueAsDouble();
-        double aFeed = feederMotor.getStatorCurrent().getValueAsDouble();
         double hoodPos = hoodMotor.getPosition().getValueAsDouble();
         String line = String.format("state=%s f1=%.1fvel%.1fA f2=%.1fvel%.1fA f3=%.1fvel%.1fA feed=%.1fvel%.1fA hood=%.2frot",
-                state, v1, a1, v2, a2, v3, a3, vFeed, aFeed, hoodPos);
+                state, v1, v2, v3, vFeed, hoodPos);
         BreakerLog.log("Shooter/Status", line);
     }
 
     private void setFlywheel1Speed(double speed) {
         shooterFlywheel1Motor.setControl(new DutyCycleOut(speed));
-    }
-
-    private void setFlywheel2Speed(double speed) {
-        shooterFlywheel2Motor.setControl(new DutyCycleOut(speed));
-    }
-
-    private void setFlywheel3Speed(double speed) {
-        shooterFlywheel3Motor.setControl(new DutyCycleOut(speed));
     }
 
     private void setFeederSpeed(double speed) {
