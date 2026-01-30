@@ -13,8 +13,8 @@ import static frc.robot.Constants.DriveConstants.FrontRight;
 import frc.robot.BreakerLib.swerve.BreakerSwerveDrivetrain;
 
 public class Drivetrain extends BreakerSwerveDrivetrain {
-  /** Creates a new Drivetrain. */
-  public Drivetrain() {
-    super(DRIVETRAIN_CONSTANTS, FrontLeft, FrontRight, BackLeft, BackRight);
-  }
+
+    public Drivetrain() {
+        super(DRIVETRAIN_CONSTANTS, FrontLeft, FrontRight, BackLeft, BackRight);
+    }
 }

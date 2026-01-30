@@ -1,22 +1,20 @@
 package frc.robot.subsystems;
 
 import com.ctre.phoenix6.controls.DutyCycleOut;
-import com.ctre.phoenix6.controls.PositionDutyCycle;
 import com.ctre.phoenix6.hardware.TalonFX;
 
-import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
+import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
 import frc.robot.BreakerLib.util.logging.BreakerLog;
 
-public class Shooter {
+public class Shooter extends SubsystemBase {
+
     private final TalonFX shooterFlywheel1Motor = new TalonFX(Constants.ShooterConstants.SHOOTER_FLYWHEEL_1_MOTOR_ID,
             Constants.GeneralConstants.DRIVE_CANIVORE_BUS);
-
     private final TalonFX shooterFlywheel2Motor = new TalonFX(Constants.ShooterConstants.SHOOTER_FLYWHEEL_2_MOTOR_ID,
             Constants.GeneralConstants.DRIVE_CANIVORE_BUS);
-
     private final TalonFX shooterFlywheel3Motor = new TalonFX(Constants.ShooterConstants.SHOOTER_FLYWHEEL_3_MOTOR_ID,
             Constants.GeneralConstants.DRIVE_CANIVORE_BUS);
 
@@ -28,11 +26,7 @@ public class Shooter {
     
     public State state = State.INACTIVE;
 
-    /**
-     * Right now, these states equate to arbitrary positions.
-     * Ideally, they'd be based on actual modes for the arm (ie. intake, score,
-     * stow, etc.)
-     */
+    /** Shooter states: flywheel and feeder speeds (inactive vs shooting). */
     public enum State {
         
         INACTIVE(Constants.ShooterConstants.SPEED_IDLE, Constants.ShooterConstants.SPEED_IDLE, Constants.ShooterConstants.SPEED_IDLE, Constants.ShooterConstants.SPEED_IDLE),
@@ -43,8 +37,7 @@ public class Shooter {
         private double flywheel3Speed;
         private double feederSpeed;
 
-
-        private State(double flywheel1Speed, double flywheel2Speed, double flywheel3Speed, double kickerSpeed) {
+        private State(double flywheel1Speed, double flywheel2Speed, double flywheel3Speed, double feederSpeed) {
              this.flywheel1Speed = flywheel1Speed;
              this.flywheel2Speed = flywheel2Speed;
              this.flywheel3Speed = flywheel3Speed;
@@ -69,7 +62,6 @@ public class Shooter {
 
     }
 
-    
     public void setState(State newState) {
         State previousState = state;
         state = newState;
@@ -77,16 +69,38 @@ public class Shooter {
         setFlywheel2Speed(state.getFlywheel2Speed());
         setFlywheel3Speed(state.getFlywheel3Speed());
         setFeederSpeed(state.getFeederSpeed());
-        
-        // Log state change
-        // System.out.println("Arm state changed from " + previousState.toString() + " to " + state.toString());
-        // BreakerLog.log("Arm/State/Previous", previousState.toString());
-        // BreakerLog.log("Arm/State/Current", state.toString());
-        // BreakerLog.log("Arm/State/Position", state.getRotation2d().getRotations());
+
+        BreakerLog.log("Shooter/State/Previous", previousState.toString());
+        BreakerLog.log("Shooter/State/Current", state.toString());
+        BreakerLog.log("Shooter/State/Flywheel1", state.getFlywheel1Speed());
+        BreakerLog.log("Shooter/State/Feeder", state.getFeederSpeed());
     }
 
     public Command setStateCommand(State newState) {
-        return Commands.runOnce(() -> setState(newState));
+        return Commands.runOnce(() -> setState(newState), this);
+    }
+
+
+    @Override
+    public void periodic() {
+        logStatus();
+    }
+
+
+    /** One compact line: state, flywheels + feeder vel/current. */
+    private void logStatus() {
+        double v1 = shooterFlywheel1Motor.getVelocity().getValueAsDouble();
+        double v2 = shooterFlywheel2Motor.getVelocity().getValueAsDouble();
+        double v3 = shooterFlywheel3Motor.getVelocity().getValueAsDouble();
+        double vFeed = feederMotor.getVelocity().getValueAsDouble();
+        double a1 = shooterFlywheel1Motor.getStatorCurrent().getValueAsDouble();
+        double a2 = shooterFlywheel2Motor.getStatorCurrent().getValueAsDouble();
+        double a3 = shooterFlywheel3Motor.getStatorCurrent().getValueAsDouble();
+        double aFeed = feederMotor.getStatorCurrent().getValueAsDouble();
+        double hoodPos = hoodMotor.getPosition().getValueAsDouble();
+        String line = String.format("state=%s f1=%.1fvel%.1fA f2=%.1fvel%.1fA f3=%.1fvel%.1fA feed=%.1fvel%.1fA hood=%.2frot",
+                state, v1, a1, v2, a2, v3, a3, vFeed, aFeed, hoodPos);
+        BreakerLog.log("Shooter/Status", line);
     }
 
     private void setFlywheel1Speed(double speed) {
@@ -104,5 +118,4 @@ public class Shooter {
     private void setFeederSpeed(double speed) {
         feederMotor.setControl(new DutyCycleOut(speed));
     }
-
 }
