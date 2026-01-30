@@ -7,10 +7,14 @@ package frc.robot;
 import com.ctre.phoenix6.swerve.SwerveModule.DriveRequestType;
 import com.ctre.phoenix6.swerve.SwerveRequest;
 
+import com.pathplanner.lib.auto.AutoBuilder;
+
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.units.Units;
+import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
@@ -44,13 +48,23 @@ public class RobotContainer {
         
     private BreakerInputStream driverX, driverY, driverOmega;
 
+    /** PathPlanner auto chooser; populated from GUI autos when AutoBuilder is configured. */
+    private final SendableChooser<Command> autoChooser;
+
     /** The container for the robot. Contains subsystems, OI devices, and commands. */
     public RobotContainer() {
         // Disable verbose logging to reduce noise
         // Flip this back on when debugging/troubleshooting
         BreakerLog.setVerboseLogging(false);
 
-        
+        if (AutoBuilder.isConfigured()) {
+            autoChooser = AutoBuilder.buildAutoChooser();
+        } else {
+            autoChooser = new SendableChooser<>();
+            autoChooser.setDefaultOption("Do Nothing", Commands.none());
+        }
+        SmartDashboard.putData("Auto Chooser", autoChooser);
+
         configureBindings();
     }
 
@@ -114,7 +128,7 @@ public class RobotContainer {
 
 
     public Command getAutonomousCommand() {
-       return null;
+        return autoChooser.getSelected();
     }
 
     /**

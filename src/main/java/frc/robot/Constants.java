@@ -165,8 +165,13 @@ public final class Constants {
     public static class ClimbConstants {
         public static final int CLIMB_MOTOR_ID = 50;
         public static final int CLIMB_ENCODER_ID = 55;
-        public static final Rotation2d POSITION_UP = Rotation2d.fromRotations(0);
-        public static final Rotation2d POSITION_DOWN = Rotation2d.fromRotations(0);
+        
+        // Encoder rotations
+        public static final double ROTATIONS_UP = 10.0;
+        public static final double ROTATIONS_DOWN = 0.0;
+
+        public static final double CLIMB_DUTY_UP = 0.5;
+        public static final double CLIMB_DUTY_DOWN = -0.5;
     }
 
     // ---------------- MINNOW ARM ----------------
