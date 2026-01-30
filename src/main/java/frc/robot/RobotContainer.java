@@ -8,6 +8,7 @@ import com.ctre.phoenix6.swerve.SwerveModule.DriveRequestType;
 import com.ctre.phoenix6.swerve.SwerveRequest;
 
 import com.pathplanner.lib.auto.AutoBuilder;
+import com.pathplanner.lib.commands.PathPlannerAuto;
 
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.geometry.Pose2d;
@@ -46,7 +47,6 @@ public class RobotContainer {
     private final Intake intake = new Intake();
     private final Shooter shooter = new Shooter();
     
-        
     private BreakerInputStream driverX, driverY, driverOmega;
 
     /** PathPlanner auto chooser; populated from GUI autos when AutoBuilder is configured. */
@@ -58,6 +58,7 @@ public class RobotContainer {
         // Flip this back on when debugging/troubleshooting
         BreakerLog.setVerboseLogging(false);
 
+        // Set up our auto-chooser    
         if (AutoBuilder.isConfigured()) {
             autoChooser = AutoBuilder.buildAutoChooser();
         } else {
@@ -66,6 +67,7 @@ public class RobotContainer {
         }
         SmartDashboard.putData("Auto Chooser", autoChooser);
 
+        // Bind our controller buttons
         configureBindings();
     }
 
