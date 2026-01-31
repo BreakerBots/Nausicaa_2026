@@ -142,10 +142,11 @@ public final class Constants {
         public static final int HOOD_ENCODER_ID = 35;
         public static final int SHOOTER_BEAMBREAK_ID = 36;
         public static final double SPEED_IDLE = 0;
-        public static final double SPEED_FLYWHEEL_1_ACTIVE = 0;
-        public static final double SPEED_FLYWHEEL_2_ACTIVE = 0;
-        public static final double SPEED_FLYWHEEL_3_ACTIVE = 0;
-        public static final double SPEED_KICKER_ACTIVE = 0;
+        public static final double SPEED_FLYWHEEL_ACTIVE = 0;
+
+        /** Hood: external encoder; command takes target rotations. */
+        public static final double SPEED_HOOD_UP = 0.3;
+        public static final double SPEED_HOOD_DOWN = -0.3;
     }
 
     // --------------- HOPPER --------------
@@ -168,7 +169,7 @@ public final class Constants {
         /** Encoder rotations when climb is fully UP/DOWN. Tune to match chain travel. */
         public static final double ROTATIONS_UP = 10.0;
         public static final double ROTATIONS_DOWN = 0.0;
-        
+
         public static final double SPEED_INACTIVE = 0;
         public static final double SPEED_ASCENDING = 0.5;
         public static final double SPEED_DESCENDING = -0.5;
