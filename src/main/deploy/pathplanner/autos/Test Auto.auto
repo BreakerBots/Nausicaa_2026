@@ -7,19 +7,7 @@
         {
           "type": "path",
           "data": {
-            "pathName": "Start - Hub"
-          }
-        },
-        {
-          "type": "wait",
-          "data": {
-            "waitTime": 2.0
-          }
-        },
-        {
-          "type": "path",
-          "data": {
-            "pathName": "Hub - Climb"
+            "pathName": "Test"
           }
         }
       ]

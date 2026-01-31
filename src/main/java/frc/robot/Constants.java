@@ -90,8 +90,8 @@ public final class Constants {
         // Camera pose relative to robot center (meters, degrees)
         // Format: [forward, side, up, roll, pitch, yaw]
         // TODO: Measure and configure actual camera positions
-        public static final double[] FRONT_CAMERA_POSE = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
-        public static final double[] BACK_CAMERA_POSE = {0.0, 0.0, 0.0, 0.0, 0.0, 180.0};
+        public static final double[] FRONT_CAMERA_POSE = {0.244983, 0.3155442, 0.2014728, 0.0, 23.0, 34.0};
+        public static final double[] BACK_CAMERA_POSE = {-0.244983, -0.3155442, 0.2014728, 0.0, 23.0, -146.0};
         
         
         // Minimum number of tags required to trust a vision measurement
@@ -282,7 +282,7 @@ public final class Constants {
         // Maximum robot velocities (currently reduced for testing)
         // Translational = forward/backward and left/right movement (X and Y on the field)
         // Rotational = spinning in place (turning)
-        public static final LinearVelocity MAXIMUM_TRANSLATIONAL_VELOCITY = Units.MetersPerSecond.of(1.0);
+        public static final LinearVelocity MAXIMUM_TRANSLATIONAL_VELOCITY = Units.MetersPerSecond.of(4.5);
         public static final AngularVelocity MAXIMUM_ROTATIONAL_VELOCITY = Units.RadiansPerSecond.of(2.0);
         //public static final LinearVelocity MAXIMUM_TRANSLATIONAL_VELOCITY = Units.MetersPerSecond.of(4.5);
         //public static final AngularVelocity MAXIMUM_ROTATIONAL_VELOCITY = Units.RadiansPerSecond.of(9.5);
