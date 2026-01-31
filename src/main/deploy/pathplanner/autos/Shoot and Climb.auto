@@ -26,6 +26,6 @@
     }
   },
   "resetOdom": true,
-  "folder": null,
+  "folder": "2026 - Rebuilt",
   "choreoAuto": false
 }

@@ -103,9 +103,9 @@ public class Shooter extends SubsystemBase {
         double v3 = shooterFlywheel3Motor.getVelocity().getValueAsDouble();
         double vFeed = feederMotor.getVelocity().getValueAsDouble();
         double hoodPos = hoodMotor.getPosition().getValueAsDouble();
-        String line = String.format("state=%s f1=%.1fvel%.1fA f2=%.1fvel%.1fA f3=%.1fvel%.1fA feed=%.1fvel%.1fA hood=%.2frot",
-                state, v1, v2, v3, vFeed, hoodPos);
-        BreakerLog.log("Shooter/Status", line);
+        //String line = String.format("state=%s f1=%.1fvel%.1fA f2=%.1fvel%.1fA f3=%.1fvel%.1fA feed=%.1fvel%.1fA hood=%.2frot",
+        //        state, v1, v2, v3, vFeed, hoodPos);
+        //BreakerLog.log("Shooter/Status", line);
     }
 
     private void setFlywheel1Speed(double speed) {
