@@ -7,20 +7,14 @@ package frc.robot;
 import com.ctre.phoenix6.swerve.SwerveModule.DriveRequestType;
 import com.ctre.phoenix6.swerve.SwerveRequest;
 
-import com.pathplanner.lib.auto.AutoBuilder;
-import com.pathplanner.lib.commands.PathPlannerAuto;
-
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.units.Units;
-import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
-
 import frc.robot.BreakerLib.driverstation.BreakerInputStream;
 import frc.robot.BreakerLib.driverstation.BreakerInputStream2d;
 import frc.robot.BreakerLib.driverstation.gamepad.controllers.BreakerXboxController;
@@ -47,10 +41,8 @@ public class RobotContainer {
     private final Intake intake = new Intake();
     private final Shooter shooter = new Shooter();
     
+        
     private BreakerInputStream driverX, driverY, driverOmega;
-
-    /** PathPlanner auto chooser; populated from GUI autos when AutoBuilder is configured. */
-    private final SendableChooser<Command> autoChooser;
 
     /** The container for the robot. Contains subsystems, OI devices, and commands. */
     public RobotContainer() {
@@ -58,23 +50,18 @@ public class RobotContainer {
         // Flip this back on when debugging/troubleshooting
         BreakerLog.setVerboseLogging(false);
 
-        // Set up our auto-chooser    
-        if (AutoBuilder.isConfigured()) {
-            // Looks for autos in /src/main/deploy/pathplanner/autos/
-            autoChooser = AutoBuilder.buildAutoChooser();
-        } else {
-            autoChooser = new SendableChooser<>();
-            autoChooser.setDefaultOption("Do Nothing", Commands.none());
-        }
-        SmartDashboard.putData("Auto Chooser", autoChooser);
-
-        // Bind our controller buttons
+        
         configureBindings();
     }
 
-
     /**
-     * Use this method to define your trigger->command mappings. 
+     * Use this method to define your trigger->command mappings. Triggers can be created via the
+     * {@link Trigger#Trigger(java.util.function.BooleanSupplier)} constructor with an arbitrary
+     * predicate, or via the named factories in {@link
+     * edu.wpi.first.wpilibj2.command.button.CommandGenericHID}'s subclasses for {@link
+     * CommandXboxController Xbox}/{@link edu.wpi.first.wpilibj2.command.button.CommandPS4Controller
+     * PS4} controllers or {@link edu.wpi.first.wpilibj2.command.button.CommandJoystick Flight
+     * joysticks}.
      */
     private void configureBindings() {
 
@@ -98,11 +85,12 @@ public class RobotContainer {
                 .clamp(1.0)
                 .deadband(Constants.OperatorConstants.ROTATIONAL_DEADBAND, 1.0)
                 .map(new BreakerLinearizedConstrainedExponential(0.364, 6.6, true))
-                .scale(Constants.DriveConstants.MAXIMUM_ROTATIONAL_VELOCITY.in(Units.RadiansPerSecond));
+                .scale(Constants.DriveConstants.MAXIMUM_ROTATIONAL_VELOCITY.in(Units.RadiansPerSecond))
+                .negate();
     
         drivetrain.setDefaultCommand(drivetrain.getTeleopControlCommand(driverX, driverY, driverOmega, Constants.DriveConstants.TELEOP_CONTROL_CONFIG));
     
-        // ----------------- INTAKE -------------
+        // ----------------- INTAKE STATES -------------
         
         //EXTENDED INTAKING
         controller.getButtonX().onTrue(intake.setStateCommand(Intake.State.EXTENDED_INTAKING));
@@ -116,30 +104,19 @@ public class RobotContainer {
         //EXTENDED EXTAKING
         controller.getButtonB().onTrue(intake.setStateCommand(Intake.State.EXTENDED_EXTAKING));
 
-        // ----------------- HOPPER/FEEDER -------------
-
-
-        // ----------------- SHOOTER -------------
+        // ----------------- SHOOTER STATES -------------
 
         //INACTIVE
         controller.getDPad().getDown().onTrue(shooter.setStateCommand(Shooter.State.INACTIVE));
 
         //SHOOTING
         controller.getDPad().getUp().onTrue(shooter.setStateCommand(Shooter.State.INACTIVE));
-
-        // ----------------- CLIMB -------------
-
-
     }
 
 
     public Command getAutonomousCommand() {
-        return autoChooser.getSelected();
+       return null;
     }
-
-
-
-
 
     /**
      * Rotates the robot to face the detected AprilTag using PID control.

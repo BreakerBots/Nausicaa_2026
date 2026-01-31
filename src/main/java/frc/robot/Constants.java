@@ -344,12 +344,13 @@ public final class Constants {
         // Gear ratio = how many motor rotations = 1 wheel rotation (higher = slower but more torque)
         // NOTE: This assumes you have MK4n swerve modules (narrow) in the front and MK4i swerve modules (wide) in the back
         // TUNING: This may need to be tuned to your individual robot
-        private static final double kDriveGearRatio = 5.357142857142857;
+        //private static final double kDriveGearRatio = 5.357142857142857;
+        private static final double kDriveGearRatio = 7.13;
         private static final double kSteerGearRatio_MK4i = 150.0/7.0;
         private static final double kSteerGearRatio_MK4n = 18.75; // Narrow
 
         // The radius of the wheel (in inches)
-        private static final Distance kWheelRadius = Units.Inches.of(2.0);
+        private static final Distance kWheelRadius = Units.Inches.of(1.9655);
 
         // These are only used for simulation
         // Inertia = how much the motor resists changes in speed (higher = slower to change speed)
