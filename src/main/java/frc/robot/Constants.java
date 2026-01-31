@@ -123,10 +123,29 @@ public final class Constants {
         public static final int PIVOT_MOTOR_ID = 20;
         public static final int ROLLER_MOTOR_ID = 21;
         public static final int PIVOT_ENCODER_ID = 25;
-        public static final Rotation2d POSITION_STOWED = Rotation2d.fromRotations(0.2);
-        public static final Rotation2d POSITION_EXTENDED = Rotation2d.fromRotations(0.2);
-        public static final Rotation2d POSITION_JIGGLE_HIGH = Rotation2d.fromRotations(0.2);
-        public static final Rotation2d POSITION_JIGGLE_LOW = Rotation2d.fromRotations(0.2);
+
+        /** Pivot angles (rotations) – placeholders until tuned. */
+        public static final Rotation2d POSITION_STOWED = Rotation2d.fromRotations(0.0);
+        public static final Rotation2d POSITION_EXTENDED = Rotation2d.fromRotations(0.25);
+        public static final Rotation2d POSITION_JIGGLE_HIGH = Rotation2d.fromRotations(0.22);
+        public static final Rotation2d POSITION_JIGGLE_LOW = Rotation2d.fromRotations(0.20);
+
+        /** Motion Magic (rotations/s, rotations/s², rotations/s³). */
+        public static final double PIVOT_MM_CRUISE_VELOCITY = 1.0;
+        public static final double PIVOT_MM_ACCELERATION = 2.0;
+        public static final double PIVOT_MM_JERK = 0.5;
+
+        /** Feedforward (Slot0). */
+        public static final double PIVOT_kS = 0.08;
+        public static final double PIVOT_kG = 0.02;
+        public static final double PIVOT_kV = 0.12;
+        public static final double PIVOT_kA = 0.01;
+
+        /** PID (Slot0). */
+        public static final double PIVOT_kP = 0.5;
+        public static final double PIVOT_kI = 0.0;
+        public static final double PIVOT_kD = 0.02;
+
         public static final double SPEED_IDLE = 0;
         public static final double SPEED_EXTAKE = 1;
         public static final double SPEED_INTAKE = -1;
