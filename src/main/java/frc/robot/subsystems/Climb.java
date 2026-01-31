@@ -1,5 +1,6 @@
 package frc.robot.subsystems;
 
+import com.ctre.phoenix6.controls.DutyCycleOut;
 import com.ctre.phoenix6.controls.PositionDutyCycle;
 import com.ctre.phoenix6.hardware.TalonFX;
 
@@ -14,22 +15,23 @@ public class Climb extends SubsystemBase {
     private final TalonFX climbMotor = new TalonFX(Constants.ClimbConstants.CLIMB_MOTOR_ID,
             Constants.GeneralConstants.DRIVE_CANIVORE_BUS);
 
-    public State state = State.DOWN;
+    public State state = State.INACTIVE;
 
     /** Climb states: target encoder rotations (UP vs DOWN). */
     public enum State {
  
-        UP(Constants.ClimbConstants.ROTATIONS_UP),
-        DOWN(Constants.ClimbConstants.ROTATIONS_DOWN);
+        INACTIVE(Constants.ClimbConstants.SPEED_INACTIVE),
+        ASCENDING(Constants.ClimbConstants.SPEED_ASCENDING),
+        DESCENDING(Constants.ClimbConstants.SPEED_DESCENDING);
 
-        private double rotations;
+        private double climberSpeed;
 
-        private State(double rotations) {
-             this.rotations = rotations;
+        private State(double climberSpeed) {
+             this.climberSpeed = climberSpeed;
         }
 
-        public double getClimbPosition() {
-            return rotations;
+        public double getClimberSpeed() {
+            return climberSpeed;
         }
 
     }
@@ -37,11 +39,11 @@ public class Climb extends SubsystemBase {
     public void setState(State newState) {
         State previousState = state;
         state = newState;
-        setClimbPosition(state.getClimbPosition());
+        setClimberSpeed(state.getClimberSpeed());
 
         BreakerLog.log("Climb/State/Previous", previousState.toString());
         BreakerLog.log("Climb/State/Current", state.toString());
-        BreakerLog.log("Climb/State/TargetRotations", state.getClimbPosition());
+        BreakerLog.log("Climb/State/TargetRotations", state.getClimberSpeed());
     }
 
     public Command setStateCommand(State newState) {
@@ -65,7 +67,7 @@ public class Climb extends SubsystemBase {
         BreakerLog.log("Climb/Status", line);
     }
 
-    private void setClimbPosition(double position) {
-        climbMotor.setControl(new PositionDutyCycle(position));
+    private void setClimberSpeed(double speed) {
+        climbMotor.setControl(new DutyCycleOut(speed));
     }
 }
