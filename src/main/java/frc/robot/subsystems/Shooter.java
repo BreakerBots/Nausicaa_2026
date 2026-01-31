@@ -2,8 +2,11 @@ package frc.robot.subsystems;
 
 import com.ctre.phoenix6.controls.DutyCycleOut;
 import com.ctre.phoenix6.controls.Follower;
+import com.ctre.phoenix6.hardware.CANcoder;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.MotorAlignmentValue;
+import com.ctre.phoenix6.signals.NeutralModeValue;
+import com.ctre.phoenix6.configs.TalonFXConfiguration;
 
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
@@ -20,10 +23,9 @@ public class Shooter extends SubsystemBase {
     private final TalonFX shooterFlywheel3Motor = new TalonFX(Constants.ShooterConstants.SHOOTER_FLYWHEEL_3_MOTOR_ID,
             Constants.GeneralConstants.DRIVE_CANIVORE_BUS);
 
-    private final TalonFX feederMotor = new TalonFX(Constants.ShooterConstants.FEEDER_MOTOR_ID,
-            Constants.GeneralConstants.DRIVE_CANIVORE_BUS);
-
     private final TalonFX hoodMotor = new TalonFX(Constants.ShooterConstants.HOOD_MOTOR_ID,
+            Constants.GeneralConstants.DRIVE_CANIVORE_BUS);
+    private final CANcoder hoodEncoder = new CANcoder(Constants.ShooterConstants.HOOD_ENCODER_ID,
             Constants.GeneralConstants.DRIVE_CANIVORE_BUS);
 
     public Shooter() {
@@ -31,88 +33,111 @@ public class Shooter extends SubsystemBase {
         int leaderId = Constants.ShooterConstants.SHOOTER_FLYWHEEL_1_MOTOR_ID;
         shooterFlywheel2Motor.setControl(new Follower(leaderId, MotorAlignmentValue.Aligned));
         shooterFlywheel3Motor.setControl(new Follower(leaderId, MotorAlignmentValue.Aligned));
+
+        TalonFXConfiguration hoodConfig = new TalonFXConfiguration();
+        hoodConfig.MotorOutput.NeutralMode = NeutralModeValue.Brake;
+        hoodMotor.getConfigurator().apply(hoodConfig);
     }
 
 
     public State state = State.INACTIVE;
 
-    /** Shooter states: flywheel and feeder speeds (inactive vs shooting). */
+    /** Shooter states: flywheel speeds (inactive vs shooting). */
     public enum State {
         
-        INACTIVE(Constants.ShooterConstants.SPEED_IDLE, Constants.ShooterConstants.SPEED_IDLE, Constants.ShooterConstants.SPEED_IDLE, Constants.ShooterConstants.SPEED_IDLE),
-        SHOOTING(Constants.ShooterConstants.SPEED_FLYWHEEL_1_ACTIVE, Constants.ShooterConstants.SPEED_FLYWHEEL_2_ACTIVE, Constants.ShooterConstants.SPEED_FLYWHEEL_3_ACTIVE, Constants.ShooterConstants.SPEED_KICKER_ACTIVE);
+        INACTIVE(Constants.ShooterConstants.SPEED_IDLE),
+        SPINNING_UP(Constants.ShooterConstants.SPEED_FLYWHEEL_ACTIVE),
+        SHOOTING(Constants.ShooterConstants.SPEED_FLYWHEEL_ACTIVE);
 
-        private double flywheel1Speed;
-        private double flywheel2Speed;
-        private double flywheel3Speed;
-        private double feederSpeed;
+        private double flywheelSpeed;
 
-        private State(double flywheel1Speed, double flywheel2Speed, double flywheel3Speed, double feederSpeed) {
-             this.flywheel1Speed = flywheel1Speed;
-             this.flywheel2Speed = flywheel2Speed;
-             this.flywheel3Speed = flywheel3Speed;
-             this.feederSpeed = feederSpeed;
+        private State(double flywheelSpeed) {
+             this.flywheelSpeed = flywheelSpeed;
         }
 
-        public double getFlywheel1Speed() {
-          return flywheel1Speed;
+        public double getFlywheelSpeed() {
+          return flywheelSpeed;
         }
-
-        public double getFlywheel2Speed() {
-          return flywheel2Speed;
-        }
-
-        public double getFlywheel3Speed() {
-          return flywheel3Speed;
-        }
-
-        public double getFeederSpeed() {
-          return feederSpeed;
-        }
-
     }
 
     public void setState(State newState) {
         State previousState = state;
         state = newState;
-        setFlywheel1Speed(state.getFlywheel1Speed());
+        setFlywheelSpeed(state.getFlywheelSpeed());
         // Flywheels 2 and 3 follow flywheel 1 via Follower control in constructor
-        setFeederSpeed(state.getFeederSpeed());
 
         BreakerLog.log("Shooter/State/Previous", previousState.toString());
         BreakerLog.log("Shooter/State/Current", state.toString());
-        BreakerLog.log("Shooter/State/Flywheel1", state.getFlywheel1Speed());
-        BreakerLog.log("Shooter/State/Feeder", state.getFeederSpeed());
+        BreakerLog.log("Shooter/State/Flywheel1", state.getFlywheelSpeed());
     }
 
     public Command setStateCommand(State newState) {
         return Commands.runOnce(() -> setState(newState), this);
     }
 
+    // --------------- Hood (external encoder, run until target rotations) ---------------
+
+    /** Current hood encoder position in rotations (cumulative). */
+    public double getHoodEncoderRotations() {
+        return hoodEncoder.getPosition().getValueAsDouble();
+    }
+
+    /** Zero the hood encoder (call when hood is at a known position). */
+    public void zeroHoodEncoder() {
+        hoodEncoder.setPosition(0.0);
+    }
+
+    private void runHoodUp() {
+        hoodMotor.setControl(new DutyCycleOut(Constants.ShooterConstants.SPEED_HOOD_UP));
+    }
+
+    private void runHoodDown() {
+        hoodMotor.setControl(new DutyCycleOut(Constants.ShooterConstants.SPEED_HOOD_DOWN));
+    }
+
+    /** Stop the hood motor. */
+    public void stopHood() {
+        hoodMotor.setControl(new DutyCycleOut(0.0));
+    }
+
+    /**
+     * Command: run hood until encoder reaches targetRotations, then stop.
+     * Runs up if target is greater than current position, down if less.
+     */
+    public Command hoodToRotationsCommand(double targetRotations) {
+        double current = getHoodEncoderRotations();
+        if (targetRotations > current) {
+            return Commands.run(this::runHoodUp, this)
+                    .until(() -> getHoodEncoderRotations() >= targetRotations)
+                    .andThen(Commands.runOnce(this::stopHood, this));
+        } else if (targetRotations < current) {
+            return Commands.run(this::runHoodDown, this)
+                    .until(() -> getHoodEncoderRotations() <= targetRotations)
+                    .andThen(Commands.runOnce(this::stopHood, this));
+        } else {
+            return Commands.runOnce(this::stopHood, this);
+        }
+    }
 
     @Override
     public void periodic() {
         logStatus();
     }
 
-
-    /** One compact line: state, flywheels + feeder vel/current. */
+    /** One compact line: state, flywheels vel, hood pos/vel. */
     private void logStatus() {
         double v1 = shooterFlywheel1Motor.getVelocity().getValueAsDouble();
         double v2 = shooterFlywheel2Motor.getVelocity().getValueAsDouble();
         double v3 = shooterFlywheel3Motor.getVelocity().getValueAsDouble();
-        double vFeed = feederMotor.getVelocity().getValueAsDouble();
-        double hoodPos = hoodMotor.getPosition().getValueAsDouble();
-        //String line = String.format("state=%s f1=%.1fvel%.1fA f2=%.1fvel%.1fA f3=%.1fvel%.1fA feed=%.1fvel%.1fA hood=%.2frot",
-        //        state, v1, v2, v3, vFeed, hoodPos);
-        //BreakerLog.log("Shooter/Status", line);
+        double hoodPos = getHoodEncoderRotations();
+        double hoodVel = hoodMotor.getVelocity().getValueAsDouble();
+        String line = String.format("state=%s f1=%.1f f2=%.1f f3=%.1fvel hood=%.2frot %.1fvel",
+                state, v1, v2, v3, hoodPos, hoodVel);
+        BreakerLog.log("Shooter/Status", line);
     }
 
-    private void setFlywheel1Speed(double speed) {
+    private void setFlywheelSpeed(double speed) {
         shooterFlywheel1Motor.setControl(new DutyCycleOut(speed));
     }
 
-    private void setFeederSpeed(double speed) {
-        feederMotor.setControl(new DutyCycleOut(speed));
-    }
 }

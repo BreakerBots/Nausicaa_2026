@@ -1,8 +1,12 @@
 package frc.robot.subsystems;
 
+import com.ctre.phoenix6.configs.Slot0Configs;
+import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.DutyCycleOut;
-import com.ctre.phoenix6.controls.PositionDutyCycle;
+import com.ctre.phoenix6.controls.MotionMagicDutyCycle;
+import com.ctre.phoenix6.hardware.CANcoder;
 import com.ctre.phoenix6.hardware.TalonFX;
+import com.ctre.phoenix6.signals.NeutralModeValue;
 
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -17,8 +21,51 @@ public class Intake extends SubsystemBase {
             Constants.GeneralConstants.DRIVE_CANIVORE_BUS);
     private final TalonFX rollerMotor = new TalonFX(Constants.IntakeConstants.ROLLER_MOTOR_ID,
             Constants.GeneralConstants.DRIVE_CANIVORE_BUS);
-    
+    private final CANcoder pivotEncoder = new CANcoder(Constants.IntakeConstants.PIVOT_ENCODER_ID,
+            Constants.GeneralConstants.DRIVE_CANIVORE_BUS);
+
+    private double targetPivotRotations;
+
     public State state = State.STOWED;
+
+    public Intake() {
+        TalonFXConfiguration config = new TalonFXConfiguration();
+        config.MotorOutput.NeutralMode = NeutralModeValue.Brake;
+        config.Feedback.withRemoteCANcoder(pivotEncoder);
+
+        Slot0Configs slot0 = config.Slot0;
+
+        // Motion Magic
+        config.MotionMagic.MotionMagicCruiseVelocity = Constants.IntakeConstants.PIVOT_MM_CRUISE_VELOCITY;
+        config.MotionMagic.MotionMagicAcceleration = Constants.IntakeConstants.PIVOT_MM_ACCELERATION;
+        config.MotionMagic.MotionMagicJerk = Constants.IntakeConstants.PIVOT_MM_JERK;
+         
+        // Feedforward
+        slot0.kS = Constants.IntakeConstants.PIVOT_kS;
+        slot0.kG = Constants.IntakeConstants.PIVOT_kG;
+        slot0.kV = Constants.IntakeConstants.PIVOT_kV;
+        slot0.kA = Constants.IntakeConstants.PIVOT_kA;
+
+        // PID
+        slot0.kP = Constants.IntakeConstants.PIVOT_kP;
+        slot0.kI = Constants.IntakeConstants.PIVOT_kI;
+        slot0.kD = Constants.IntakeConstants.PIVOT_kD;
+
+        pivotMotor.getConfigurator().apply(config);
+        
+        targetPivotRotations = getPivotPositionRotations();
+        pivotMotor.setControl(new MotionMagicDutyCycle(targetPivotRotations));
+    }
+
+    /** Pivot position from external encoder (rotations). */
+    public double getPivotPositionRotations() {
+        return pivotEncoder.getPosition().getValueAsDouble();
+    }
+
+    /** Zero the pivot encoder (call when pivot is at known position, e.g. stowed). */
+    public void zeroPivotEncoder() {
+        pivotEncoder.setPosition(0.0);
+    }
 
     /**
      * Intake states: pivot position (stowed/extended/jiggle) and roller speed (idle/intake/extake).
@@ -72,18 +119,18 @@ public class Intake extends SubsystemBase {
         logStatus();
     }
 
-    
     private void logStatus() {
-        double pivotPosition = pivotMotor.getPosition().getValueAsDouble();
+        double pivotPosition = getPivotPositionRotations();
         double pivotVelocity = pivotMotor.getVelocity().getValueAsDouble();
         double rollerVelocity = rollerMotor.getVelocity().getValueAsDouble();
-        String statusMessage = String.format("state=%s pivot=%.2frot %.1fvel roller=%.2fcmd %.1fvel",
-                state, pivotPosition, pivotVelocity, state.getSpeed(), rollerVelocity);
+        String statusMessage = String.format("state=%s pivot=%.3frot tgt=%.3f %.1fvel roller=%.2fcmd %.1fvel",
+                state, pivotPosition, targetPivotRotations, pivotVelocity, state.getSpeed(), rollerVelocity);
         BreakerLog.log("Intake/Status", statusMessage);
     }
 
-    private void setIntakePosition(double position) {
-        pivotMotor.setControl(new PositionDutyCycle(position));
+    private void setIntakePosition(double positionRotations) {
+        targetPivotRotations = positionRotations;
+        pivotMotor.setControl(new MotionMagicDutyCycle(targetPivotRotations));
     }
 
     private void setRollerSpeed(double speed) {

@@ -12,19 +12,16 @@ import com.ctre.phoenix6.CANBus;
 import com.ctre.phoenix6.configs.CANcoderConfiguration;
 import com.ctre.phoenix6.configs.CurrentLimitsConfigs;
 import com.ctre.phoenix6.configs.MotorOutputConfigs;
-import com.ctre.phoenix6.configs.MountPoseConfigs;
 import com.ctre.phoenix6.configs.Pigeon2Configuration;
 import com.ctre.phoenix6.configs.Slot0Configs;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.signals.NeutralModeValue;
-import com.ctre.phoenix6.hardware.Pigeon2;
 import com.ctre.phoenix6.swerve.SwerveModuleConstants;
 import com.ctre.phoenix6.swerve.SwerveModuleConstants.ClosedLoopOutputType;
 import com.ctre.phoenix6.swerve.SwerveModuleConstants.DriveMotorArrangement;
 import com.ctre.phoenix6.swerve.SwerveModuleConstants.SteerFeedbackType;
 import com.ctre.phoenix6.swerve.SwerveModuleConstants.SteerMotorArrangement;
 import com.ctre.phoenix6.swerve.SwerveModuleConstantsFactory;
-
 import com.pathplanner.lib.config.PIDConstants;
 
 import edu.wpi.first.apriltag.AprilTagFieldLayout;
@@ -33,8 +30,8 @@ import edu.wpi.first.math.Matrix;
 import edu.wpi.first.math.VecBuilder;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
-import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.math.numbers.N1;
+import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.units.Units;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.AngularVelocity;
@@ -126,10 +123,29 @@ public final class Constants {
         public static final int PIVOT_MOTOR_ID = 20;
         public static final int ROLLER_MOTOR_ID = 21;
         public static final int PIVOT_ENCODER_ID = 25;
-        public static final Rotation2d POSITION_STOWED = Rotation2d.fromRotations(0.2);
-        public static final Rotation2d POSITION_EXTENDED = Rotation2d.fromRotations(0.2);
-        public static final Rotation2d POSITION_JIGGLE_HIGH = Rotation2d.fromRotations(0.2);
-        public static final Rotation2d POSITION_JIGGLE_LOW = Rotation2d.fromRotations(0.2);
+
+        /** Pivot angles (rotations) – placeholders until tuned. */
+        public static final Rotation2d POSITION_STOWED = Rotation2d.fromRotations(0.0);
+        public static final Rotation2d POSITION_EXTENDED = Rotation2d.fromRotations(0.25);
+        public static final Rotation2d POSITION_JIGGLE_HIGH = Rotation2d.fromRotations(0.22);
+        public static final Rotation2d POSITION_JIGGLE_LOW = Rotation2d.fromRotations(0.20);
+
+        /** Motion Magic (rotations/s, rotations/s², rotations/s³). */
+        public static final double PIVOT_MM_CRUISE_VELOCITY = 1.0;
+        public static final double PIVOT_MM_ACCELERATION = 2.0;
+        public static final double PIVOT_MM_JERK = 0.5;
+
+        /** Feedforward (Slot0). */
+        public static final double PIVOT_kS = 0.08;
+        public static final double PIVOT_kG = 0.02;
+        public static final double PIVOT_kV = 0.12;
+        public static final double PIVOT_kA = 0.01;
+
+        /** PID (Slot0). */
+        public static final double PIVOT_kP = 0.5;
+        public static final double PIVOT_kI = 0.0;
+        public static final double PIVOT_kD = 0.02;
+
         public static final double SPEED_IDLE = 0;
         public static final double SPEED_EXTAKE = 1;
         public static final double SPEED_INTAKE = -1;
@@ -141,37 +157,41 @@ public final class Constants {
         public static final int SHOOTER_FLYWHEEL_1_MOTOR_ID = 30;
         public static final int SHOOTER_FLYWHEEL_2_MOTOR_ID = 31;
         public static final int SHOOTER_FLYWHEEL_3_MOTOR_ID = 32;
-        public static final int FEEDER_MOTOR_ID = 33;
-        public static final int HOOD_MOTOR_ID = 34;
+        public static final int HOOD_MOTOR_ID = 33;
         public static final int HOOD_ENCODER_ID = 35;
         public static final int SHOOTER_BEAMBREAK_ID = 36;
         public static final double SPEED_IDLE = 0;
-        public static final double SPEED_FLYWHEEL_1_ACTIVE = 0;
-        public static final double SPEED_FLYWHEEL_2_ACTIVE = 0;
-        public static final double SPEED_FLYWHEEL_3_ACTIVE = 0;
-        public static final double SPEED_KICKER_ACTIVE = 0;
+        public static final double SPEED_FLYWHEEL_ACTIVE = 0;
+
+        /** Hood: external encoder; command takes target rotations. */
+        public static final double SPEED_HOOD_UP = 0.3;
+        public static final double SPEED_HOOD_DOWN = -0.3;
     }
 
     // --------------- HOPPER --------------
 
     public static class HopperConstants {
         public static final int HOPPER_MOTOR_ID = 40;
+        public static final int FEEDER_MOTOR_ID = 41;
         public static final double SPEED_INACTIVE = 0;
+        public static final double SPEED_INDEXING = 0;
         public static final double SPEED_FEEDING = 0;
     }
 
     // --------------- CLIMB --------------
+    // Climb uses an external encoder; motor runs until encoder reaches target rotations (UP/DOWN), then stops.
 
     public static class ClimbConstants {
         public static final int CLIMB_MOTOR_ID = 50;
         public static final int CLIMB_ENCODER_ID = 55;
-        
-        // Encoder rotations
+
+        /** Encoder rotations when climb is fully UP/DOWN. Tune to match chain travel. */
         public static final double ROTATIONS_UP = 10.0;
         public static final double ROTATIONS_DOWN = 0.0;
 
-        public static final double CLIMB_DUTY_UP = 0.5;
-        public static final double CLIMB_DUTY_DOWN = -0.5;
+        public static final double SPEED_INACTIVE = 0;
+        public static final double SPEED_ASCENDING = 0.5;
+        public static final double SPEED_DESCENDING = -0.5;
     }
 
     // ---------------- MINNOW ARM ----------------
