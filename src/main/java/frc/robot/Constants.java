@@ -159,13 +159,19 @@ public final class Constants {
     }
 
     // --------------- CLIMB --------------
+    // Climb uses an external encoder; motor runs until encoder reaches target rotations (UP/DOWN), then stops.
 
     public static class ClimbConstants {
         public static final int CLIMB_MOTOR_ID = 50;
         public static final int CLIMB_ENCODER_ID = 55;
+
+        /** Encoder rotations when climb is fully UP/DOWN. Tune to match chain travel. */
+        public static final double ROTATIONS_UP = 10.0;
+        public static final double ROTATIONS_DOWN = 0.0;
+        
         public static final double SPEED_INACTIVE = 0;
-        public static final double SPEED_ASCENDING = 0;
-        public static final double SPEED_DESCENDING = 0;
+        public static final double SPEED_ASCENDING = 0.5;
+        public static final double SPEED_DESCENDING = -0.5;
     }
 
     // ---------------- MINNOW ARM ----------------
