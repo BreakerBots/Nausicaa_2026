@@ -141,8 +141,7 @@ public final class Constants {
         public static final int SHOOTER_FLYWHEEL_1_MOTOR_ID = 30;
         public static final int SHOOTER_FLYWHEEL_2_MOTOR_ID = 31;
         public static final int SHOOTER_FLYWHEEL_3_MOTOR_ID = 32;
-        public static final int FEEDER_MOTOR_ID = 33;
-        public static final int HOOD_MOTOR_ID = 34;
+        public static final int HOOD_MOTOR_ID = 33;
         public static final int HOOD_ENCODER_ID = 35;
         public static final int SHOOTER_BEAMBREAK_ID = 36;
         public static final double SPEED_IDLE = 0;
@@ -156,7 +155,9 @@ public final class Constants {
 
     public static class HopperConstants {
         public static final int HOPPER_MOTOR_ID = 40;
+        public static final int FEEDER_MOTOR_ID = 41;
         public static final double SPEED_INACTIVE = 0;
+        public static final double SPEED_INDEXING = 0;
         public static final double SPEED_FEEDING = 0;
     }
 
@@ -165,13 +166,8 @@ public final class Constants {
     public static class ClimbConstants {
         public static final int CLIMB_MOTOR_ID = 50;
         public static final int CLIMB_ENCODER_ID = 55;
-        
-        // Encoder rotations
-        public static final double ROTATIONS_UP = 10.0;
-        public static final double ROTATIONS_DOWN = 0.0;
-
-        public static final double CLIMB_DUTY_UP = 0.5;
-        public static final double CLIMB_DUTY_DOWN = -0.5;
+        public static final double POSITION_UP = 0;
+        public static final double POSITION_DOWN = 0;
     }
 
     // ---------------- MINNOW ARM ----------------

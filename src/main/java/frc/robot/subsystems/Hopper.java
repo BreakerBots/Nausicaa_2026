@@ -11,37 +11,48 @@ import frc.robot.BreakerLib.util.logging.BreakerLog;
 
 public class Hopper extends SubsystemBase {
     
-    private final TalonFX hopperRollerMotor = new TalonFX(Constants.HopperConstants.HOPPER_MOTOR_ID,
+    private final TalonFX indexerMotor = new TalonFX(Constants.HopperConstants.HOPPER_MOTOR_ID,
+            Constants.GeneralConstants.DRIVE_CANIVORE_BUS);
+    private final TalonFX feederMotor = new TalonFX(Constants.HopperConstants.FEEDER_MOTOR_ID,
             Constants.GeneralConstants.DRIVE_CANIVORE_BUS);
 
     public State state = State.INACTIVE;
 
-    /** Hopper states: roller speed (inactive vs feeding). */
+    /** Hopper states: indexer speed (inactive vs indexing), feeder states (inactive vs feeding). */
     public enum State {
  
-        INACTIVE(Constants.HopperConstants.SPEED_INACTIVE),
-        FEEDING(Constants.HopperConstants.SPEED_FEEDING);
+        INACTIVE(Constants.HopperConstants.SPEED_INACTIVE, Constants.HopperConstants.SPEED_INACTIVE),
+        FEEDING(Constants.HopperConstants.SPEED_INDEXING, Constants.HopperConstants.SPEED_FEEDING),
+        AGITATING(Constants.HopperConstants.SPEED_INDEXING, Constants.HopperConstants.SPEED_INACTIVE);
 
-        private double rollerSpeed;
+        private double indexerSpeed;
+        private double feederSpeed;
 
-        private State(double rollerSpeed) {
-             this.rollerSpeed = rollerSpeed;
+        private State(double indexerSpeed, double feederSpeed) {
+             this.indexerSpeed = indexerSpeed;
+             this.feederSpeed = feederSpeed;
         }
 
-        public double getRollerSpeed() {
-          return rollerSpeed;
-      }
+        public double getIndexerSpeed() {
+          return indexerSpeed;
+        }
+
+        public double getFeederSpeed() {
+          return feederSpeed;
+        }
+
 
     }
     
     public void setState(State newState) {
         State previousState = state;
         state = newState;
-        setRollerSpeed(state.getRollerSpeed());
+        setIndexerSpeed(state.getIndexerSpeed());
+        setFeederSpeed(state.getFeederSpeed());
 
         BreakerLog.log("Hopper/State/Previous", previousState.toString());
         BreakerLog.log("Hopper/State/Current", state.toString());
-        BreakerLog.log("Hopper/State/RollerSpeed", state.getRollerSpeed());
+        BreakerLog.log("Hopper/State/IndexerSpeed", state.getIndexerSpeed());
     }
 
     public Command setStateCommand(State newState) {
@@ -57,15 +68,19 @@ public class Hopper extends SubsystemBase {
     
     /** One compact line: state, roller cmd/vel/current. */
     private void logStatus() {
-        double vel = hopperRollerMotor.getVelocity().getValueAsDouble();
-        double cur = hopperRollerMotor.getStatorCurrent().getValueAsDouble();
+        double vel = indexerMotor.getVelocity().getValueAsDouble();
+        double cur = indexerMotor.getStatorCurrent().getValueAsDouble();
         String line = String.format("state=%s roller=%.2fcmd %.1fvel %.1fA",
-                state, state.getRollerSpeed(), vel, cur);
+                state, state.getIndexerSpeed(), vel, cur);
         BreakerLog.log("Hopper/Status", line);
     }
 
-    private void setRollerSpeed(double speed) {
-        hopperRollerMotor.setControl(new DutyCycleOut(speed));
+    private void setIndexerSpeed(double speed) {
+        indexerMotor.setControl(new DutyCycleOut(speed));
+    }
+
+    private void setFeederSpeed(double speed) {
+        feederMotor.setControl(new DutyCycleOut(speed));
     }
 
 }
