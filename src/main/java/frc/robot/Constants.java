@@ -344,12 +344,13 @@ public final class Constants {
         // Gear ratio = how many motor rotations = 1 wheel rotation (higher = slower but more torque)
         // NOTE: This assumes you have MK4n swerve modules (narrow) in the front and MK4i swerve modules (wide) in the back
         // TUNING: This may need to be tuned to your individual robot
-        private static final double kDriveGearRatio = 5.357142857142857;
+        //private static final double kDriveGearRatio = 5.357142857142857;
+        private static final double kDriveGearRatio = 7.13;
         private static final double kSteerGearRatio_MK4i = 150.0/7.0;
         private static final double kSteerGearRatio_MK4n = 18.75; // Narrow
 
         // The radius of the wheel (in inches)
-        private static final Distance kWheelRadius = Units.Inches.of(2.0);
+        private static final Distance kWheelRadius = Units.Inches.of(1.9655);
 
         // These are only used for simulation
         // Inertia = how much the motor resists changes in speed (higher = slower to change speed)
@@ -441,7 +442,7 @@ public final class Constants {
         private static final int kFrontLeftDriveMotorId = 8;
         private static final int kFrontLeftSteerMotorId = 9;
         private static final int kFrontLeftEncoderId = 10;
-        private static final Angle kFrontLeftEncoderOffset = Rotations.of(0.20751953125);
+        private static final Angle kFrontLeftEncoderOffset = Rotations.of(0.21435546875);
         private static final boolean kFrontLeftSteerInvert = true; //true
         private static final boolean kFrontLeftEncoderInvert = false; //false
         private static final Translation2d kFrontLeftModulePosition = new Translation2d(
@@ -453,7 +454,7 @@ public final class Constants {
         private static final int kFrontRightDriveMotorId = 11;
         private static final int kFrontRightSteerMotorId = 12;
         private static final int kFrontRightEncoderId = 13;
-        private static final Angle kFrontRightEncoderOffset = Rotations.of(-0.321533203125); 
+        private static final Angle kFrontRightEncoderOffset = Rotations.of(-0.313720703125); 
         private static final boolean kFrontRightSteerInvert = true; // true
         private static final boolean kFrontRightEncoderInvert = false; // false
         private static final Translation2d kFrontRightModulePosition = new Translation2d(
@@ -465,7 +466,7 @@ public final class Constants {
         private static final int kBackLeftDriveMotorId = 14;
         private static final int kBackLeftSteerMotorId = 15;
         private static final int kBackLeftEncoderId = 16;
-        private static final Angle kBackLeftEncoderOffset = Rotation.of(0.12451171875);
+        private static final Angle kBackLeftEncoderOffset = Rotation.of(0.1337890625);
         private static final boolean kBackLeftSteerInvert = true; //true
         private static final boolean kBackLeftEncoderInvert = false; // false
         private static final Translation2d kBackLeftModulePosition = new Translation2d(
@@ -477,7 +478,7 @@ public final class Constants {
         private static final int kBackRightDriveMotorId = 17;
         private static final int kBackRightSteerMotorId = 18;
         private static final int kBackRightEncoderId = 19;
-        private static final Angle kBackRightEncoderOffset = Rotations.of(-0.49658203125); 
+        private static final Angle kBackRightEncoderOffset = Rotations.of(-0.487060546875); 
         private static final boolean kBackRightSteerInvert = true; // true
         private static final boolean kBackRightEncoderInvert = false; // false
         private static final Translation2d kBackRightModulePosition = new Translation2d(
