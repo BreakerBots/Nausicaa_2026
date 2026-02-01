@@ -8,18 +8,16 @@ import com.ctre.phoenix6.swerve.SwerveModule.DriveRequestType;
 import com.ctre.phoenix6.swerve.SwerveRequest;
 
 import com.pathplanner.lib.auto.AutoBuilder;
-import com.pathplanner.lib.commands.PathPlannerAuto;
 
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.units.Units;
+import edu.wpi.first.wpilibj.RobotState;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
-import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
-import edu.wpi.first.wpilibj2.command.button.Trigger;
 
 import frc.robot.BreakerLib.driverstation.BreakerInputStream;
 import frc.robot.BreakerLib.driverstation.BreakerInputStream2d;
@@ -49,6 +47,9 @@ public class RobotContainer {
     
     private BreakerInputStream driverX, driverY, driverOmega;
 
+    private double m_xWhenEnabled = 0;
+    private boolean m_wasEnabled = false;
+
     /** PathPlanner auto chooser; populated from GUI autos when AutoBuilder is configured. */
     private final SendableChooser<Command> autoChooser;
 
@@ -70,6 +71,21 @@ public class RobotContainer {
 
         // Bind our controller buttons
         configureBindings();
+
+        // Log distance traveled in X (0 when enabled) to System.out for odometry check
+        Commands.run(() -> {
+            boolean enabled = RobotState.isEnabled();
+            if (enabled) {
+                if (!m_wasEnabled) {
+                    m_xWhenEnabled = drivetrain.getLocalizer().getPose().getX();
+                    m_wasEnabled = true;
+                }
+                double x = drivetrain.getLocalizer().getPose().getX();
+                System.out.println("Distance X: " + (x - m_xWhenEnabled));
+            } else {
+                m_wasEnabled = false;
+            }
+        }).ignoringDisable(true).schedule();
     }
 
 
@@ -137,7 +153,9 @@ public class RobotContainer {
         return autoChooser.getSelected();
     }
 
-
+    public Drivetrain getDrivetrain() {
+        return drivetrain;
+    }
 
 
 
