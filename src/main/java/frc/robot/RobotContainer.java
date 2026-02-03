@@ -82,7 +82,6 @@ public class RobotContainer {
                     m_wasEnabled = true;
                 }
                 double x = drivetrain.getLocalizer().getPose().getX();
-                System.out.println("Distance X: " + (x - m_xWhenEnabled));
             } else {
                 m_wasEnabled = false;
             }
@@ -99,7 +98,7 @@ public class RobotContainer {
         controller.getLeftBumper().onTrue(Commands.runOnce(() -> drivetrain.getLocalizer().resetPose(new Pose2d(0,0, Rotation2d.fromRotations(0.0)))));
 
         // RIGHT BUMPER --> NAVIGATE FROM CURRENT POSE TO TARGET POSE (PathPlanner)
-        controller.getRightBumper().onTrue(navigateToPoseCommand(Constants.NAVIGATE_TO_POSE_TARGET));
+        //controller.getRightBumper().onTrue(navigateToPoseCommand(Constants.NAVIGATE_TO_POSE_TARGET));
 
         // D-PAD UP --> ROTATE TO FACE DETECTED APRIL TAG (fused pose)
         controller.getDPad().getUp().onTrue(Commands.runOnce(() -> {
@@ -157,6 +156,9 @@ public class RobotContainer {
         // Eventually, X: SPINNING_UP + AIM (rotateToTagCommand, rangeToTagCommand)
         // Currently, X: ROTATE TO FACE NEAREST APRIL TAG
         controller.getButtonX().onTrue(Commands.runOnce(() -> {
+
+            System.out.println("Attempting to rotate to tag");
+
             int id = vision.getNearestDetectedTagId();
             if (id < 0) {
                 System.out.println("Can't rotate to AprilTag: none detected");
@@ -212,6 +214,9 @@ public class RobotContainer {
      * Returns a no-op command if tagId is negative (no tag).
      */
     private Command rotateToTagCommand(int tagId) {
+        
+        System.out.println("Found Tag: " + tagId);
+
         if (tagId < 0) {
             return Commands.none();
         }
