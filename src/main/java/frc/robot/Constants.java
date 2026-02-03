@@ -432,6 +432,9 @@ public final class Constants {
         private static final boolean kInvertLeftSide = true;
         private static final boolean kInvertRightSide = false;
         
+        // Distance from the robot center line to drive wheel center
+        private static final double kBaseModulePosition = 10.875;
+
         // Individual module configurations
         // TUNING: Encoder offsets = calibrate each module (find value where module points forward when commanded to 0°)
         //         Module positions = measure distance from robot center (affects odometry accuracy)
@@ -446,8 +449,8 @@ public final class Constants {
         private static final boolean kFrontLeftSteerInvert = true; //true
         private static final boolean kFrontLeftEncoderInvert = false; //false
         private static final Translation2d kFrontLeftModulePosition = new Translation2d(
-            Units.Inches.of(11.25),
-            Units.Inches.of(11.25 ));
+            Units.Inches.of(kBaseModulePosition),
+            Units.Inches.of(kBaseModulePosition));
 
         // ---------------- FRONT RIGHT ----------------
 
@@ -458,8 +461,8 @@ public final class Constants {
         private static final boolean kFrontRightSteerInvert = true; // true
         private static final boolean kFrontRightEncoderInvert = false; // false
         private static final Translation2d kFrontRightModulePosition = new Translation2d(
-            Units.Inches.of(11.25),
-            Units.Inches.of(-11.25));
+            Units.Inches.of(kBaseModulePosition),
+            Units.Inches.of(-kBaseModulePosition));
 
         // ---------------- BACK LEFT ----------------
         
@@ -470,8 +473,8 @@ public final class Constants {
         private static final boolean kBackLeftSteerInvert = true; //true
         private static final boolean kBackLeftEncoderInvert = false; // false
         private static final Translation2d kBackLeftModulePosition = new Translation2d(
-            Units.Inches.of(-11.25),
-            Units.Inches.of(11.25));
+            Units.Inches.of(-kBaseModulePosition),
+            Units.Inches.of(kBaseModulePosition));
 
         // ---------------- BACK RIGHT ----------------
         
@@ -482,8 +485,8 @@ public final class Constants {
         private static final boolean kBackRightSteerInvert = true; // true
         private static final boolean kBackRightEncoderInvert = false; // false
         private static final Translation2d kBackRightModulePosition = new Translation2d(
-            Units.Inches.of(-11.25),
-            Units.Inches.of(-11.25));
+            Units.Inches.of(-kBaseModulePosition),
+            Units.Inches.of(-kBaseModulePosition));
 
 
         // Front modules use MK4n (narrow) gear ratio
