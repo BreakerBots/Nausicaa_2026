@@ -117,7 +117,7 @@ public class Vision extends SubsystemBase {
         try {
             // Get Pigeon IMU data
             var pigeon = drivetrain.getPigeon2();
-            Rotation3d rotation = pigeon.getRotation3d();
+            Rotation3d rotation = pigeon.getRotation3d().rotateBy(new Rotation3d(0.0, 0.0, Math.PI));
 
             // Get angular velocities (degrees per second)
             double yawRate = Math.toDegrees(pigeon.getAngularVelocityZWorld().getValueAsDouble());

@@ -81,7 +81,7 @@ public final class Constants {
         // Vision system selection: true = MegaTag2, false = MegaTag1
         // MegaTag2: Uses IMU fusion for improved accuracy, requires SetRobotOrientation() calls
         // MegaTag1: Original AprilTag localization, no IMU fusion required
-        public static final boolean USE_MEGATAG2 = false;
+        public static final boolean USE_MEGATAG2 = true;
 
         // Limelight 4 camera names (configured in Limelight UI)
         public static final String FRONT_CAMERA = "limelight-fr";
