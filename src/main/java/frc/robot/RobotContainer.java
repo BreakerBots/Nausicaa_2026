@@ -118,6 +118,8 @@ public class RobotContainer {
     
         drivetrain.setDefaultCommand(drivetrain.getTeleopControlCommand(driverX, driverY, driverOmega, Constants.DriveConstants.TELEOP_CONTROL_CONFIG));
     
+        
+
         // ----------------- INTAKE -------------
         
         //EXTENDED INTAKING
@@ -137,11 +139,11 @@ public class RobotContainer {
 
         // ----------------- SHOOTER -------------
 
-        //INACTIVE
-        controller.getDPad().getDown().onTrue(shooter.setStateCommand(Shooter.State.INACTIVE));
+        // //INACTIVE
+        // controller.getDPad().getDown().onTrue(shooter.setStateCommand(Shooter.State.INACTIVE));
 
-        //SHOOTING
-        controller.getDPad().getUp().onTrue(shooter.setStateCommand(Shooter.State.INACTIVE));
+        // //SHOOTING
+        // controller.getDPad().getUp().onTrue(shooter.setStateCommand(Shooter.State.SHOOTING));
 
         // ----------------- CLIMB -------------
 
@@ -167,7 +169,7 @@ public class RobotContainer {
     private Command rotateToTagCommand() {
         final var request = new SwerveRequest.FieldCentric().withDriveRequestType(DriveRequestType.Velocity);
         
-        // PID controller for smooth rotation alignment
+        // PID controller for smooth rotation alignmentf
         // Tune these values: kP controls responsiveness, kD reduces overshoot
         PIDController rotationPID = new PIDController(0.05, 0.0, 0.01);
         rotationPID.setTolerance(Math.toRadians(1.0)); // 1 degree tolerance

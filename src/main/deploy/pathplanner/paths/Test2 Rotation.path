@@ -16,11 +16,11 @@
     },
     {
       "anchor": {
-        "x": 3.64,
+        "x": 1.46,
         "y": 1.0
       },
       "prevControl": {
-        "x": 3.39,
+        "x": 1.21,
         "y": 1.0
       },
       "nextControl": null,
@@ -34,20 +34,20 @@
   "eventMarkers": [],
   "globalConstraints": {
     "maxVelocity": 4.5,
-    "maxAcceleration": 4.5,
+    "maxAcceleration": 3.0,
     "maxAngularVelocity": 540.0,
-    "maxAngularAcceleration": 720.0,
+    "maxAngularAcceleration": 540.0,
     "nominalVoltage": 12.0,
     "unlimited": false
   },
   "goalEndState": {
     "velocity": 0,
-    "rotation": 0.0
+    "rotation": 90.0
   },
   "reversed": false,
   "folder": "2026 - Rebuilt",
   "idealStartingState": {
-    "velocity": 0,
+    "velocity": 0.0,
     "rotation": 0.0
   },
   "useDefaultConstraints": true
