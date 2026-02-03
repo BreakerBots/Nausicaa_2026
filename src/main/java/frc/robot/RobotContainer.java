@@ -8,6 +8,7 @@ import com.ctre.phoenix6.swerve.SwerveModule.DriveRequestType;
 import com.ctre.phoenix6.swerve.SwerveRequest;
 
 import com.pathplanner.lib.auto.AutoBuilder;
+import com.pathplanner.lib.path.PathConstraints;
 
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.geometry.Pose2d;
@@ -97,6 +98,19 @@ public class RobotContainer {
         // LEFT BUMPER --> RESET LOCALIZER'S POSE
         controller.getLeftBumper().onTrue(Commands.runOnce(() -> drivetrain.getLocalizer().resetPose(new Pose2d(0,0, Rotation2d.fromRotations(0.0)))));
 
+        // RIGHT BUMPER --> NAVIGATE FROM CURRENT POSE TO TARGET POSE (PathPlanner)
+        controller.getRightBumper().onTrue(navigateToPoseCommand(Constants.NAVIGATE_TO_POSE_TARGET));
+
+        // D-PAD UP --> ROTATE TO FACE DETECTED APRIL TAG (fused pose)
+        controller.getDPad().getUp().onTrue(Commands.runOnce(() -> {
+            int id = vision.getDetectedTagId();
+            if (id < 0) {
+                System.out.println("rotateToTag: no AprilTag detected");
+                return;
+            }
+            rotateToTagCommand(id).schedule();
+        }));
+
         // ---------------- SWERVE DRIVE ----------------
 
         // LEFT THUMBSTICK --> DRIVE
@@ -118,27 +132,41 @@ public class RobotContainer {
     
         drivetrain.setDefaultCommand(drivetrain.getTeleopControlCommand(driverX, driverY, driverOmega, Constants.DriveConstants.TELEOP_CONTROL_CONFIG));
     
+
+
+    
         
 
         // ----------------- INTAKE -------------
         
-        //EXTENDED INTAKING
-        controller.getButtonX().onTrue(intake.setStateCommand(Intake.State.EXTENDED_INTAKING));
-
-        //STOWED
-        controller.getButtonY().onTrue(intake.setStateCommand(Intake.State.STOWED));
-
-        //EXTENDED IDLE
-        controller.getButtonA().onTrue(intake.setStateCommand(Intake.State.EXTENDED_IDLE));
-
-        //EXTENDED EXTAKING
-        controller.getButtonB().onTrue(intake.setStateCommand(Intake.State.EXTENDED_EXTAKING));
+        // B: EXTENDED_INTAKING ↔ EXTENDED_IDLE (toggle: if not intaking → intaking; if intaking → idle)
+        controller.getButtonB().onTrue(Commands.runOnce(() -> {
+            if (intake.state == Intake.State.EXTENDED_INTAKING) {
+                intake.setState(Intake.State.EXTENDED_IDLE);
+            } else {
+                intake.setState(Intake.State.EXTENDED_INTAKING);
+            }
+        }, intake));
 
         // ----------------- HOPPER/FEEDER -------------
 
+        // A: ?
 
         // ----------------- SHOOTER -------------
 
+        // Eventually, X: SPINNING_UP + AIM (rotateToTagCommand, rangeToTagCommand)
+        // Currently, X: ROTATE TO FACE NEAREST APRIL TAG
+        controller.getButtonX().onTrue(Commands.runOnce(() -> {
+            int id = vision.getNearestDetectedTagId();
+            if (id < 0) {
+                System.out.println("Can't rotate to AprilTag: none detected");
+                return;
+            }
+            rotateToTagCommand(id).schedule();
+        }));
+
+        // Y: Toggle shooter state (INACTIVE ↔ SHOOTING)
+        
         // //INACTIVE
         // controller.getDPad().getDown().onTrue(shooter.setStateCommand(Shooter.State.INACTIVE));
 
@@ -147,6 +175,8 @@ public class RobotContainer {
 
         // ----------------- CLIMB -------------
 
+        // D-PAD UP --> CLIMB UP
+        // D-PAD DOWN --> CLIMB DOWN    
 
     }
 
@@ -159,14 +189,36 @@ public class RobotContainer {
         return drivetrain;
     }
 
-
+    /**
+     * Pathfind from current pose to the given target pose,
+     * avoiding fixed obstacles using PathPlanner navgrid (deploy/pathplanner/navgrid.json).
+     */
+    public Command navigateToPoseCommand(Pose2d target) {
+        if (!AutoBuilder.isConfigured()) {
+            System.out.println("navigateToPoseCommand: AutoBuilder not configured, skipping pathfind to " + target);
+            return Commands.none();
+        }
+        PathConstraints constraints = PathConstraints.unlimitedConstraints(12.0); // Minimal constraints for now
+        return AutoBuilder.pathfindToPose(
+            target,
+            constraints,
+            0.0 
+        );
+    }
 
     /**
-     * Rotates the robot to face the detected AprilTag using PID control.
+     * Rotates the robot to face the given AprilTag using PID control.
      * Uses the fused pose estimate (combines both cameras + IMU) for accurate field-relative targeting.
-     * Tries front camera first, falls back to back camera if front doesn't see a tag.
+     * Returns a no-op command if tagId is negative (no tag).
      */
-    private Command rotateToTagCommand() {
+    private Command rotateToTagCommand(int tagId) {
+        if (tagId < 0) {
+            return Commands.none();
+        }
+
+        System.out.println("Rotating to AprilTag: " + tagId);
+
+        final int targetTagId = tagId;
         final var request = new SwerveRequest.FieldCentric().withDriveRequestType(DriveRequestType.Velocity);
         
         // PID controller for smooth rotation alignmentf
@@ -176,27 +228,10 @@ public class RobotContainer {
         rotationPID.enableContinuousInput(-Math.PI, Math.PI); // Handle wrap-around
 
         return Commands.run(() -> {
-            // Get tag ID from any camera
-            int tagId = vision.getDetectedTagId();
-            
-            // If no tag detected, stop rotation
-            if (tagId < 0) {
-                drivetrain.setControl(request.withRotationalRate(0.0));
-                return;
-            }
-            
-            // Calculate angle error using fused pose and field layout (uses both cameras + IMU)
-            double angleError = vision.getAngleToTag(tagId);
-            
-            // Use PID controller to calculate rotational rate
-            // Setpoint is 0 (facing target), measurement is the angle error
+            double angleError = vision.getAngleToTag(targetTagId);
             double rotationalRate = rotationPID.calculate(0.0, angleError);
-            
-            // Clamp rotational rate to maximum
             double maxRotRate = Constants.DriveConstants.MAXIMUM_ROTATIONAL_VELOCITY.in(Units.RadiansPerSecond);
             rotationalRate = Math.max(-maxRotRate, Math.min(maxRotRate, rotationalRate));
-            
-            // Apply rotation (field-centric, so no translation)
             drivetrain.setControl(request
                 .withVelocityX(0.0)
                 .withVelocityY(0.0)
@@ -219,7 +254,6 @@ public class RobotContainer {
             return Math.abs(angleError) <= Math.toRadians(1.0); // 1 degree tolerance
         })
         .finallyDo(() -> {
-            // Reset PID and stop movement
             rotationPID.reset();
             drivetrain.setControl(request
                 .withVelocityX(0.0)

@@ -276,6 +276,36 @@ public class Vision extends SubsystemBase {
     }
 
     /**
+     * Gets the ID of the nearest AprilTag currently detected (front or back camera).
+     * Uses fused pose and field layout to compute distance; returns -1 if no tags detected.
+     */
+    public int getNearestDetectedTagId() {
+        int nearestTagId = -1;
+        double minDistance = Double.POSITIVE_INFINITY;
+        if (frontCameraEstimate != null && frontCameraEstimate.rawFiducials != null) {
+            for (var f : frontCameraEstimate.rawFiducials) {
+                int id = (int) f.id;
+                double d = getDistanceToTag(id);
+                if (d >= 0 && d < minDistance) {
+                    minDistance = d;
+                    nearestTagId = id;
+                }
+            }
+        }
+        if (backCameraEstimate != null && backCameraEstimate.rawFiducials != null) {
+            for (var f : backCameraEstimate.rawFiducials) {
+                int id = (int) f.id;
+                double d = getDistanceToTag(id);
+                if (d >= 0 && d < minDistance) {
+                    minDistance = d;
+                    nearestTagId = id;
+                }
+            }
+        }
+        return nearestTagId;
+    }
+
+    /**
      * Gets the field position of an AprilTag by its ID.
      * Uses the official field layout to look up the tag's known position.
      */

@@ -28,6 +28,7 @@ import edu.wpi.first.apriltag.AprilTagFieldLayout;
 import edu.wpi.first.apriltag.AprilTagFields;
 import edu.wpi.first.math.Matrix;
 import edu.wpi.first.math.VecBuilder;
+import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.numbers.N1;
@@ -512,6 +513,11 @@ public final class Constants {
                 kBackRightModulePosition.getMeasureX(), kBackRightModulePosition.getMeasureY(), kInvertRightSide,
                 kBackRightSteerInvert, kBackRightEncoderInvert);
     }
+
+    // ---------------- TELEOP: NAVIGATE TO POSE ----------------
+
+    /** Target pose for "navigate to pose" button (PathPlanner from current pose to this). Tune for your field. */
+    public static final Pose2d NAVIGATE_TO_POSE_TARGET = new Pose2d(3.0, 1.0, Rotation2d.fromDegrees(0));
 
     // ---------------- AUTONOMOUS ----------------
 
