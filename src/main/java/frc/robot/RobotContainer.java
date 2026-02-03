@@ -18,6 +18,7 @@ import edu.wpi.first.wpilibj.RobotState;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.Commands;
 
 import frc.robot.BreakerLib.driverstation.BreakerInputStream;
@@ -74,18 +75,19 @@ public class RobotContainer {
         configureBindings();
 
         // Log distance traveled in X (0 when enabled) to System.out for odometry check
-        Commands.run(() -> {
-            boolean enabled = RobotState.isEnabled();
-            if (enabled) {
-                if (!m_wasEnabled) {
-                    m_xWhenEnabled = drivetrain.getLocalizer().getPose().getX();
-                    m_wasEnabled = true;
+        CommandScheduler.getInstance().schedule(
+            Commands.run(() -> {
+                boolean enabled = RobotState.isEnabled();
+                if (enabled) {
+                    if (!m_wasEnabled) {
+                        m_xWhenEnabled = drivetrain.getLocalizer().getPose().getX();
+                        m_wasEnabled = true;
+                    }
+                    double x = drivetrain.getLocalizer().getPose().getX();
+                } else {
+                    m_wasEnabled = false;
                 }
-                double x = drivetrain.getLocalizer().getPose().getX();
-            } else {
-                m_wasEnabled = false;
-            }
-        }).ignoringDisable(true).schedule();
+            }).ignoringDisable(true));
     }
 
 
@@ -100,15 +102,6 @@ public class RobotContainer {
         // RIGHT BUMPER --> NAVIGATE FROM CURRENT POSE TO TARGET POSE (PathPlanner)
         //controller.getRightBumper().onTrue(navigateToPoseCommand(Constants.NAVIGATE_TO_POSE_TARGET));
 
-        // D-PAD UP --> ROTATE TO FACE DETECTED APRIL TAG (fused pose)
-        controller.getDPad().getUp().onTrue(Commands.runOnce(() -> {
-            int id = vision.getDetectedTagId();
-            if (id < 0) {
-                System.out.println("rotateToTag: no AprilTag detected");
-                return;
-            }
-            rotateToTagCommand(id).schedule();
-        }));
 
         // ---------------- SWERVE DRIVE ----------------
 
@@ -130,11 +123,7 @@ public class RobotContainer {
                 .scale(Constants.DriveConstants.MAXIMUM_ROTATIONAL_VELOCITY.in(Units.RadiansPerSecond));
     
         drivetrain.setDefaultCommand(drivetrain.getTeleopControlCommand(driverX, driverY, driverOmega, Constants.DriveConstants.TELEOP_CONTROL_CONFIG));
-    
 
-
-    
-        
 
         // ----------------- INTAKE -------------
         
@@ -147,9 +136,11 @@ public class RobotContainer {
             }
         }, intake));
 
+
         // ----------------- HOPPER/FEEDER -------------
 
         // A: ?
+
 
         // ----------------- SHOOTER -------------
 
@@ -157,14 +148,16 @@ public class RobotContainer {
         // Currently, X: ROTATE TO FACE NEAREST APRIL TAG
         controller.getButtonX().onTrue(Commands.runOnce(() -> {
 
-            System.out.println("Attempting to rotate to tag");
+            System.out.println("rotateToTag: Attempting to rotate to tag");
+            SmartDashboard.putString("Aim/RotateToTagStatus", "Button Pressed");
 
             int id = vision.getNearestDetectedTagId();
             if (id < 0) {
-                System.out.println("Can't rotate to AprilTag: none detected");
+                System.out.println("rotateToTag: Can't rotate to AprilTag, none detected");
+                SmartDashboard.putString("Aim/RotateToTagStatus", "No Tag Detected");
                 return;
             }
-            rotateToTagCommand(id).schedule();
+            CommandScheduler.getInstance().schedule(rotateToTagCommand(id));
         }));
 
         // Y: Toggle shooter state (INACTIVE ↔ SHOOTING)
@@ -174,6 +167,7 @@ public class RobotContainer {
 
         // //SHOOTING
         // controller.getDPad().getUp().onTrue(shooter.setStateCommand(Shooter.State.SHOOTING));
+
 
         // ----------------- CLIMB -------------
 
@@ -210,26 +204,17 @@ public class RobotContainer {
 
     /**
      * Rotates the robot to face the given AprilTag using PID control.
-     * Uses the fused pose estimate (combines both cameras + IMU) for accurate field-relative targeting.
-     * Returns a no-op command if tagId is negative (no tag).
      */
-    private Command rotateToTagCommand(int tagId) {
-        
-        System.out.println("Found Tag: " + tagId);
+    private Command rotateToTagCommand(int targetTagId) {
 
-        if (tagId < 0) {
-            return Commands.none();
-        }
+        System.out.println("rotateToTag: Target AprilTag: " + targetTagId);
+        SmartDashboard.putString("Aim/RotateToTagStatus", "Target Tag: " + targetTagId);
 
-        System.out.println("Rotating to AprilTag: " + tagId);
-
-        final int targetTagId = tagId;
+        final double toleranceRad = Math.toRadians(1.0); // degree
         final var request = new SwerveRequest.FieldCentric().withDriveRequestType(DriveRequestType.Velocity);
-        
-        // PID controller for smooth rotation alignmentf
-        // Tune these values: kP controls responsiveness, kD reduces overshoot
+
         PIDController rotationPID = new PIDController(0.05, 0.0, 0.01);
-        rotationPID.setTolerance(Math.toRadians(1.0)); // 1 degree tolerance
+        rotationPID.setTolerance(toleranceRad);
         rotationPID.enableContinuousInput(-Math.PI, Math.PI); // Handle wrap-around
 
         return Commands.run(() -> {
@@ -243,21 +228,21 @@ public class RobotContainer {
                 .withRotationalRate(rotationalRate));
         }, drivetrain)
         .until(() -> {
-            // Check if any tag is still detected
             if (!vision.isTagDetected()) {
-                return true; // Lost tag, stop command
+                System.err.println("rotateToTag: lost target tag " + targetTagId + " (no tag in view)");
+                SmartDashboard.putString("Aim/RotateToTagStatus", "Lost - No tag in view");
+                return true; // Stop and give control back
             }
-            
-            // Get tag ID from any camera
-            int detectedTagId = vision.getDetectedTagId();
-            if (detectedTagId < 0) {
-                return true; // No tag detected
+            if (vision.getNearestDetectedTagId() != targetTagId) {
+                System.err.println("rotateToTag: lost target tag " + targetTagId + " (target no longer in view)");
+                SmartDashboard.putString("Aim/RotateToTagStatus", "Lost - Target tag: " + targetTagId + " not in view");
+                return true; // Stop and give control back
             }
-            
-            // Check if we're aligned (within tolerance) using fused pose
-            double angleError = vision.getAngleToTag(detectedTagId);
-            return Math.abs(angleError) <= Math.toRadians(1.0); // 1 degree tolerance
+            double angleError = vision.getAngleToTag(targetTagId);
+            SmartDashboard.putString("Aim/RotateToTagStatus", "Remaining angle to tag: " + targetTagId + ": " + Math.toDegrees(angleError));
+            return Math.abs(angleError) <= toleranceRad; // Aligned, done
         })
+        .withTimeout(3.0) // Always end so default drive command can run again
         .finallyDo(() -> {
             rotationPID.reset();
             drivetrain.setControl(request
