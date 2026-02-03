@@ -28,7 +28,6 @@ import edu.wpi.first.apriltag.AprilTagFieldLayout;
 import edu.wpi.first.apriltag.AprilTagFields;
 import edu.wpi.first.math.Matrix;
 import edu.wpi.first.math.VecBuilder;
-import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.numbers.N1;
@@ -41,6 +40,7 @@ import edu.wpi.first.units.measure.Distance;
 import edu.wpi.first.units.measure.LinearVelocity;
 import frc.robot.BreakerLib.swerve.BreakerSwerveDrivetrain.BreakerSwerveDrivetrainConstants;
 import frc.robot.BreakerLib.swerve.BreakerSwerveDrivetrain.BreakerSwerveDrivetrainConstants.ChoreoConfig;
+import frc.robot.BreakerLib.swerve.BreakerSwerveDrivetrain.BreakerSwerveDrivetrainConstants.PathplannerConfig;
 import frc.robot.BreakerLib.swerve.BreakerSwerveTeleopControl.HeadingCompensationConfig;
 import frc.robot.BreakerLib.swerve.BreakerSwerveTeleopControl.TeleopControlConfig;
 import frc.robot.BreakerLib.util.logging.BreakerLog.GitInfo;
@@ -377,7 +377,8 @@ public final class Constants {
             .withCANBusName(kCANbusName)
             .withPigeon2Id(kPigeonId)
             .withPigeon2Configs(pigeonConfigs)
-            .withChoreoConfig(AutoConstants.CHOREO_CONFIG);
+            .withChoreoConfig(AutoConstants.CHOREO_CONFIG)
+            .withPathplannerConfig(AutoConstants.PATHPLANNER_CONFIG);
 
         // Module factories: creates swerve module constants using shared physical and control parameters
         // MK4n (narrow) modules factory - used for front-left and front-right modules
@@ -514,21 +515,35 @@ public final class Constants {
                 kBackRightSteerInvert, kBackRightEncoderInvert);
     }
 
-    // ---------------- TELEOP: NAVIGATE TO POSE ----------------
-
-    /** Target pose for "navigate to pose" button (PathPlanner from current pose to this). Tune for your field. */
-    public static final Pose2d NAVIGATE_TO_POSE_TARGET = new Pose2d(3.0, 1.0, Rotation2d.fromDegrees(0));
 
     // ---------------- AUTONOMOUS ----------------
-
-    // These PID constants control how the robot follows autonomous paths (different from teleop control)
-    // Translation PID = controls forward/backward and left/right movement accuracy when following paths
-    // Rotation PID = controls how accurately the robot rotates to match path heading
-    // Choreo = autonomous path planning library that uses these PID values to follow recorded paths
-    // TUNING: Adjust if robot overshoots path waypoints, oscillates, or doesn't reach targets accurately
+    //
+    // PID TUNING NOTES (PathPlanner autos – this is what the auto chooser uses):
+    //
+    // TRANSLATION (X/Y position following):
+    //   • P too low → robot lags behind path, doesn’t reach waypoints.
+    //   • P too high → overshoots waypoints, can oscillate.
+    //   • D (e.g. 0.5–1.0) → damps oscillation; increase if path following is jerky.
+    //   • I → usually 0; add a small value (e.g. 0.01) only if there’s steady-state position error.
+    //
+    // ROTATION (heading following):
+    //   • P too low → robot is slow to correct heading, drifts off path angle.
+    //   • P too high → rotation is twitchy or overshoots.
+    //   • D → reduces final “jerk” when settling on heading; lower if you see a sharp snap at end of turns.
+    //   • I → add a small value (e.g. 0.01–0.03) if rotation consistently settles short (e.g. 87° instead of 90°).
+    //
     public static class AutoConstants {
+
+        /** Used by PathPlanner autos (auto chooser).  */
+        public static final PIDConstants PATHPLANNER_TRANSLATION_PID = new PIDConstants(7.5, 0, 0.8);
+        public static final PIDConstants PATHPLANNER_ROTATION_PID = new PIDConstants(1.5, 0.02, 0.5);
+        public static final PathplannerConfig PATHPLANNER_CONFIG = new PathplannerConfig()
+            .withTranslationPID(PATHPLANNER_TRANSLATION_PID)
+            .withRotationPID(PATHPLANNER_ROTATION_PID);
+
+        /** Used only when running Choreo trajectories (not the PathPlanner auto chooser). */
         public static final PIDConstants TRANSLATION_PID = new PIDConstants(7.5, 0, 0.8);
-        public static final PIDConstants ROTATION_PID = new PIDConstants(1.5, 0, 1);
+        public static final PIDConstants ROTATION_PID = new PIDConstants(1.5, 0.02, 0.5);
         public static final ChoreoConfig CHOREO_CONFIG = new ChoreoConfig().withTranslationPID(TRANSLATION_PID)
             .withRotationPID(ROTATION_PID);
     }

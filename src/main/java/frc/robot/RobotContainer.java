@@ -100,7 +100,8 @@ public class RobotContainer {
         controller.getLeftBumper().onTrue(Commands.runOnce(() -> drivetrain.getLocalizer().resetPose(new Pose2d(0,0, Rotation2d.fromRotations(0.0)))));
 
         // RIGHT BUMPER --> NAVIGATE FROM CURRENT POSE TO TARGET POSE (PathPlanner)
-        //controller.getRightBumper().onTrue(navigateToPoseCommand(Constants.NAVIGATE_TO_POSE_TARGET));
+        Pose2d POSE_RED_TRENCH_IN_RED_AZ = new Pose2d(3.0, 1.0, Rotation2d.fromDegrees(0));
+        //controller.getRightBumper().onTrue(navigateToPoseCommand(POSE_RED_TRENCH_IN_RED_AZ));
 
 
         // ---------------- SWERVE DRIVE ----------------
