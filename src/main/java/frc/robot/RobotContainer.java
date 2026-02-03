@@ -244,13 +244,13 @@ public class RobotContainer {
             }
             
             // Get tag ID from any camera
-            int tagId = vision.getDetectedTagId();
-            if (tagId < 0) {
+            int detectedTagId = vision.getDetectedTagId();
+            if (detectedTagId < 0) {
                 return true; // No tag detected
             }
             
             // Check if we're aligned (within tolerance) using fused pose
-            double angleError = vision.getAngleToTag(tagId);
+            double angleError = vision.getAngleToTag(detectedTagId);
             return Math.abs(angleError) <= Math.toRadians(1.0); // 1 degree tolerance
         })
         .finallyDo(() -> {
