@@ -14,6 +14,8 @@ import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.units.Units;
+import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.RobotState;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
@@ -100,8 +102,7 @@ public class RobotContainer {
         controller.getLeftBumper().onTrue(Commands.runOnce(() -> drivetrain.getLocalizer().resetPose(new Pose2d(0,0, Rotation2d.fromRotations(0.0)))));
 
         // RIGHT BUMPER --> NAVIGATE FROM CURRENT POSE TO TARGET POSE (PathPlanner)
-        Pose2d POSE_RED_TRENCH_IN_RED_AZ = new Pose2d(3.0, 1.0, Rotation2d.fromDegrees(0));
-        //controller.getRightBumper().onTrue(navigateToPoseCommand(POSE_RED_TRENCH_IN_RED_AZ));
+        //controller.getRightBumper().onTrue(navigateToPoseCommand(Constants.FieldConstants.POSE_RED_TRENCH_IN_RED_AZ));
 
 
         // ---------------- SWERVE DRIVE ----------------
@@ -125,6 +126,8 @@ public class RobotContainer {
     
         drivetrain.setDefaultCommand(drivetrain.getTeleopControlCommand(driverX, driverY, driverOmega, Constants.DriveConstants.TELEOP_CONTROL_CONFIG));
 
+        // RIGHT TRIGGER (held) --> ALIGN FRONT TO ALLIANCE HUB TAG; driver keeps X/Y control, rotation follows hub (Red: tag 10, Blue: tag 26)
+        //controller.getRightTrigger().whileTrue(alignToHubTagCommand());
 
         // ----------------- INTAKE -------------
         
@@ -250,6 +253,32 @@ public class RobotContainer {
                 .withVelocityX(0.0)
                 .withVelocityY(0.0)
                 .withRotationalRate(0.0));
+        });
+    }
+
+    /**
+     * While run: driver keeps X/Y (forward and strafe); rotation is overridden to face alliance hub AprilTag.
+     * Red = tag 10, Blue = tag 26. Use with right trigger .whileTrue() so holding trigger = align to hub.
+     */
+    private Command alignToHubTagCommand() {
+        final var request = new SwerveRequest.FieldCentric().withDriveRequestType(DriveRequestType.Velocity);
+        PIDController rotationPID = new PIDController(0.05, 0.0, 0.01);
+        rotationPID.enableContinuousInput(-Math.PI, Math.PI);
+        double maxRotRate = Constants.DriveConstants.MAXIMUM_ROTATIONAL_VELOCITY.in(Units.RadiansPerSecond);
+
+        return Commands.run(() -> {
+            int hubTagId = DriverStation.getAlliance()
+                .map(a -> a == Alliance.Red ? Constants.FieldConstants.HUB_TAG_ID_RED : Constants.FieldConstants.HUB_TAG_ID_BLUE)
+                .orElse(Constants.FieldConstants.HUB_TAG_ID_BLUE);
+            double vx = driverX.get();
+            double vy = driverY.get();
+            double angleError = vision.getAngleToTag(hubTagId);
+            double omega = rotationPID.calculate(0.0, angleError);
+            omega = Math.max(-maxRotRate, Math.min(maxRotRate, omega));
+            drivetrain.setControl(request.withVelocityX(vx).withVelocityY(vy).withRotationalRate(omega));
+        }, drivetrain)
+        .finallyDo(() -> {
+            rotationPID.reset();
         });
     }
 

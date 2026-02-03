@@ -28,6 +28,7 @@ import edu.wpi.first.apriltag.AprilTagFieldLayout;
 import edu.wpi.first.apriltag.AprilTagFields;
 import edu.wpi.first.math.Matrix;
 import edu.wpi.first.math.VecBuilder;
+import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.numbers.N1;
@@ -117,6 +118,18 @@ public final class Constants {
         //   3+ tags: stdDev = baseStdDev / 2.5+ = even more trust
         public static final double TAG_COUNT_SCALE_FACTOR = 0.5;
     }
+
+
+    // --------------- FIELD --------------
+
+    public static class FieldConstants {
+
+        public static final Pose2d POSE_RED_TRENCH_IN_RED_AZ = new Pose2d(3.0, 1.0, Rotation2d.fromDegrees(0));
+
+        public static final int HUB_TAG_ID_RED = 10;
+        public static final int HUB_TAG_ID_BLUE = 26;
+    }
+
 
     // --------------- INTAKE --------------
 
