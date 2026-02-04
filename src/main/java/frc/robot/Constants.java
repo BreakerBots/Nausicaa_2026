@@ -272,34 +272,34 @@ public final class Constants {
         public static final double ALGAE_STOW_SPEED = 0.0;
     }   
 
+
     // ---------------- SWERVE DRIVE ----------------
 
     public static class DriveConstants {
+        
+        /** ROBOT-LEVEL MAXIMUM SPEEDS - How fast can the robot drive and rotate (currently reduced for testing)
+         * Translational = forward/backward and left/right movement (X and Y on the field)
+         * Rotational = spinning in place (turning) */
+        public static final LinearVelocity MAXIMUM_TRANSLATIONAL_VELOCITY = Units.MetersPerSecond.of(1.0);
+        public static final AngularVelocity MAXIMUM_ROTATIONAL_VELOCITY = Units.RadiansPerSecond.of(2.0);
+        //public static final LinearVelocity MAXIMUM_TRANSLATIONAL_VELOCITY = Units.MetersPerSecond.of(4.5);
+        //public static final AngularVelocity MAXIMUM_ROTATIONAL_VELOCITY = Units.RadiansPerSecond.of(9.5);
 
-        // Azimuth = the rotation/swivel of each swerve module (how fast modules can turn)
-        // TUNING: Increase if modules turn too slowly, decrease if they overshoot or oscillate
-        //public static final AngularVelocity MAXIMUM_MODULE_AZIMUTH_SPEED = Units.DegreesPerSecond.of(720);
-        //public static final SetpointGenerationConfig SETPOINT_GENERATION_CONFIG = new SetpointGenerationConfig(MAXIMUM_MODULE_AZIMUTH_SPEED);
-
-        // Heading compensation = automatically maintains robot heading when driver isn't rotating
-        // TUNING: Adjust PID values if robot drifts when driver isn't rotating, or fights driver input too much
+        /** HEADING COMPENSATION = automatically maintains robot heading when driver isn't rotating 
+         *  Adjust PID values if robot drifts when driver isn't rotating, or fights driver input too much */
         public static final HeadingCompensationConfig HEADING_COMPENSATION_CONFIG = new HeadingCompensationConfig(
             Units.MetersPerSecond.of(0.05),
             Units.RadiansPerSecond.of(0.001),
             Units.Seconds.of(0.2),
             new PIDConstants(1.5, 0, 0));// 1.5
         
+        /** MODULE ROTATION SPEED (at the module level, Azimuth) - How fast can each swerve module turn? */
+        //public static final AngularVelocity MAXIMUM_MODULE_AZIMUTH_SPEED = Units.DegreesPerSecond.of(720);
+        //public static final SetpointGenerationConfig SETPOINT_GENERATION_CONFIG = new SetpointGenerationConfig(MAXIMUM_MODULE_AZIMUTH_SPEED);
+
         public static final TeleopControlConfig TELEOP_CONTROL_CONFIG = new TeleopControlConfig();
             // .withHeadingCompensation(HEADING_COMPENSATION_CONFIG);
             // .withSetpointGeneration(SETPOINT_GENERATION_CONFIG);
-        
-        // Maximum robot velocities (currently reduced for testing)
-        // Translational = forward/backward and left/right movement (X and Y on the field)
-        // Rotational = spinning in place (turning)
-        public static final LinearVelocity MAXIMUM_TRANSLATIONAL_VELOCITY = Units.MetersPerSecond.of(1.0);
-        public static final AngularVelocity MAXIMUM_ROTATIONAL_VELOCITY = Units.RadiansPerSecond.of(2.0);
-        //public static final LinearVelocity MAXIMUM_TRANSLATIONAL_VELOCITY = Units.MetersPerSecond.of(4.5);
-        //public static final AngularVelocity MAXIMUM_ROTATIONAL_VELOCITY = Units.RadiansPerSecond.of(9.5);
 
         // Motor control gains: PID and feedforward values for steer and drive motors
         // Steer motor = rotates the swerve module (azimuth/steering)
@@ -346,30 +346,26 @@ public final class Constants {
         // CANcoder = absolute encoder that tells us the exact rotation angle of each swerve module
         private static final CANcoderConfiguration cancoderInitialConfigs = new CANcoderConfiguration();
 
-        
         // Theoretical free speed (m/s) at 12v applied output;
         // TUNING: This needs to be tuned to your individual robot
         public static final LinearVelocity kSpeedAt12Volts = Units.MetersPerSecond.of(0.0);
 
         // Every 1 rotation of the azimuth results in kCoupleRatio drive motor turns;
-        // TUNING: This may need to be tuned to your individual robot
         private static final double kCoupleRatio = 3.125;
         
         // Gear ratio = how many motor rotations = 1 wheel rotation (higher = slower but more torque)
         // NOTE: This assumes you have MK4n swerve modules (narrow) in the front and MK4i swerve modules (wide) in the back
-        // TUNING: This may need to be tuned to your individual robot
         //private static final double kDriveGearRatio = 5.357142857142857;
         private static final double kDriveGearRatio = 7.13;
         private static final double kSteerGearRatio_MK4i = 150.0/7.0;
         private static final double kSteerGearRatio_MK4n = 18.75; // Narrow
 
-        // The radius of the wheel (in inches)
+        // The radius of the wheel (in inches) - measure with clamp and calipers, can change through the season
         private static final Distance kWheelRadius = Units.Inches.of(1.9655);
 
-        // These are only used for simulation
+        // These are only used for simulation - adjust if simulation doesn't match real robot
         // Inertia = how much the motor resists changes in speed (higher = slower to change speed)
         // Friction voltage = the voltage required to overcome friction (higher = more voltage required)
-        // TUNING: Only affects simulation accuracy, not real robot behavior (adjust if simulation doesn't match real robot)
         private static final double kSteerInertia = 0.00001;
         private static final double kDriveInertia = 0.001;
         private static final double kSteerFrictionVoltage = 0.25;
@@ -447,13 +443,10 @@ public final class Constants {
         private static final boolean kInvertLeftSide = true;
         private static final boolean kInvertRightSide = false;
         
-        // Distance from the robot center line to drive wheel center
+        // Distance from the robot center line to drive wheel center - get this from the CAD model
         private static final double kBaseModulePosition = 10.875;
 
         // Individual module configurations
-        // TUNING: Encoder offsets = calibrate each module (find value where module points forward when commanded to 0°)
-        //         Module positions = measure distance from robot center (affects odometry accuracy)
-        //         Inversion flags = adjust if individual module rotates or drives wrong direction
 
         // ---------------- FRONT LEFT ----------------
 

@@ -126,8 +126,13 @@ public class RobotContainer {
     
         drivetrain.setDefaultCommand(drivetrain.getTeleopControlCommand(driverX, driverY, driverOmega, Constants.DriveConstants.TELEOP_CONTROL_CONFIG));
 
-        // RIGHT TRIGGER (held) --> ALIGN FRONT TO ALLIANCE HUB TAG; driver keeps X/Y control, rotation follows hub (Red: tag 10, Blue: tag 26)
-        controller.getRightTrigger().whileTrue(alignToHubTagCommand());
+        // RIGHT TRIGGER (held) --> TRACK ALLIANCE HUB TAG; driver keeps X/Y control, rotation follows hub (Red: tag 10, Blue: tag 26)
+        controller.getRightTrigger().whileTrue(Commands.runOnce(() -> {
+            int hubTagId = DriverStation.getAlliance()
+                .map(a -> a == Alliance.Red ? Constants.FieldConstants.HUB_TAG_ID_RED : Constants.FieldConstants.HUB_TAG_ID_BLUE)
+                .orElse(Constants.FieldConstants.HUB_TAG_ID_BLUE);
+            CommandScheduler.getInstance().schedule(trackTagCommand(hubTagId));
+        }));
 
         // ----------------- INTAKE -------------
         
@@ -260,22 +265,19 @@ public class RobotContainer {
     }
 
     /**
-     * While run: driver keeps X/Y (forward and strafe); rotation is overridden to face alliance hub AprilTag.
-     * Red = tag 10, Blue = tag 26. Use with right trigger .whileTrue() so holding trigger = align to hub.
+     * While run: driver keeps X/Y (forward and strafe); rotation is overridden to face the target AprilTag.
+     * Use with trigger .whileTrue() so holding trigger = track tag.
      */
-    private Command alignToHubTagCommand() {
+    private Command trackTagCommand(int targetTagId) {
         final var request = new SwerveRequest.FieldCentric().withDriveRequestType(DriveRequestType.Velocity);
         PIDController rotationPID = new PIDController(9, 0.0, 0.1);
         rotationPID.enableContinuousInput(-Math.PI, Math.PI);
         double maxRotRate = Constants.DriveConstants.MAXIMUM_ROTATIONAL_VELOCITY.in(Units.RadiansPerSecond);
 
         return Commands.run(() -> {
-            int hubTagId = DriverStation.getAlliance()
-                .map(a -> a == Alliance.Red ? Constants.FieldConstants.HUB_TAG_ID_RED : Constants.FieldConstants.HUB_TAG_ID_BLUE)
-                .orElse(Constants.FieldConstants.HUB_TAG_ID_BLUE);
             double vx = driverX.get();
             double vy = driverY.get();
-            double angleError = vision.getAngleToTag(hubTagId);
+            double angleError = vision.getAngleToTag(targetTagId);
             double omega = rotationPID.calculate(0.0, angleError);
             omega = Math.max(-maxRotRate, Math.min(maxRotRate, omega));
             drivetrain.setControl(request.withVelocityX(vx).withVelocityY(vy).withRotationalRate(omega));

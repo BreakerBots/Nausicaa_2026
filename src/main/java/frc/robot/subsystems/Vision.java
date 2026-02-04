@@ -106,14 +106,6 @@ public class Vision extends SubsystemBase {
             logVisionData();
             lastLogTime = currentTime;
         }
-
-        // if tag 12 is detected
-            // get offest to 12 and log it
-        if (this.getDetectedTagId() == 12) {
-            double angle = getAngleToTag(getDetectedTagId());
-            angle = Math.toDegrees(angle);
-            SmartDashboard.putNumber("Aim/AngleToTag12Error", this.getAngleToTag(12) + angle);
-        }
     }
 
     /**
@@ -125,6 +117,7 @@ public class Vision extends SubsystemBase {
         try {
             // Get Pigeon IMU data
             var pigeon = drivetrain.getPigeon2();
+            // Rotate the yaw by 180 degrees to fix MegaTag2 inversion: https://www.chiefdelphi.com/t/megatag-2-problem/465022
             Rotation3d rotation = pigeon.getRotation3d().rotateBy(new Rotation3d(0.0, 0.0, Math.PI));
 
             // Get angular velocities (degrees per second)
