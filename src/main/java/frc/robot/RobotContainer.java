@@ -61,7 +61,7 @@ public class RobotContainer {
     public RobotContainer() {
         // Disable verbose logging to reduce noise
         // Flip this back on when debugging/troubleshooting
-        BreakerLog.setVerboseLogging(false);
+        BreakerLog.setVerboseLogging(true);
 
         // Set up our auto-chooser    
         if (AutoBuilder.isConfigured()) {
@@ -127,7 +127,7 @@ public class RobotContainer {
         drivetrain.setDefaultCommand(drivetrain.getTeleopControlCommand(driverX, driverY, driverOmega, Constants.DriveConstants.TELEOP_CONTROL_CONFIG));
 
         // RIGHT TRIGGER (held) --> ALIGN FRONT TO ALLIANCE HUB TAG; driver keeps X/Y control, rotation follows hub (Red: tag 10, Blue: tag 26)
-        //controller.getRightTrigger().whileTrue(alignToHubTagCommand());
+        controller.getRightTrigger().whileTrue(alignToHubTagCommand());
 
         // ----------------- INTAKE -------------
         
@@ -214,15 +214,17 @@ public class RobotContainer {
         System.out.println("rotateToTag: Target AprilTag: " + targetTagId);
         SmartDashboard.putString("Aim/RotateToTagStatus", "Target Tag: " + targetTagId);
 
-        final double toleranceRad = Math.toRadians(1.0); // degree
+        final double toleranceRad = Math.toRadians(0.2); // degree
         final var request = new SwerveRequest.FieldCentric().withDriveRequestType(DriveRequestType.Velocity);
 
-        PIDController rotationPID = new PIDController(0.05, 0.0, 0.01);
+        PIDController rotationPID = new PIDController(9, 0.0, 0.1);
         rotationPID.setTolerance(toleranceRad);
         rotationPID.enableContinuousInput(-Math.PI, Math.PI); // Handle wrap-around
 
         return Commands.run(() -> {
             double angleError = vision.getAngleToTag(targetTagId);
+            SmartDashboard.putString("Aim/AngleError", "Angle error:" + angleError);
+
             double rotationalRate = rotationPID.calculate(0.0, angleError);
             double maxRotRate = Constants.DriveConstants.MAXIMUM_ROTATIONAL_VELOCITY.in(Units.RadiansPerSecond);
             rotationalRate = Math.max(-maxRotRate, Math.min(maxRotRate, rotationalRate));
@@ -244,8 +246,9 @@ public class RobotContainer {
             }
             double angleError = vision.getAngleToTag(targetTagId);
             SmartDashboard.putString("Aim/RotateToTagStatus", "Remaining angle to tag: " + targetTagId + ": " + Math.toDegrees(angleError));
-            return Math.abs(angleError) <= toleranceRad; // Aligned, done
+            return Math.abs(angleError) <= toleranceRad; // Aligned, done   
         })
+
         .withTimeout(3.0) // Always end so default drive command can run again
         .finallyDo(() -> {
             rotationPID.reset();
@@ -262,7 +265,7 @@ public class RobotContainer {
      */
     private Command alignToHubTagCommand() {
         final var request = new SwerveRequest.FieldCentric().withDriveRequestType(DriveRequestType.Velocity);
-        PIDController rotationPID = new PIDController(0.05, 0.0, 0.01);
+        PIDController rotationPID = new PIDController(9, 0.0, 0.1);
         rotationPID.enableContinuousInput(-Math.PI, Math.PI);
         double maxRotRate = Constants.DriveConstants.MAXIMUM_ROTATIONAL_VELOCITY.in(Units.RadiansPerSecond);
 

@@ -100,14 +100,14 @@ public final class Constants {
         public static final int MIN_TAG_COUNT = 1;
         
         // Maximum pose difference from current estimate to accept vision measurement (meters)
-        public static final double MAX_POSE_DIFFERENCE = 12.0;
+        public static final double MAX_POSE_DIFFERENCE = 6.0;
 
         // Vision measurement standard deviations (x, y, theta)
         // Increase these values to trust vision measurements less
         // Units: meters for x/y, radians for theta
         // Theta: 9999999 to fully trust IMU for rotation (vision won't correct heading)
         public static final Matrix<N3, N1> VISION_STD_DEVS = 
-            VecBuilder.fill(0.5, 0.5, 9999999);        
+            VecBuilder.fill(0.05, 0.05, 9999999);        
         
         // Dynamic standard deviation scaling factor for tag count
         // Higher value = more aggressive trust increase with more tags
@@ -126,7 +126,7 @@ public final class Constants {
 
         public static final Pose2d POSE_RED_TRENCH_IN_RED_AZ = new Pose2d(3.0, 1.0, Rotation2d.fromDegrees(0));
 
-        public static final int HUB_TAG_ID_RED = 10;
+        public static final int HUB_TAG_ID_RED = 12;
         public static final int HUB_TAG_ID_BLUE = 26;
     }
 

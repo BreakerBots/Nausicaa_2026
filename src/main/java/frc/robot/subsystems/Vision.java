@@ -106,6 +106,14 @@ public class Vision extends SubsystemBase {
             logVisionData();
             lastLogTime = currentTime;
         }
+
+        // if tag 12 is detected
+            // get offest to 12 and log it
+        if (this.getDetectedTagId() == 12) {
+            double angle = getAngleToTag(getDetectedTagId());
+            angle = Math.toDegrees(angle);
+            SmartDashboard.putNumber("Aim/AngleToTag12Error", this.getAngleToTag(12) + angle);
+        }
     }
 
     /**
@@ -178,8 +186,8 @@ public class Vision extends SubsystemBase {
         try {
             var pigeon = drivetrain.getPigeon2();
             double angularVelocityDegPerSec = Math.abs(Math.toDegrees(pigeon.getAngularVelocityZWorld().getValueAsDouble()));
-            if (angularVelocityDegPerSec > 720.0) {
-                logRejection(cameraName, String.format("Angular velocity too high (%.1f deg/s > 720 deg/s)", angularVelocityDegPerSec));
+            if (angularVelocityDegPerSec > 3600) {
+                logRejection(cameraName, String.format("Angular velocity too high (%.1f deg/s > 3600 deg/s)", angularVelocityDegPerSec));
                 return;
             }
         } catch (Exception e) {
