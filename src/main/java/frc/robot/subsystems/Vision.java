@@ -106,6 +106,14 @@ public class Vision extends SubsystemBase {
             logVisionData();
             lastLogTime = currentTime;
         }
+
+        // TESTING
+        if (this.getDetectedTagId() == 12) {
+            double angle = getAngleToTag(12);
+            angle = Math.toDegrees(angle);
+            SmartDashboard.putString("Aim/AngleToTag12", String.format("%.2f", angle));
+            SmartDashboard.putString("Aim/DistanceToTag12", String.format("%.2f", this.getDistanceToTag(12)) + "m");
+        }        
     }
 
     /**

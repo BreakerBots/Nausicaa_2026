@@ -126,12 +126,12 @@ public class RobotContainer {
     
         drivetrain.setDefaultCommand(drivetrain.getTeleopControlCommand(driverX, driverY, driverOmega, Constants.DriveConstants.TELEOP_CONTROL_CONFIG));
 
-        // RIGHT TRIGGER (held) --> TRACK ALLIANCE HUB TAG; driver keeps X/Y control, rotation follows hub (Red: tag 10, Blue: tag 26)
+        // RIGHT TRIGGER (held) --> TRACK TAG; driver keeps X/Y control, rotation follows tag
         controller.getRightTrigger().whileTrue(Commands.runOnce(() -> {
-            int hubTagId = DriverStation.getAlliance()
-                .map(a -> a == Alliance.Red ? Constants.FieldConstants.HUB_TAG_ID_RED : Constants.FieldConstants.HUB_TAG_ID_BLUE)
-                .orElse(Constants.FieldConstants.HUB_TAG_ID_BLUE);
-            CommandScheduler.getInstance().schedule(trackTagCommand(hubTagId));
+            //int hubTagId = DriverStation.getAlliance()
+            //    .map(a -> a == Alliance.Red ? Constants.FieldConstants.HUB_TAG_ID_RED : Constants.FieldConstants.HUB_TAG_ID_BLUE)
+            //    .orElse(Constants.FieldConstants.HUB_TAG_ID_BLUE);
+            CommandScheduler.getInstance().schedule(trackTagCommand(12));
         }));
 
         // ----------------- INTAKE -------------

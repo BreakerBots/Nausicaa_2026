@@ -126,7 +126,7 @@ public final class Constants {
 
         public static final Pose2d POSE_RED_TRENCH_IN_RED_AZ = new Pose2d(3.0, 1.0, Rotation2d.fromDegrees(0));
 
-        public static final int HUB_TAG_ID_RED = 12;
+        public static final int HUB_TAG_ID_RED = 10;
         public static final int HUB_TAG_ID_BLUE = 26;
     }
 
@@ -300,6 +300,9 @@ public final class Constants {
         public static final TeleopControlConfig TELEOP_CONTROL_CONFIG = new TeleopControlConfig();
             // .withHeadingCompensation(HEADING_COMPENSATION_CONFIG);
             // .withSetpointGeneration(SETPOINT_GENERATION_CONFIG);
+
+        public static final double RANGE_TO_TAG_TOLERANCE = 0.1; // Close enough to target distance, meters
+        public static final double RANGE_TO_TAG_MAX_DISTANCE = 5.0; // Maximum distance to target, meters
 
         // Motor control gains: PID and feedforward values for steer and drive motors
         // Steer motor = rotates the swerve module (azimuth/steering)
