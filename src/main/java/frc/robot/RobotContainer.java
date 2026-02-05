@@ -13,10 +13,10 @@ import com.pathplanner.lib.path.PathConstraints;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.units.Units;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
-import edu.wpi.first.wpilibj.RobotState;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -51,11 +51,9 @@ public class RobotContainer {
     
     private BreakerInputStream driverX, driverY, driverOmega;
 
-    private double m_xWhenEnabled = 0;
-    private boolean m_wasEnabled = false;
-
     /** PathPlanner auto chooser; populated from GUI autos when AutoBuilder is configured. */
     private final SendableChooser<Command> autoChooser;
+
 
     /** The container for the robot. Contains subsystems, OI devices, and commands. */
     public RobotContainer() {
@@ -75,21 +73,6 @@ public class RobotContainer {
 
         // Bind our controller buttons
         configureBindings();
-
-        // Log distance traveled in X (0 when enabled) to System.out for odometry check
-        CommandScheduler.getInstance().schedule(
-            Commands.run(() -> {
-                boolean enabled = RobotState.isEnabled();
-                if (enabled) {
-                    if (!m_wasEnabled) {
-                        m_xWhenEnabled = drivetrain.getLocalizer().getPose().getX();
-                        m_wasEnabled = true;
-                    }
-                    double x = drivetrain.getLocalizer().getPose().getX();
-                } else {
-                    m_wasEnabled = false;
-                }
-            }).ignoringDisable(true));
     }
 
 
@@ -273,7 +256,7 @@ public class RobotContainer {
         });
     }
 
-        /**
+    /**
      * Ranges the robot to a distance from the given AprilTag using PID control.
      */
     private Command rangeToTagCommand(int targetTagId, int targetDistanceMeters) {
@@ -331,6 +314,50 @@ public class RobotContainer {
                 .withVelocityY(0.0)
                 .withRotationalRate(0.0));
         });
+    }
+
+    /**
+     * Drives the robot to a target distance (m) from the AprilTag. Uses field-centric X/Y so the
+     * robot moves straight toward or away from the tag regardless of heading. 
+     * Stops when in tolerance, tag is lost, or timeout.
+     */
+    private Command rangeToTag2Command(int targetTagId, double targetDistanceMeters) {
+        final double toleranceMeters = Constants.DriveConstants.RANGE_TO_TAG_TOLERANCE; // How close to the target is "close enough"?
+        final double kP = Constants.AutoConstants.PATHPLANNER_TRANSLATION_PID.kP; // Proportional Gain: how fast to move toward/away from the tag?
+        final double maxVelocity = Constants.DriveConstants.MAXIMUM_TRANSLATIONAL_VELOCITY.in(Units.MetersPerSecond);
+        final var request = new SwerveRequest.FieldCentric().withDriveRequestType(DriveRequestType.Velocity);
+
+        return Commands.run(() -> {
+            Translation2d toTag = vision.getRobotToTagTranslation(targetTagId);
+            if (toTag != null) {
+                double currentDistanceToTagMeters = toTag.getNorm();
+                double remainingDistanceToTargetMeters = currentDistanceToTagMeters - targetDistanceMeters;
+                double velocityStraightToTag = Math.max(-maxVelocity, Math.min(maxVelocity, kP * remainingDistanceToTargetMeters));
+                double velocityX = 0.0; 
+                double velocityY = 0.0; 
+                if (currentDistanceToTagMeters > 0) {
+                    velocityX = (toTag.getX() / currentDistanceToTagMeters) * velocityStraightToTag;
+                    velocityY = (toTag.getY() / currentDistanceToTagMeters) * velocityStraightToTag;
+                }
+                drivetrain.setControl(request.withVelocityX(velocityX).withVelocityY(velocityY).withRotationalRate(0.0));
+            }
+        }, drivetrain)
+        .until(() -> {
+            if (!vision.isTagDetected() || vision.getNearestDetectedTagId() != targetTagId) {
+                return true; // If we lost our tag, bail out
+            }
+            double currentDistanceToTagMeters = vision.getDistanceToTag(targetTagId);
+            boolean areWeThereYet = currentDistanceToTagMeters >= 0 && Math.abs(currentDistanceToTagMeters - targetDistanceMeters) <= toleranceMeters;
+            if (areWeThereYet == true) {
+                SmartDashboard.putString("Aim/RangeToTagStatus", "Done! At the target distance of " + targetDistanceMeters + "m");
+            } else {
+                SmartDashboard.putString("Aim/RangeToTagStatus", "We're " + currentDistanceToTagMeters + "m from the target");
+            }
+            return areWeThereYet;
+        })
+        .withTimeout(5.0)
+        .finallyDo(() -> drivetrain.setControl(request
+            .withVelocityX(0.0).withVelocityY(0.0).withRotationalRate(0.0)));
     }
 
     /**
