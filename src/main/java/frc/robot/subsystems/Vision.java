@@ -360,6 +360,15 @@ public class Vision extends SubsystemBase {
     }
 
 
+public Translation2d getRobotToTagTranslation(int tagId) {
+    Translation2d tagPosition = this.getTagPosition(tagId);
+    if (tagPosition == null) {
+        return null;
+    }
+    Translation2d robotPosition = drivetrain.getLocalizer().getPose().getTranslation();
+    return tagPosition.minus(robotPosition);
+}
+
     /**
      * Calculates dynamic standard deviations for vision measurements based on tag count.
      * More tags = lower std dev (more trust), fewer tags = higher std dev (less trust).

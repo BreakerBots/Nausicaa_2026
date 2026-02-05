@@ -134,6 +134,14 @@ public class RobotContainer {
             CommandScheduler.getInstance().schedule(trackTagCommand(12));
         }));
 
+        // A button (pressed) --> Range to tag
+        controller.getButtonA().onTrue(Commands.runOnce(() -> {
+            //int hubTagId = DriverStation.getAlliance()
+            //    .map(a -> a == Alliance.Red ? Constants.FieldConstants.HUB_TAG_ID_RED : Constants.FieldConstants.HUB_TAG_ID_BLUE)
+            //    .orElse(Constants.FieldConstants.HUB_TAG_ID_BLUE);
+            CommandScheduler.getInstance().schedule(rangeToTagCommand(12, 1));
+        }));
+
         // ----------------- INTAKE -------------
         
         // B: EXTENDED_INTAKING ↔ EXTENDED_IDLE (toggle: if not intaking → intaking; if intaking → idle)
@@ -257,6 +265,67 @@ public class RobotContainer {
         .withTimeout(3.0) // Always end so default drive command can run again
         .finallyDo(() -> {
             rotationPID.reset();
+            rotationPID.close();
+            drivetrain.setControl(request
+                .withVelocityX(0.0)
+                .withVelocityY(0.0)
+                .withRotationalRate(0.0));
+        });
+    }
+
+        /**
+     * Ranges the robot to a distance from the given AprilTag using PID control.
+     */
+    private Command rangeToTagCommand(int targetTagId, int targetDistanceMeters) {
+
+        // System.out.println("rotateToTag: Target AprilTag: " + targetTagId);
+        // SmartDashboard.putString("Aim/RotateToTagStatus", "Target Tag: " + targetTagId);
+
+        final double toleranceMeters = 0.01; // distance
+        final var request = new SwerveRequest.FieldCentric().withDriveRequestType(DriveRequestType.Velocity);
+
+        PIDController translationalPID = new PIDController(9, 0.0, 0.1);
+        translationalPID.setTolerance(toleranceMeters);
+        // rotationalPID.enableContinuousInput(-Math.PI, Math.PI); // Handle wrap-around
+
+        return Commands.run(() -> {
+            double distanceError = vision.getDistanceToTag(targetTagId) - targetDistanceMeters;
+            double distanceErrorX = drivetrain.getLocalizer().getPose().getRotation().getCos() * distanceError;
+            double distanceErrorY = drivetrain.getLocalizer().getPose().getRotation().getSin() * distanceError;
+            SmartDashboard.putString("Aim/DistanceErrorX", "Distance error (X):" + distanceErrorX);
+            SmartDashboard.putString("Aim/DistanceErrorY", "Distance error (Y):" + distanceErrorY);
+            SmartDashboard.putString("Aim/DistanceError", "Distance error (total):" + distanceError);
+
+            double translationalRateX = translationalPID.calculate(0.0, distanceErrorX);
+            double translationalRateY = translationalPID.calculate(0.0, distanceErrorY);
+            double maxVelocity = Constants.DriveConstants.MAXIMUM_TRANSLATIONAL_VELOCITY.in(Units.MetersPerSecond);
+            translationalRateX = Math.max(-maxVelocity, Math.min(maxVelocity, translationalRateX));
+            translationalRateY = Math.max(-maxVelocity, Math.min(maxVelocity, translationalRateY));
+            drivetrain.setControl(request
+                .withVelocityX(translationalRateX)
+                .withVelocityY(translationalRateY)
+                .withRotationalRate(0.0));
+        }, drivetrain)
+        .until(() -> {
+            if (!vision.isTagDetected()) {
+                System.err.println("rangeToTag: lost target tag " + targetTagId + " (no tag in view)");
+                SmartDashboard.putString("Aim/DistanceToTagStatus", "Lost - No tag in view");
+                return true; // Stop and give control back
+            }
+            if (vision.getNearestDetectedTagId() != targetTagId) {
+                System.err.println("rangeToTag: lost target tag " + targetTagId + " (target no longer in view)");
+                SmartDashboard.putString("Aim/DistanceToTagStatus", "Lost - Target tag: " + targetTagId + " not in view");
+                return true; // Stop and give control back
+            }
+            double distanceError = vision.getDistanceToTag(targetTagId) - targetDistanceMeters;
+            SmartDashboard.putString("Aim/RangeToTagStatus", "Remaining distance to tag: " + targetTagId + ": " + distanceError);
+            return Math.abs(distanceError) <= toleranceMeters; // Ranged, done   
+        })
+
+        .withTimeout(3.0) // Always end so default drive command can run again
+        .finallyDo(() -> {
+            translationalPID.reset();
+            translationalPID.close();
             drivetrain.setControl(request
                 .withVelocityX(0.0)
                 .withVelocityY(0.0)
