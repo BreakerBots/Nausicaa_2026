@@ -9,6 +9,8 @@ import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N3;
+import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
@@ -126,7 +128,9 @@ public class Vision extends SubsystemBase {
             // Get Pigeon IMU data
             var pigeon = drivetrain.getPigeon2();
             // Rotate the yaw by 180 degrees to fix MegaTag2 inversion: https://www.chiefdelphi.com/t/megatag-2-problem/465022
-            Rotation3d rotation = pigeon.getRotation3d().rotateBy(new Rotation3d(0.0, 0.0, Math.PI));
+            double yawOffset = DriverStation.getAlliance().orElse(Alliance.Red) == Alliance.Red ? 0.0 : Math.PI;
+            Rotation3d rotation = pigeon.getRotation3d().rotateBy(new Rotation3d(0.0, 0.0, yawOffset));
+
 
             // Get angular velocities (degrees per second)
             double yawRate = Math.toDegrees(pigeon.getAngularVelocityZWorld().getValueAsDouble());
