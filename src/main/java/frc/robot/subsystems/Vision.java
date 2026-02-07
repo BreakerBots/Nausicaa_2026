@@ -411,6 +411,20 @@ public Translation2d getRobotToTagTranslation(int tagId) {
         String backPoseStr = formatPose(backCameraPose);
         String fusedPoseStr = formatPose(fusedPose);
 
+        // Fused pose (odometry + vision): X, Y, yaw
+        if (fusedPose != null) {
+            SmartDashboard.putNumber("Vision/FusedPose/X", fusedPose.getX());
+            SmartDashboard.putNumber("Vision/FusedPose/Y", fusedPose.getY());
+            SmartDashboard.putNumber("Vision/FusedPose/YawDeg", fusedPose.getRotation().getDegrees());
+        }
+        // IMU yaw (Pigeon); IMU does not provide X/Y position
+        try {
+            double imuYawDeg = drivetrain.getPigeon2().getRotation2d().getDegrees();
+            SmartDashboard.putNumber("Vision/IMU/YawDeg", imuYawDeg);
+        } catch (Exception ignored) {
+            // Pigeon not available
+        }
+
         SmartDashboard.putString("Vision/FrontCamera/Tags", frontTagsStr);
         SmartDashboard.putString("Vision/FrontCamera/Pose", frontPoseStr);
         SmartDashboard.putString("Vision/FrontCamera/Status", frontCameraStatus);
@@ -421,14 +435,26 @@ public Translation2d getRobotToTagTranslation(int tagId) {
         SmartDashboard.putString("Vision/BackCamera/Status", backCameraStatus);
         SmartDashboard.putString("Vision/BackCamera/LastRejection", backCameraLastRejection);
 
+        SmartDashboard.putString("Vision/FusedPose/Pose", fusedPoseStr);
+
+        double imuYawForLog = Double.NaN;
+        try {
+            imuYawForLog = drivetrain.getPigeon2().getRotation2d().getDegrees();
+        } catch (Exception ignored) {
+        }
         String logMessage = String.format(
                 "------------------------------------------------------\n" +
                 "- Front Camera: Tags %s, Pose %s\n" +
                 "- Back Camera: Tags %s, Pose %s\n" +
-                "- Fused: Pose %s",
+                "- Fused: Pose %s (X=%.2f Y=%.2f Yaw=%.2f)\n" +
+                "- IMU Yaw: %.2f deg",
                 frontTagsStr, frontPoseStr,
                 backTagsStr, backPoseStr,
-                fusedPoseStr);
+                fusedPoseStr,
+                fusedPose != null ? fusedPose.getX() : Double.NaN,
+                fusedPose != null ? fusedPose.getY() : Double.NaN,
+                fusedPose != null ? fusedPose.getRotation().getDegrees() : Double.NaN,
+                imuYawForLog);
         System.out.println(logMessage);
 
         // Log to NetworkTables
