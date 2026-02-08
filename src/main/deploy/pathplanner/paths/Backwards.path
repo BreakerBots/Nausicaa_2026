@@ -4,56 +4,51 @@
     {
       "anchor": {
         "x": 3.0,
-        "y": 4.0
+        "y": 1.0
       },
       "prevControl": null,
       "nextControl": {
-        "x": 3.3794545333326718,
-        "y": 3.9861345144694957
+        "x": 4.0,
+        "y": 1.0
       },
       "isLocked": false,
       "linkedName": null
     },
     {
       "anchor": {
-        "x": 0.9984736091298143,
-        "y": 5.568231098430813
+        "x": 1.0,
+        "y": 1.0
       },
       "prevControl": {
-        "x": 2.4644993143312686,
-        "y": 5.568499680507704
+        "x": 0.0,
+        "y": 1.0
       },
       "nextControl": null,
       "isLocked": false,
       "linkedName": null
     }
   ],
-  "rotationTargets": [
-    {
-      "waypointRelativePos": 0,
-      "rotationDegrees": 0.0
-    }
-  ],
+  "rotationTargets": [],
   "constraintZones": [],
   "pointTowardsZones": [],
   "eventMarkers": [],
   "globalConstraints": {
-    "maxVelocity": 3.0,
+    "maxVelocity": 4.5,
     "maxAcceleration": 3.0,
     "maxAngularVelocity": 540.0,
     "maxAngularAcceleration": 720.0,
     "nominalVoltage": 12.0,
-    "unlimited": true
+    "unlimited": false
   },
   "goalEndState": {
-    "velocity": 0.0,
-    "rotation": 180.0
+    "velocity": 0,
+    "rotation": 0.0
   },
   "reversed": false,
   "folder": "2026 - Rebuilt",
   "idealStartingState": {
-    "velocity": 0.0,
+    "velocity": 0,
     "rotation": 0.0
   },
-  "useDefaultConstraints": false
+  "useDefaultConstraints": true
 }

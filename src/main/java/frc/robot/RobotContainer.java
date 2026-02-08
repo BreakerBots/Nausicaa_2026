@@ -114,7 +114,7 @@ public class RobotContainer {
             //int hubTagId = DriverStation.getAlliance()
             //    .map(a -> a == Alliance.Red ? Constants.FieldConstants.HUB_TAG_ID_RED : Constants.FieldConstants.HUB_TAG_ID_BLUE)
             //    .orElse(Constants.FieldConstants.HUB_TAG_ID_BLUE);
-            CommandScheduler.getInstance().schedule(trackTagCommand(12));
+            CommandScheduler.getInstance().schedule(trackTagCommand(26));
         }));
 
         // A button (pressed) --> Range to tag
@@ -122,7 +122,7 @@ public class RobotContainer {
             //int hubTagId = DriverStation.getAlliance()
             //    .map(a -> a == Alliance.Red ? Constants.FieldConstants.HUB_TAG_ID_RED : Constants.FieldConstants.HUB_TAG_ID_BLUE)
             //    .orElse(Constants.FieldConstants.HUB_TAG_ID_BLUE);
-            CommandScheduler.getInstance().schedule(rangeToTagCommand(12, 1));
+            CommandScheduler.getInstance().schedule(rangeToTagCommand(26, 1));
         }));
 
         // ----------------- INTAKE -------------

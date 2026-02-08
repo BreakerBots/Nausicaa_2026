@@ -110,11 +110,11 @@ public class Vision extends SubsystemBase {
         }
 
         // TESTING
-        if (this.getDetectedTagId() == 12) {
-            double angle = getAngleToTag(12);
+        if (this.getDetectedTagId() == 26) {
+            double angle = getAngleToTag(26);
             angle = Math.toDegrees(angle);
-            SmartDashboard.putString("Aim/AngleToTag12", String.format("%.2f", angle));
-            SmartDashboard.putString("Aim/DistanceToTag12", String.format("%.2f", this.getDistanceToTag(12)) + "m");
+            SmartDashboard.putString("Aim/AngleToTag26", String.format("%.2f", angle));
+            SmartDashboard.putString("Aim/DistanceToTag26", String.format("%.2f", this.getDistanceToTag(26)) + "m");
         }        
     }
 
@@ -128,7 +128,7 @@ public class Vision extends SubsystemBase {
             // Get Pigeon IMU data
             var pigeon = drivetrain.getPigeon2();
             // Rotate the yaw by 180 degrees to fix MegaTag2 inversion: https://www.chiefdelphi.com/t/megatag-2-problem/465022
-            double yawOffset = DriverStation.getAlliance().orElse(Alliance.Red) == Alliance.Red ? 0.0 : Math.PI;
+            double yawOffset = DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Blue ? 0.0 : Math.PI;
             Rotation3d rotation = pigeon.getRotation3d().rotateBy(new Rotation3d(0.0, 0.0, yawOffset));
 
 

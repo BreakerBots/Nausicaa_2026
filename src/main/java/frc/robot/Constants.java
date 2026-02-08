@@ -85,7 +85,7 @@ public final class Constants {
         // MegaTag1: Original AprilTag localization, no IMU fusion required
         public static final boolean USE_MEGATAG2 = true;
 
-        // Limelight 4 camera names (configured in Limelight UI)
+        // Limel\[]ight 4 camera names (configured in Limelight UI)
         public static final String FRONT_CAMERA = "limelight-fr";
         public static final String BACK_CAMERA = "limelight-bl";
         
@@ -280,7 +280,7 @@ public final class Constants {
         /** ROBOT-LEVEL MAXIMUM SPEEDS - How fast can the robot drive and rotate (currently reduced for testing)
          * Translational = forward/backward and left/right movement (X and Y on the field)
          * Rotational = spinning in place (turning) */
-        public static final LinearVelocity MAXIMUM_TRANSLATIONAL_VELOCITY = Units.MetersPerSecond.of(1.0);
+        public static final LinearVelocity MAXIMUM_TRANSLATIONAL_VELOCITY = Units.MetersPerSecond.of(3.0);
         public static final AngularVelocity MAXIMUM_ROTATIONAL_VELOCITY = Units.RadiansPerSecond.of(2.0);
         //public static final LinearVelocity MAXIMUM_TRANSLATIONAL_VELOCITY = Units.MetersPerSecond.of(4.5);
         //public static final AngularVelocity MAXIMUM_ROTATIONAL_VELOCITY = Units.RadiansPerSecond.of(9.5);
@@ -544,8 +544,8 @@ public final class Constants {
     public static class AutoConstants {
 
         /** Used by PathPlanner autos (auto chooser).  */
-        public static final PIDConstants PATHPLANNER_TRANSLATION_PID = new PIDConstants(7.5, 0, 0.8);
-        public static final PIDConstants PATHPLANNER_ROTATION_PID = new PIDConstants(1.5, 0.02, 0.5);
+        public static final PIDConstants PATHPLANNER_TRANSLATION_PID = new PIDConstants(2, 0, 0.1); // 7.5,0,0.8
+        public static final PIDConstants PATHPLANNER_ROTATION_PID = new PIDConstants(2.0, 0.0, 0.2);//1.5,0.02,0.5
         public static final PathplannerConfig PATHPLANNER_CONFIG = new PathplannerConfig()
             .withTranslationPID(PATHPLANNER_TRANSLATION_PID)
             .withRotationPID(PATHPLANNER_ROTATION_PID);
