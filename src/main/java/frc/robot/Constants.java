@@ -41,6 +41,8 @@ import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.Current;
 import edu.wpi.first.units.measure.Distance;
 import edu.wpi.first.units.measure.LinearVelocity;
+import java.util.Optional;
+
 import frc.robot.BreakerLib.swerve.BreakerSwerveDrivetrain.BreakerSwerveDrivetrainConstants;
 import frc.robot.BreakerLib.swerve.BreakerSwerveDrivetrain.BreakerSwerveDrivetrainConstants.ChoreoConfig;
 import frc.robot.BreakerLib.swerve.BreakerSwerveDrivetrain.BreakerSwerveDrivetrainConstants.PathplannerConfig;
@@ -133,9 +135,12 @@ public final class Constants {
 
         /** Returns the hub AprilTag ID for the current alliance (red or blue). Defaults to blue when alliance is not assigned. */
         public static int getHubTagID() {
-            return DriverStation.getAlliance()
-                .map(a -> a == Alliance.Red ? HUB_TAG_ID_RED : HUB_TAG_ID_BLUE)
-                .orElse(HUB_TAG_ID_BLUE);
+            Optional<Alliance> alliance = DriverStation.getAlliance();
+            if (alliance.isPresent() && alliance.get() == Alliance.Red) {
+                return HUB_TAG_ID_RED;
+            } else {
+                return HUB_TAG_ID_BLUE;
+            }
         }
     }
 
