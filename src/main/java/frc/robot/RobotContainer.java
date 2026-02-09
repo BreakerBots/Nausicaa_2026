@@ -111,18 +111,12 @@ public class RobotContainer {
 
         // RIGHT TRIGGER (held) --> TRACK TAG; driver keeps X/Y control, rotation follows tag
         controller.getRightTrigger().whileTrue(Commands.runOnce(() -> {
-            //int hubTagId = DriverStation.getAlliance()
-            //    .map(a -> a == Alliance.Red ? Constants.FieldConstants.HUB_TAG_ID_RED : Constants.FieldConstants.HUB_TAG_ID_BLUE)
-            //    .orElse(Constants.FieldConstants.HUB_TAG_ID_BLUE);
-            CommandScheduler.getInstance().schedule(trackTagCommand(26));
+            CommandScheduler.getInstance().schedule(trackTagCommand(getHubTagID()));
         }));
 
         // A button (pressed) --> Range to tag
         controller.getButtonA().onTrue(Commands.runOnce(() -> {
-            //int hubTagId = DriverStation.getAlliance()
-            //    .map(a -> a == Alliance.Red ? Constants.FieldConstants.HUB_TAG_ID_RED : Constants.FieldConstants.HUB_TAG_ID_BLUE)
-            //    .orElse(Constants.FieldConstants.HUB_TAG_ID_BLUE);
-            CommandScheduler.getInstance().schedule(rangeToTagCommand(26, 1));
+            CommandScheduler.getInstance().schedule(rangeToTag2Command(getHubTagID(), 1.0));
         }));
 
         // ----------------- INTAKE -------------
@@ -144,20 +138,9 @@ public class RobotContainer {
 
         // ----------------- SHOOTER -------------
 
-        // Eventually, X: SPINNING_UP + AIM (rotateToTagCommand, rangeToTagCommand)
-        // Currently, X: ROTATE TO FACE NEAREST APRIL TAG
+        // X: Rotate to face hub tag, then range to target distance (alliance-aware)
         controller.getButtonX().onTrue(Commands.runOnce(() -> {
-
-            System.out.println("rotateToTag: Attempting to rotate to tag");
-            SmartDashboard.putString("Aim/RotateToTagStatus", "Button Pressed");
-
-            int id = vision.getNearestDetectedTagId();
-            if (id < 0) {
-                System.out.println("rotateToTag: Can't rotate to AprilTag, none detected");
-                SmartDashboard.putString("Aim/RotateToTagStatus", "No Tag Detected");
-                return;
-            }
-            CommandScheduler.getInstance().schedule(rotateToTagCommand(id));
+            CommandScheduler.getInstance().schedule(rotateAndRangeToTagCommand(getHubTagID(), 1.0));
         }));
 
         // Y: Toggle shooter state (INACTIVE ↔ SHOOTING)
@@ -200,6 +183,26 @@ public class RobotContainer {
             constraints,
             0.0 
         );
+    }
+
+    /**
+     * Returns the hub AprilTag ID for the current alliance (red or blue).
+     * Defaults to blue hub tag when alliance is not yet assigned (e.g. disabled).
+     */
+    private int getHubTagID() {
+        return DriverStation.getAlliance()
+            .map(a -> a == Alliance.Red ? Constants.FieldConstants.HUB_TAG_ID_RED : Constants.FieldConstants.HUB_TAG_ID_BLUE)
+            .orElse(Constants.FieldConstants.HUB_TAG_ID_BLUE);
+    }
+
+    /**
+     * Rotates to face the given AprilTag, then drives to the target distance from it.
+     * Uses {@link #rotateToTagCommand(int)} then {@link #rangeToTagCommand(int, double)}.
+     */
+    private Command rotateAndRangeToTagCommand(int tagID, double targetDistanceMeters) {
+        return Commands.sequence(
+            rotateToTagCommand(tagID),
+            rangeToTagCommand(tagID, targetDistanceMeters));
     }
 
     /**
@@ -259,7 +262,7 @@ public class RobotContainer {
     /**
      * Ranges the robot to a distance from the given AprilTag using PID control.
      */
-    private Command rangeToTagCommand(int targetTagId, int targetDistanceMeters) {
+    private Command rangeToTagCommand(int targetTagId, double targetDistanceMeters) {
 
         // System.out.println("rotateToTag: Target AprilTag: " + targetTagId);
         // SmartDashboard.putString("Aim/RotateToTagStatus", "Target Tag: " + targetTagId);

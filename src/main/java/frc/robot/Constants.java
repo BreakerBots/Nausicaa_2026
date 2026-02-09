@@ -85,7 +85,7 @@ public final class Constants {
         // MegaTag1: Original AprilTag localization, no IMU fusion required
         public static final boolean USE_MEGATAG2 = true;
 
-        // Limel\[]ight 4 camera names (configured in Limelight UI)
+        // Limelight 4 camera names (configured in Limelight UI)
         public static final String FRONT_CAMERA = "limelight-fr";
         public static final String BACK_CAMERA = "limelight-bl";
         
@@ -280,8 +280,8 @@ public final class Constants {
         /** ROBOT-LEVEL MAXIMUM SPEEDS - How fast can the robot drive and rotate (currently reduced for testing)
          * Translational = forward/backward and left/right movement (X and Y on the field)
          * Rotational = spinning in place (turning) */
-        public static final LinearVelocity MAXIMUM_TRANSLATIONAL_VELOCITY = Units.MetersPerSecond.of(3.0);
-        public static final AngularVelocity MAXIMUM_ROTATIONAL_VELOCITY = Units.RadiansPerSecond.of(2.0);
+        public static final LinearVelocity MAXIMUM_TRANSLATIONAL_VELOCITY = Units.MetersPerSecond.of(2.25);
+        public static final AngularVelocity MAXIMUM_ROTATIONAL_VELOCITY = Units.RadiansPerSecond.of(4.75);
         //public static final LinearVelocity MAXIMUM_TRANSLATIONAL_VELOCITY = Units.MetersPerSecond.of(4.5);
         //public static final AngularVelocity MAXIMUM_ROTATIONAL_VELOCITY = Units.RadiansPerSecond.of(9.5);
 
