@@ -15,8 +15,6 @@ import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.units.Units;
-import edu.wpi.first.wpilibj.DriverStation;
-import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -111,12 +109,12 @@ public class RobotContainer {
 
         // RIGHT TRIGGER (held) --> TRACK TAG; driver keeps X/Y control, rotation follows tag
         controller.getRightTrigger().whileTrue(Commands.runOnce(() -> {
-            CommandScheduler.getInstance().schedule(trackTagCommand(getHubTagID()));
+            CommandScheduler.getInstance().schedule(trackTagCommand(Constants.FieldConstants.getHubTagID()));
         }));
 
         // A button (pressed) --> Range to tag
         controller.getButtonA().onTrue(Commands.runOnce(() -> {
-            CommandScheduler.getInstance().schedule(rangeToTag2Command(getHubTagID(), 1.0));
+            CommandScheduler.getInstance().schedule(rangeToTag2Command(Constants.FieldConstants.getHubTagID(), 1.0));
         }));
 
         // ----------------- INTAKE -------------
@@ -140,7 +138,7 @@ public class RobotContainer {
 
         // X: Rotate to face hub tag, then range to target distance (alliance-aware)
         controller.getButtonX().onTrue(Commands.runOnce(() -> {
-            CommandScheduler.getInstance().schedule(rotateAndRangeToTagCommand(getHubTagID(), 1.0));
+            CommandScheduler.getInstance().schedule(rotateAndRangeToTagCommand(Constants.FieldConstants.getHubTagID(), 1.0));
         }));
 
         // Y: Toggle shooter state (INACTIVE ↔ SHOOTING)
@@ -183,16 +181,6 @@ public class RobotContainer {
             constraints,
             0.0 
         );
-    }
-
-    /**
-     * Returns the hub AprilTag ID for the current alliance (red or blue).
-     * Defaults to blue hub tag when alliance is not yet assigned (e.g. disabled).
-     */
-    private int getHubTagID() {
-        return DriverStation.getAlliance()
-            .map(a -> a == Alliance.Red ? Constants.FieldConstants.HUB_TAG_ID_RED : Constants.FieldConstants.HUB_TAG_ID_BLUE)
-            .orElse(Constants.FieldConstants.HUB_TAG_ID_BLUE);
     }
 
     /**

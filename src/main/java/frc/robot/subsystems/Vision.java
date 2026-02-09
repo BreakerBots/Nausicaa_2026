@@ -16,6 +16,7 @@ import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.robot.Constants;
 import frc.robot.Constants.VisionConstants;
 import frc.robot.LimelightHelpers;
 import frc.robot.LimelightHelpers.PoseEstimate;
@@ -109,13 +110,13 @@ public class Vision extends SubsystemBase {
             lastLogTime = currentTime;
         }
 
-        // TESTING
-        if (this.getDetectedTagId() == 26) {
-            double angle = getAngleToTag(26);
-            angle = Math.toDegrees(angle);
-            SmartDashboard.putString("Aim/AngleToTag26", String.format("%.2f", angle));
-            SmartDashboard.putString("Aim/DistanceToTag26", String.format("%.2f", this.getDistanceToTag(26)) + "m");
-        }        
+        // TESTING: dashboard angle/distance to hub (alliance-aware)
+        int hubTagId = Constants.FieldConstants.getHubTagID();
+        if (this.getDetectedTagId() == hubTagId) {
+            double angle = Math.toDegrees(getAngleToTag(hubTagId));
+            SmartDashboard.putString("Aim/AngleToHub", String.format("%.2f", angle));
+            SmartDashboard.putString("Aim/DistanceToHub", String.format("%.2f", this.getDistanceToTag(hubTagId)) + "m");
+        }
     }
 
     /**

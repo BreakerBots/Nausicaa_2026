@@ -26,6 +26,8 @@ import com.pathplanner.lib.config.PIDConstants;
 
 import edu.wpi.first.apriltag.AprilTagFieldLayout;
 import edu.wpi.first.apriltag.AprilTagFields;
+import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.math.Matrix;
 import edu.wpi.first.math.VecBuilder;
 import edu.wpi.first.math.geometry.Pose2d;
@@ -128,6 +130,13 @@ public final class Constants {
 
         public static final int HUB_TAG_ID_RED = 10;
         public static final int HUB_TAG_ID_BLUE = 26;
+
+        /** Returns the hub AprilTag ID for the current alliance (red or blue). Defaults to blue when alliance is not assigned. */
+        public static int getHubTagID() {
+            return DriverStation.getAlliance()
+                .map(a -> a == Alliance.Red ? HUB_TAG_ID_RED : HUB_TAG_ID_BLUE)
+                .orElse(HUB_TAG_ID_BLUE);
+        }
     }
 
 
