@@ -6,6 +6,7 @@ import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 
+import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
@@ -13,8 +14,8 @@ import frc.robot.Constants;
 import frc.robot.BreakerLib.util.logging.BreakerLog;
 
 /**
- * Climb subsystem: single motor driving a chain. Uses an external encoder to track
- * rotations; motor runs until encoder reaches target (UP or DOWN), then stops.
+ * Climb subsystem: setpoint-based control using external encoder (or motor encoder as fallback).
+ * Assumes DOWN position when robot is enabled.
  */
 public class Climb extends SubsystemBase {
 
@@ -23,45 +24,114 @@ public class Climb extends SubsystemBase {
     private final CANcoder climbEncoder = new CANcoder(Constants.ClimbConstants.CLIMB_ENCODER_ID,
             Constants.GeneralConstants.SUPERSTRUCTURE_CANIVORE_BUS);
 
+    /** Zero offset for motor encoder (when using motor encoder instead of CANcoder). */
+    private double motorEncoderZeroOffset = 0.0;
+
+    /** Current target setpoint when moving. */
+    private double targetSetpoint = Constants.ClimbConstants.SETPOINT_DOWN;
+
+    /** PID controller for setpoint control. */
+    private final PIDController pidController = new PIDController(
+        Constants.ClimbConstants.PID_kP,
+        Constants.ClimbConstants.PID_kI,
+        Constants.ClimbConstants.PID_kD);
+
     public State state = State.INACTIVE;
 
-    /** Climb states: INACTIVE = stopped; ASCENDING/DESCENDING = run until encoder reaches target. */
+    /** Climb states with associated speeds. */
     public enum State {
-        INACTIVE,
-        ASCENDING,
-        DESCENDING;
+        INACTIVE(0.0),
+        EXTENDING(Constants.ClimbConstants.SPEED_EXTENDING),
+        ASCENDING(Constants.ClimbConstants.SPEED_ASCENDING),
+        DESCENDING(Constants.ClimbConstants.SPEED_DESCENDING),
+        RETRACTING(Constants.ClimbConstants.SPEED_RETRACTING);
+
+        private final double speed;
+
+        private State(double speed) {
+            this.speed = speed;
+        }
+
+        public double getSpeed() {
+            return speed;
+        }
     }
 
     public Climb() {
         TalonFXConfiguration config = new TalonFXConfiguration();
         config.MotorOutput.NeutralMode = NeutralModeValue.Brake;
         climbMotor.getConfigurator().apply(config);
+        
+        // Configure PID tolerance
+        pidController.setTolerance(Constants.ClimbConstants.SETPOINT_TOLERANCE);
     }
 
-    /** Current encoder position in rotations (cumulative). */
+    /** Current encoder position in rotations. Uses motor encoder if USE_MOTOR_ENCODER is true, otherwise CANcoder. */
     public double getEncoderRotations() {
-        return climbEncoder.getPosition().getValueAsDouble();
+        if (Constants.ClimbConstants.USE_MOTOR_ENCODER) {
+            // Motor encoder: get position, subtract zero offset, convert via gear ratio
+            double motorRotations = climbMotor.getPosition().getValueAsDouble() - motorEncoderZeroOffset;
+            return motorRotations / Constants.ClimbConstants.CLIMB_GEAR_RATIO;
+        } else {
+            // CANcoder: use external encoder
+            return climbEncoder.getPosition().getValueAsDouble();
+        }
     }
 
-    /** Zero the encoder (call when climb is at DOWN and you want DOWN = 0). */
+    /** Zero the encoder (call when climb is at DOWN position). */
     public void zeroEncoder() {
-        climbEncoder.setPosition(0.0);
+        if (Constants.ClimbConstants.USE_MOTOR_ENCODER) {
+            motorEncoderZeroOffset = climbMotor.getPosition().getValueAsDouble();
+            BreakerLog.log("Climb/Encoder", "Motor encoder zeroed at position: " + motorEncoderZeroOffset);
+        } else {
+            climbEncoder.setPosition(0.0);
+            BreakerLog.log("Climb/Encoder", "CANcoder zeroed");
+        }
     }
 
-    public boolean atUpPosition() {
-        return getEncoderRotations() >= Constants.ClimbConstants.ROTATIONS_UP;
+    /** Check if within tolerance of the given setpoint. */
+    public boolean atSetpoint(double setpoint) {
+        double error = Math.abs(getPositionError(setpoint));
+        return error <= Constants.ClimbConstants.SETPOINT_TOLERANCE;
     }
 
-    public boolean atDownPosition() {
-        return getEncoderRotations() <= Constants.ClimbConstants.ROTATIONS_DOWN;
+    /** Get position error (current - target). Positive = above target, negative = below target. */
+    public double getPositionError(double setpoint) {
+        return getEncoderRotations() - setpoint;
     }
 
-    private void runClimbUp() {
-        climbMotor.setControl(new DutyCycleOut(Constants.ClimbConstants.SPEED_ASCENDING));
-    }
-
-    private void runClimbDown() {
-        climbMotor.setControl(new DutyCycleOut(Constants.ClimbConstants.SPEED_DESCENDING));
+    /** Move toward setpoint using PID control with the speed from current state. 
+     * This gets a little more complicated because we want to prevent the motor from going backwards if the PID output is in the wrong direction.
+     */
+    private void moveToSetpoint(double setpoint) {
+        targetSetpoint = setpoint;
+        
+        // Step 1: Get the target speed (% of motor power) for this state (positive = UP, negative = DOWN)
+        double stateSpeed = state.getSpeed();
+        double stateSpeedMagnitude = Math.abs(stateSpeed);
+        
+        // Step 2: Calculate PID output (how much correction we need)
+        double currentPosition = getEncoderRotations();
+        double pidOutput = pidController.calculate(currentPosition, setpoint);
+        
+        // Step 3: Limit/clamp PID output to not exceed state's max speed magnitude
+        double clampedPidOutput = Math.max(-stateSpeedMagnitude, Math.min(stateSpeedMagnitude, pidOutput));
+        
+        // Step 4: Check if PID is going in the correct direction
+        boolean pidGoingUp = clampedPidOutput > 0;
+        boolean stateGoingUp = stateSpeed > 0;
+        boolean directionsMatch = (pidGoingUp == stateGoingUp);
+        
+        // Step 5: Use PID if direction is correct, otherwise use state speed (prevents going backwards)
+        double motorSpeed;
+        if (directionsMatch) {
+            motorSpeed = clampedPidOutput;  // PID is correct, use it
+        } else {
+            motorSpeed = stateSpeed;  // PID is wrong direction, use state speed instead
+        }
+        
+        // Step 6: Apply speed to motor
+        climbMotor.setControl(new DutyCycleOut(motorSpeed));
     }
 
     /** Stop the climb motor. */
@@ -69,75 +139,76 @@ public class Climb extends SubsystemBase {
         climbMotor.setControl(new DutyCycleOut(0.0));
     }
 
-    /** Command: run motor toward UP until encoder reaches ROTATIONS_UP, then stop. */
-    public Command climbToUpCommand() {
-        // return Commands.run(this::runClimbUp, this)
-        //         .until(this::atUpPosition)
-        //         .andThen(Commands.runOnce(this::stop, this))
-        //         .andThen(Commands.runOnce(() -> setState(State.INACTIVE), this));
-        return Commands.run(this::runClimbUp, this).finallyDo(this::stop);
-    }
-
-    /** Command: run motor toward DOWN until encoder reaches ROTATIONS_DOWN, then stop. */
-    public Command climbToDownCommand() {
-        // return Commands.run(this::runClimbDown, this)
-        //         .until(this::atDownPosition)
-        //         .andThen(Commands.runOnce(this::stop, this))
-        //         .andThen(Commands.runOnce(() -> setState(State.INACTIVE), this));
-        return Commands.run(this::runClimbDown, this).finallyDo(this::stop);
-
-    }
-
     public void setState(State newState) {
         State previousState = state;
         state = newState;
+        
         if (state == State.INACTIVE) {
             stop();
+            targetSetpoint = getEncoderRotations(); // Remember current position
         }
 
+        BreakerLog.log("Climb/StateChange", previousState + " -> " + state);
         BreakerLog.log("Climb/State/Previous", previousState.toString());
         BreakerLog.log("Climb/State/Current", state.toString());
-        if (state == State.ASCENDING) {
-            BreakerLog.log("Climb/State/TargetRotations", Constants.ClimbConstants.ROTATIONS_UP);
-        } else if (state == State.DESCENDING) {
-            BreakerLog.log("Climb/State/TargetRotations", Constants.ClimbConstants.ROTATIONS_DOWN);
+        
+        if (state != State.INACTIVE) {
+            BreakerLog.log("Climb/State/Speed", state.getSpeed());
         }
     }
 
-    /**
-     * Returns a command that runs climb to the given state. ASCENDING/DESCENDING run until
-     * encoder target then stop; INACTIVE stops immediately.
-     */
-    public Command setStateCommand(State newState) {
-        if (newState == State.INACTIVE) {
-            return Commands.runOnce(() -> setState(State.INACTIVE), this);
-        }
-        if (newState == State.ASCENDING) {
-            return climbToUpCommand();
-        }
-        return climbToDownCommand();
+    /** Command: extend to UP setpoint (fast). */
+    public Command extend() {
+        return Commands.runOnce(() -> setState(State.EXTENDING), this)
+                .andThen(Commands.run(() -> moveToSetpoint(Constants.ClimbConstants.SETPOINT_UP), this)
+                        .until(() -> atSetpoint(Constants.ClimbConstants.SETPOINT_UP)))
+                .andThen(Commands.runOnce(() -> setState(State.INACTIVE), this));
+    }
+
+    /** Command: ascend to DOWN setpoint (slow). */
+    public Command ascend() {
+        return Commands.runOnce(() -> setState(State.ASCENDING), this)
+                .andThen(Commands.run(() -> moveToSetpoint(Constants.ClimbConstants.SETPOINT_DOWN), this)
+                        .until(() -> atSetpoint(Constants.ClimbConstants.SETPOINT_DOWN)))
+                .andThen(Commands.runOnce(() -> setState(State.INACTIVE), this));
+    }
+
+    /** Command: descend to UP setpoint (slow). */
+    public Command descend() {
+        return Commands.runOnce(() -> setState(State.DESCENDING), this)
+                .andThen(Commands.run(() -> moveToSetpoint(Constants.ClimbConstants.SETPOINT_UP), this)
+                        .until(() -> atSetpoint(Constants.ClimbConstants.SETPOINT_UP)))
+                .andThen(Commands.runOnce(() -> setState(State.INACTIVE), this));
+    }
+
+    /** Command: retract to DOWN setpoint (fast). */
+    public Command retract() {
+        return Commands.runOnce(() -> setState(State.RETRACTING), this)
+                .andThen(Commands.run(() -> moveToSetpoint(Constants.ClimbConstants.SETPOINT_DOWN), this)
+                        .until(() -> atSetpoint(Constants.ClimbConstants.SETPOINT_DOWN)))
+                .andThen(Commands.runOnce(() -> setState(State.INACTIVE), this));
     }
 
     @Override
     public void periodic() {
+        // Continue moving toward setpoint if in a moving state
+        if (state != State.INACTIVE) {
+            moveToSetpoint(targetSetpoint);
+            
+            // Check if we've reached the setpoint and stop if so
+            if (atSetpoint(targetSetpoint)) {
+                setState(State.INACTIVE);
+            }
+        }
+        
         logStatus();
     }
 
-    /** One compact line: state, encoder pos, motor vel/current. */
+    /** One compact line: state, encoder pos, target setpoint, motor vel/current. */
     private void logStatus() {
-        double pos = getEncoderRotations();
-        double vel = climbMotor.getVelocity().getValueAsDouble();
-        double cur = climbMotor.getStatorCurrent().getValueAsDouble();
-        String line = String.format("state=%s pos=%.2frot %.1fvel %.1fA", state, pos, vel, cur);
+        double position = getEncoderRotations();
+        double velocity = climbMotor.getVelocity().getValueAsDouble();
+        String line = String.format("state=%s pos=%.2f tgt=%.2f %.1fvel", state, position, targetSetpoint, velocity);
         BreakerLog.log("Climb/Status", line);
     }
-
-    public void setSpeed(double speed) {
-      climbMotor.setControl(new DutyCycleOut(speed));
-    }
-
-    public Command setSpeedCommand(double speed) {
-      return Commands.runOnce(() -> setSpeed(speed));
-    }
-
 }

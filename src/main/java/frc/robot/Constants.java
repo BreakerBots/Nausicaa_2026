@@ -207,19 +207,37 @@ public final class Constants {
     }
 
     // --------------- CLIMB --------------
-    // Climb uses an external encoder; motor runs until encoder reaches target rotations (UP/DOWN), then stops.
+    // Climb uses setpoint-based control with external encoder (or motor encoder as fallback).
 
     public static class ClimbConstants {
         public static final int CLIMB_MOTOR_ID = 50;
         public static final int CLIMB_ENCODER_ID = 55;
 
-        /** Encoder rotations when climb is fully UP/DOWN. Tune to match chain travel. */
-        public static final double ROTATIONS_UP = 10.0;
-        public static final double ROTATIONS_DOWN = 0.0;
+        /** If true, use motor's integrated encoder instead of external CANcoder. */
+        public static final boolean USE_MOTOR_ENCODER = false;
+        
+        /** Motor rotations per climb rotation. Only need this if using motor encoder. */
+        public static final double CLIMB_GEAR_RATIO = 1.0;
 
-        public static final double SPEED_INACTIVE = 0;
-        public static final double SPEED_ASCENDING = 0.2;
-        public static final double SPEED_DESCENDING = -0.2;
+        /** Setpoints: encoder positions (number of rotations) for UP and DOWN positions. */
+        public static final double SETPOINT_UP = 10.0;
+        public static final double SETPOINT_DOWN = 0.0;
+        
+        /** Tolerance: how close is close enough (rotations). */
+        public static final double SETPOINT_TOLERANCE = 0.1;
+
+        /** Faster speeds for extending/retracting. */
+        public static final double SPEED_EXTENDING = 0.5;
+        public static final double SPEED_RETRACTING = -0.5;
+        
+        /** Slower speeds for ascending/descending (0.2 = 20% motor power) */
+        public static final double SPEED_ASCENDING = -0.2;
+        public static final double SPEED_DESCENDING = 0.2;
+
+        /** PID gains for setpoint control. */
+        public static final double PID_kP = 2.0;
+        public static final double PID_kI = 0.0;
+        public static final double PID_kD = 0.0;
     }
 
     // ---------------- MINNOW ARM ----------------

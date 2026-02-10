@@ -158,10 +158,10 @@ public class RobotContainer {
 
         // ----------------- CLIMB -------------
 
-        // D-PAD UP --> CLIMB UP
-        controller.getDPad().getUp().onTrue(climb.climbToUpCommand());
-        // D-PAD DOWN --> CLIMB DOWN    
-        controller.getDPad().getDown().onTrue(climb.climbToDownCommand());
+        // D-PAD UP --> EXTEND to UP setpoint (fast)
+        controller.getDPad().getUp().onTrue(climb.extend());
+        // D-PAD DOWN --> RETRACT to DOWN setpoint (fast)
+        controller.getDPad().getDown().onTrue(climb.retract());
     }
 
 
@@ -177,12 +177,16 @@ public class RobotContainer {
     public void autonomousInit() {
         intake.zeroEncoders();
         intake.setState(Intake.State.STOWED);
+        climb.zeroEncoder();
+        climb.setState(Climb.State.INACTIVE);
     }
 
     /** Called once when the robot enters teleop. */
     public void teleopInit() {
         intake.zeroEncoders();
         intake.setState(Intake.State.STOWED);
+        climb.zeroEncoder();
+        climb.setState(Climb.State.INACTIVE);
     }
 
     /**
