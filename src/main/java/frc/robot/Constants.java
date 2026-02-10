@@ -470,7 +470,8 @@ public final class Constants {
         private static final int kFrontLeftDriveMotorId = 8;
         private static final int kFrontLeftSteerMotorId = 9;
         private static final int kFrontLeftEncoderId = 10;
-        private static final Angle kFrontLeftEncoderOffset = Rotations.of(0.21435546875);
+        private static final Angle kFrontLeftEncoderOffset = Rotations.of(0.21435546875); // ALPHA
+        //private static final Angle kFrontLeftEncoderOffset = Rotations.of(0.21435546875); // BRAVO
         private static final boolean kFrontLeftSteerInvert = true; //true
         private static final boolean kFrontLeftEncoderInvert = false; //false
         private static final Translation2d kFrontLeftModulePosition = new Translation2d(
@@ -482,7 +483,8 @@ public final class Constants {
         private static final int kFrontRightDriveMotorId = 11;
         private static final int kFrontRightSteerMotorId = 12;
         private static final int kFrontRightEncoderId = 13;
-        private static final Angle kFrontRightEncoderOffset = Rotations.of(-0.313720703125); 
+        private static final Angle kFrontRightEncoderOffset = Rotations.of(-0.313720703125); // ALPHA
+        //private static final Angle kFrontRightEncoderOffset = Rotations.of(-0.313720703125); // BRAVO
         private static final boolean kFrontRightSteerInvert = true; // true
         private static final boolean kFrontRightEncoderInvert = false; // false
         private static final Translation2d kFrontRightModulePosition = new Translation2d(
@@ -494,7 +496,8 @@ public final class Constants {
         private static final int kBackLeftDriveMotorId = 14;
         private static final int kBackLeftSteerMotorId = 15;
         private static final int kBackLeftEncoderId = 16;
-        private static final Angle kBackLeftEncoderOffset = Rotation.of(0.1337890625);
+        private static final Angle kBackLeftEncoderOffset = Rotation.of(0.1337890625); // ALPHA
+        //private static final Angle kBackLeftEncoderOffset = Rotation.of(0.1337890625); // BRAVO
         private static final boolean kBackLeftSteerInvert = true; //true
         private static final boolean kBackLeftEncoderInvert = false; // false
         private static final Translation2d kBackLeftModulePosition = new Translation2d(
@@ -506,8 +509,9 @@ public final class Constants {
         private static final int kBackRightDriveMotorId = 17;
         private static final int kBackRightSteerMotorId = 18;
         private static final int kBackRightEncoderId = 19;
-        private static final Angle kBackRightEncoderOffset = Rotations.of(-0.487060546875); 
-        private static final boolean kBackRightSteerInvert = true; // true
+        private static final Angle kBackRightEncoderOffset = Rotations.of(-0.487060546875); // ALPHA
+        //private static final Angle kBackRightEncoderOffset = Rotations.of(-0.487060546875); // BRAVO
+        private static final boolean kBackRightSteerInvert = true; // trues
         private static final boolean kBackRightEncoderInvert = false; // false
         private static final Translation2d kBackRightModulePosition = new Translation2d(
             Units.Inches.of(-kBaseModulePosition),
