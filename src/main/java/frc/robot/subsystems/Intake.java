@@ -12,6 +12,7 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+
 import frc.robot.Constants;
 import frc.robot.BreakerLib.util.logging.BreakerLog;
 
@@ -63,7 +64,7 @@ public class Intake extends SubsystemBase {
     }
 
     /** Zero the pivot encoder (call when pivot is at known position, e.g. stowed). */
-    public void zeroPivotEncoder() {
+    public void zeroEncoders() {
         pivotEncoder.setPosition(0.0);
     }
 

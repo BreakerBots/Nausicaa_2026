@@ -173,6 +173,18 @@ public class RobotContainer {
         return drivetrain;
     }
 
+    /** Called once when the robot enters autonomous. */
+    public void autonomousInit() {
+        intake.zeroEncoders();
+        intake.setState(Intake.State.STOWED);
+    }
+
+    /** Called once when the robot enters teleop. */
+    public void teleopInit() {
+        intake.zeroEncoders();
+        intake.setState(Intake.State.STOWED);
+    }
+
     /**
      * Pathfind from current pose to the given target pose,
      * avoiding fixed obstacles using PathPlanner navgrid (deploy/pathplanner/navgrid.json).
