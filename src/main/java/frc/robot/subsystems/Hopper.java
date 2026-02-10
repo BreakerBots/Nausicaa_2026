@@ -12,9 +12,9 @@ import frc.robot.BreakerLib.util.logging.BreakerLog;
 public class Hopper extends SubsystemBase {
     
     private final TalonFX indexerMotor = new TalonFX(Constants.HopperConstants.HOPPER_MOTOR_ID,
-            Constants.GeneralConstants.DRIVE_CANIVORE_BUS);
+            Constants.GeneralConstants.SUPERSTRUCTURE_CANIVORE_BUS);
     private final TalonFX feederMotor = new TalonFX(Constants.HopperConstants.FEEDER_MOTOR_ID,
-            Constants.GeneralConstants.DRIVE_CANIVORE_BUS);
+            Constants.GeneralConstants.SUPERSTRUCTURE_CANIVORE_BUS);
 
     public State state = State.INACTIVE;
 

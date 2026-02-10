@@ -71,18 +71,21 @@ public class Climb extends SubsystemBase {
 
     /** Command: run motor toward UP until encoder reaches ROTATIONS_UP, then stop. */
     public Command climbToUpCommand() {
-        return Commands.run(this::runClimbUp, this)
-                .until(this::atUpPosition)
-                .andThen(Commands.runOnce(this::stop, this))
-                .andThen(Commands.runOnce(() -> setState(State.ASCENDING), this));
+        // return Commands.run(this::runClimbUp, this)
+        //         .until(this::atUpPosition)
+        //         .andThen(Commands.runOnce(this::stop, this))
+        //         .andThen(Commands.runOnce(() -> setState(State.INACTIVE), this));
+        return Commands.run(this::runClimbUp, this).finallyDo(this::stop);
     }
 
     /** Command: run motor toward DOWN until encoder reaches ROTATIONS_DOWN, then stop. */
     public Command climbToDownCommand() {
-        return Commands.run(this::runClimbDown, this)
-                .until(this::atDownPosition)
-                .andThen(Commands.runOnce(this::stop, this))
-                .andThen(Commands.runOnce(() -> setState(State.DESCENDING), this));
+        // return Commands.run(this::runClimbDown, this)
+        //         .until(this::atDownPosition)
+        //         .andThen(Commands.runOnce(this::stop, this))
+        //         .andThen(Commands.runOnce(() -> setState(State.INACTIVE), this));
+        return Commands.run(this::runClimbDown, this).finallyDo(this::stop);
+
     }
 
     public void setState(State newState) {
@@ -128,4 +131,13 @@ public class Climb extends SubsystemBase {
         String line = String.format("state=%s pos=%.2frot %.1fvel %.1fA", state, pos, vel, cur);
         BreakerLog.log("Climb/Status", line);
     }
+
+    public void setSpeed(double speed) {
+      climbMotor.setControl(new DutyCycleOut(speed));
+    }
+
+    public Command setSpeedCommand(double speed) {
+      return Commands.runOnce(() -> setSpeed(speed));
+    }
+
 }

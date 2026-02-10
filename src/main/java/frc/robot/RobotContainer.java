@@ -30,6 +30,7 @@ import frc.robot.subsystems.Drivetrain;
 import frc.robot.subsystems.Intake;
 import frc.robot.subsystems.Shooter;
 import frc.robot.subsystems.Vision;
+import frc.robot.subsystems.Climb;
 
 
 /**
@@ -45,6 +46,7 @@ public class RobotContainer {
     private final Drivetrain drivetrain = new Drivetrain();
     private final Vision vision = new Vision(drivetrain);
     private final Intake intake = new Intake();
+    private final Climb climb = new Climb();
     private final Shooter shooter = new Shooter();
     
     private BreakerInputStream driverX, driverY, driverOmega;
@@ -57,7 +59,7 @@ public class RobotContainer {
     public RobotContainer() {
         // Disable verbose logging to reduce noise
         // Flip this back on when debugging/troubleshooting
-        BreakerLog.setVerboseLogging(true);
+        BreakerLog.setVerboseLogging(false);
 
         // Set up our auto-chooser    
         if (AutoBuilder.isConfigured()) {
@@ -121,12 +123,16 @@ public class RobotContainer {
         
         // B: EXTENDED_INTAKING ↔ EXTENDED_IDLE (toggle: if not intaking → intaking; if intaking → idle)
         controller.getButtonB().onTrue(Commands.runOnce(() -> {
-            if (intake.state == Intake.State.EXTENDED_INTAKING) {
-                intake.setState(Intake.State.EXTENDED_IDLE);
+            SmartDashboard.putString("Intake/ButtonStatus", "Setting state...");
+            if (intake.state == Intake.State.EXTENDED_IDLE) {
+                SmartDashboard.putString("Intake/ButtonStatus", "Setting state to stowed");
+                intake.setState(Intake.State.STOWED);
             } else {
-                intake.setState(Intake.State.EXTENDED_INTAKING);
+                SmartDashboard.putString("Intake/ButtonStatus", "Setting state to extended-idle");
+                intake.setState(Intake.State.EXTENDED_IDLE);
             }
         }, intake));
+
 
 
         // ----------------- HOPPER/FEEDER -------------
@@ -153,8 +159,9 @@ public class RobotContainer {
         // ----------------- CLIMB -------------
 
         // D-PAD UP --> CLIMB UP
+        controller.getDPad().getUp().onTrue(climb.climbToUpCommand());
         // D-PAD DOWN --> CLIMB DOWN    
-
+        controller.getDPad().getDown().onTrue(climb.climbToDownCommand());
     }
 
 

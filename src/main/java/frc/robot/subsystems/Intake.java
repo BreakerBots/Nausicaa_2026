@@ -18,11 +18,11 @@ import frc.robot.BreakerLib.util.logging.BreakerLog;
 public class Intake extends SubsystemBase {
 
     private final TalonFX pivotMotor = new TalonFX(Constants.IntakeConstants.PIVOT_MOTOR_ID,
-            Constants.GeneralConstants.DRIVE_CANIVORE_BUS);
+            Constants.GeneralConstants.SUPERSTRUCTURE_CANIVORE_BUS);
     private final TalonFX rollerMotor = new TalonFX(Constants.IntakeConstants.ROLLER_MOTOR_ID,
-            Constants.GeneralConstants.DRIVE_CANIVORE_BUS);
+            Constants.GeneralConstants.SUPERSTRUCTURE_CANIVORE_BUS);
     private final CANcoder pivotEncoder = new CANcoder(Constants.IntakeConstants.PIVOT_ENCODER_ID,
-            Constants.GeneralConstants.DRIVE_CANIVORE_BUS);
+            Constants.GeneralConstants.SUPERSTRUCTURE_CANIVORE_BUS);
 
     private double targetPivotRotations;
 
@@ -130,6 +130,7 @@ public class Intake extends SubsystemBase {
 
     private void setIntakePosition(double positionRotations) {
         targetPivotRotations = positionRotations;
+        BreakerLog.log("Intake/Status", "Setting intake position to " + targetPivotRotations + " rotations");
         pivotMotor.setControl(new MotionMagicDutyCycle(targetPivotRotations));
     }
 

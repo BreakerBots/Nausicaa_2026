@@ -154,9 +154,9 @@ public final class Constants {
 
         /** Pivot angles (rotations) – placeholders until tuned. */
         public static final Rotation2d POSITION_STOWED = Rotation2d.fromRotations(0.0);
-        public static final Rotation2d POSITION_EXTENDED = Rotation2d.fromRotations(0.25);
-        public static final Rotation2d POSITION_JIGGLE_HIGH = Rotation2d.fromRotations(0.22);
-        public static final Rotation2d POSITION_JIGGLE_LOW = Rotation2d.fromRotations(0.20);
+        public static final Rotation2d POSITION_EXTENDED = Rotation2d.fromRotations(0.05);
+        public static final Rotation2d POSITION_JIGGLE_HIGH = Rotation2d.fromRotations(0.0);
+        public static final Rotation2d POSITION_JIGGLE_LOW = Rotation2d.fromRotations(0.0);
 
         /** Motion Magic (rotations/s, rotations/s², rotations/s³). */
         public static final double PIVOT_MM_CRUISE_VELOCITY = 1.0;
@@ -175,8 +175,8 @@ public final class Constants {
         public static final double PIVOT_kD = 0.02;
 
         public static final double SPEED_IDLE = 0;
-        public static final double SPEED_EXTAKE = 1;
-        public static final double SPEED_INTAKE = -1;
+        public static final double SPEED_EXTAKE = 0.3;
+        public static final double SPEED_INTAKE = -0.3;
     }
 
     // --------------- SHOOTER --------------
@@ -218,8 +218,8 @@ public final class Constants {
         public static final double ROTATIONS_DOWN = 0.0;
 
         public static final double SPEED_INACTIVE = 0;
-        public static final double SPEED_ASCENDING = 0.5;
-        public static final double SPEED_DESCENDING = -0.5;
+        public static final double SPEED_ASCENDING = 0.2;
+        public static final double SPEED_DESCENDING = -0.2;
     }
 
     // ---------------- MINNOW ARM ----------------

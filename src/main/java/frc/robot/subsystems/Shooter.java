@@ -17,16 +17,16 @@ import frc.robot.BreakerLib.util.logging.BreakerLog;
 public class Shooter extends SubsystemBase {
 
     private final TalonFX shooterFlywheel1Motor = new TalonFX(Constants.ShooterConstants.SHOOTER_FLYWHEEL_1_MOTOR_ID,
-            Constants.GeneralConstants.DRIVE_CANIVORE_BUS);
+            Constants.GeneralConstants.SUPERSTRUCTURE_CANIVORE_BUS);
     private final TalonFX shooterFlywheel2Motor = new TalonFX(Constants.ShooterConstants.SHOOTER_FLYWHEEL_2_MOTOR_ID,
-            Constants.GeneralConstants.DRIVE_CANIVORE_BUS);
+            Constants.GeneralConstants.SUPERSTRUCTURE_CANIVORE_BUS);
     private final TalonFX shooterFlywheel3Motor = new TalonFX(Constants.ShooterConstants.SHOOTER_FLYWHEEL_3_MOTOR_ID,
-            Constants.GeneralConstants.DRIVE_CANIVORE_BUS);
+            Constants.GeneralConstants.SUPERSTRUCTURE_CANIVORE_BUS);
 
     private final TalonFX hoodMotor = new TalonFX(Constants.ShooterConstants.HOOD_MOTOR_ID,
-            Constants.GeneralConstants.DRIVE_CANIVORE_BUS);
+            Constants.GeneralConstants.SUPERSTRUCTURE_CANIVORE_BUS);
     private final CANcoder hoodEncoder = new CANcoder(Constants.ShooterConstants.HOOD_ENCODER_ID,
-            Constants.GeneralConstants.DRIVE_CANIVORE_BUS);
+            Constants.GeneralConstants.SUPERSTRUCTURE_CANIVORE_BUS);
 
     public Shooter() {
         // Flywheels 2 and 3 follow flywheel 1 (same direction)
