@@ -110,9 +110,7 @@ public class RobotContainer {
         drivetrain.setDefaultCommand(drivetrain.getTeleopControlCommand(driverX, driverY, driverOmega, Constants.DriveConstants.TELEOP_CONTROL_CONFIG));
 
         // RIGHT TRIGGER (held) --> TRACK TAG; driver keeps X/Y control, rotation follows tag
-        controller.getRightTrigger().whileTrue(Commands.runOnce(() -> {
-            CommandScheduler.getInstance().schedule(trackTagCommand(Constants.FieldConstants.getHubTagID()));
-        }));
+        controller.getRightTrigger().whileTrue(trackTagCommand(Constants.FieldConstants.getHubTagID()));
 
         // A button (pressed) --> Range to tag
         controller.getButtonA().onTrue(Commands.runOnce(() -> {
