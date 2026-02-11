@@ -143,8 +143,13 @@ public class RobotContainer {
         // ----------------- SHOOTER -------------
 
         // X: Rotate to face hub tag, then range to target distance (alliance-aware)
+        //controller.getButtonX().onTrue(Commands.runOnce(() -> {
+        //    CommandScheduler.getInstance().schedule(rotateAndRangeToTagCommand(Constants.FieldConstants.getHubTagID(), 1.0));
+        //}));
+
+        // X button (pressed) --> Range to tag
         controller.getButtonX().onTrue(Commands.runOnce(() -> {
-            CommandScheduler.getInstance().schedule(rotateAndRangeToTagCommand(Constants.FieldConstants.getHubTagID(), 1.0));
+            CommandScheduler.getInstance().schedule(rotateToTagCommand(Constants.FieldConstants.getHubTagID()));
         }));
 
         // Y: Toggle shooter state (INACTIVE ↔ SHOOTING)
@@ -213,7 +218,7 @@ public class RobotContainer {
     private Command rotateAndRangeToTagCommand(int tagID, double targetDistanceMeters) {
         return Commands.sequence(
             rotateToTagCommand(tagID),
-            rangeToTagCommand(tagID, targetDistanceMeters));
+            rangeToTag2Command(tagID, targetDistanceMeters));
     }
 
     /**
@@ -249,7 +254,7 @@ public class RobotContainer {
                 SmartDashboard.putString("Aim/RotateToTagStatus", "Lost - No tag in view");
                 return true; // Stop and give control back
             }
-            if (vision.getNearestDetectedTagId() != targetTagId) {
+            if (!vision.isTagDetected(targetTagId)) {
                 System.err.println("rotateToTag: lost target tag " + targetTagId + " (target no longer in view)");
                 SmartDashboard.putString("Aim/RotateToTagStatus", "Lost - Target tag: " + targetTagId + " not in view");
                 return true; // Stop and give control back
@@ -337,7 +342,7 @@ public class RobotContainer {
      */
     private Command rangeToTag2Command(int targetTagId, double targetDistanceMeters) {
         final double toleranceMeters = Constants.DriveConstants.RANGE_TO_TAG_TOLERANCE; // How close to the target is "close enough"?
-        final double kP = Constants.AutoConstants.PATHPLANNER_TRANSLATION_PID.kP; // Proportional Gain: how fast to move toward/away from the tag?
+        final double kP = 4.0; // Proportional Gain: how fast to move toward/away from the tag?
         final double maxVelocity = Constants.DriveConstants.MAXIMUM_TRANSLATIONAL_VELOCITY.in(Units.MetersPerSecond);
         final var request = new SwerveRequest.FieldCentric().withDriveRequestType(DriveRequestType.Velocity);
 
@@ -350,9 +355,13 @@ public class RobotContainer {
                 double velocityX = 0.0; 
                 double velocityY = 0.0; 
                 if (currentDistanceToTagMeters > 0) {
-                    velocityX = (toTag.getX() / currentDistanceToTagMeters) * velocityStraightToTag;
-                    velocityY = (toTag.getY() / currentDistanceToTagMeters) * velocityStraightToTag;
+                    velocityX = (-toTag.getX() / currentDistanceToTagMeters) * velocityStraightToTag;
+                    velocityY = (-toTag.getY() / currentDistanceToTagMeters) * velocityStraightToTag;
                 }
+                SmartDashboard.putString("Aim/RangeToTagVelocityX", "X Velocity:" + velocityX);
+                SmartDashboard.putString("Aim/RangeToTagVelocityY", "Y Velocity:" + velocityY);
+                SmartDashboard.putString("Aim/RangeRemainingDistance", "Remaining Distance:" + remainingDistanceToTargetMeters);
+                SmartDashboard.putString("Aim/VelocityStraightToTag", "Straight Velocity:" + velocityStraightToTag);
                 drivetrain.setControl(request.withVelocityX(velocityX).withVelocityY(velocityY).withRotationalRate(0.0));
             }
         }, drivetrain)
@@ -370,9 +379,13 @@ public class RobotContainer {
             return areWeThereYet;
         })
         .withTimeout(5.0)
-        .finallyDo(() -> drivetrain.setControl(request
-            .withVelocityX(0.0).withVelocityY(0.0).withRotationalRate(0.0)));
-    }
+        .finallyDo(() -> {
+                drivetrain.setControl(request
+                    .withVelocityX(0.0).withVelocityY(0.0).withRotationalRate(0.0));
+                SmartDashboard.putString("Aim/RangeToTagStatus", null);
+
+            });
+        }
 
     /**
      * While run: driver keeps X/Y (forward and strafe); rotation is overridden to face the target AprilTag.

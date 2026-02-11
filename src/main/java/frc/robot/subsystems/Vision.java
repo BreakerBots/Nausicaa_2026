@@ -273,6 +273,25 @@ public class Vision extends SubsystemBase {
         return false;
     }
 
+    public boolean isTagDetected(int targetTagId) {
+        // Check both cameras for valid pose estimates with tags
+        if (frontCameraEstimate.rawFiducials != null) {
+            for (var i:frontCameraEstimate.rawFiducials) {
+                if (i.id == targetTagId) {
+                    return true;
+                }
+            }
+        }
+        if (backCameraEstimate.rawFiducials != null) {
+            for (var i:backCameraEstimate.rawFiducials) {
+                if (i.id == targetTagId) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
     /**
      * Gets the ID of the primary tag detected by any camera.
      * Checks both cameras and returns the first tag found.

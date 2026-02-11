@@ -130,8 +130,10 @@ public final class Constants {
 
         public static final Pose2d POSE_RED_TRENCH_IN_RED_AZ = new Pose2d(3.0, 1.0, Rotation2d.fromDegrees(0));
 
-        public static final int HUB_TAG_ID_RED = 10;
-        public static final int HUB_TAG_ID_BLUE = 26;
+        //public static final int HUB_TAG_ID_RED = 10;
+        //public static final int HUB_TAG_ID_BLUE = 26;
+        public static final int HUB_TAG_ID_RED = 12;
+        public static final int HUB_TAG_ID_BLUE = 12;
 
         /** Returns the hub AprilTag ID for the current alliance (red or blue). Defaults to blue when alliance is not assigned. */
         public static int getHubTagID() {
@@ -312,8 +314,8 @@ public final class Constants {
         /** ROBOT-LEVEL MAXIMUM SPEEDS - How fast can the robot drive and rotate (currently reduced for testing)
          * Translational = forward/backward and left/right movement (X and Y on the field)
          * Rotational = spinning in place (turning) */
-        public static final LinearVelocity MAXIMUM_TRANSLATIONAL_VELOCITY = Units.MetersPerSecond.of(2.25);
-        public static final AngularVelocity MAXIMUM_ROTATIONAL_VELOCITY = Units.RadiansPerSecond.of(4.75);
+        public static final LinearVelocity MAXIMUM_TRANSLATIONAL_VELOCITY = Units.MetersPerSecond.of(1);
+        public static final AngularVelocity MAXIMUM_ROTATIONAL_VELOCITY = Units.RadiansPerSecond.of(2);
         //public static final LinearVelocity MAXIMUM_TRANSLATIONAL_VELOCITY = Units.MetersPerSecond.of(4.5);
         //public static final AngularVelocity MAXIMUM_ROTATIONAL_VELOCITY = Units.RadiansPerSecond.of(9.5);
 
