@@ -116,7 +116,7 @@ public class RobotContainer {
 
         // A button (pressed) --> Range to tag
         controller.getButtonA().onTrue(Commands.runOnce(() -> {
-            CommandScheduler.getInstance().schedule(rangeToTag2Command(Constants.FieldConstants.getHubTagID(), 1.0));
+            CommandScheduler.getInstance().schedule(rangeToTagCommand(Constants.FieldConstants.getHubTagID(), 1.0));
         }));
 
         // ----------------- INTAKE -------------
@@ -218,7 +218,7 @@ public class RobotContainer {
     private Command rotateAndRangeToTagCommand(int tagID, double targetDistanceMeters) {
         return Commands.sequence(
             rotateToTagCommand(tagID),
-            rangeToTag2Command(tagID, targetDistanceMeters));
+            rangeToTagCommand(tagID, targetDistanceMeters));
     }
 
     /**
@@ -275,72 +275,13 @@ public class RobotContainer {
         });
     }
 
-    /**
-     * Ranges the robot to a distance from the given AprilTag using PID control.
-     */
-    private Command rangeToTagCommand(int targetTagId, double targetDistanceMeters) {
-
-        // System.out.println("rotateToTag: Target AprilTag: " + targetTagId);
-        // SmartDashboard.putString("Aim/RotateToTagStatus", "Target Tag: " + targetTagId);
-
-        final double toleranceMeters = 0.01; // distance
-        final var request = new SwerveRequest.FieldCentric().withDriveRequestType(DriveRequestType.Velocity);
-
-        PIDController translationalPID = new PIDController(9, 0.0, 0.1);
-        translationalPID.setTolerance(toleranceMeters);
-        // rotationalPID.enableContinuousInput(-Math.PI, Math.PI); // Handle wrap-around
-
-        return Commands.run(() -> {
-            double distanceError = vision.getDistanceToTag(targetTagId) - targetDistanceMeters;
-            double distanceErrorX = drivetrain.getLocalizer().getPose().getRotation().getCos() * distanceError;
-            double distanceErrorY = drivetrain.getLocalizer().getPose().getRotation().getSin() * distanceError;
-            SmartDashboard.putString("Aim/DistanceErrorX", "Distance error (X):" + distanceErrorX);
-            SmartDashboard.putString("Aim/DistanceErrorY", "Distance error (Y):" + distanceErrorY);
-            SmartDashboard.putString("Aim/DistanceError", "Distance error (total):" + distanceError);
-
-            double translationalRateX = translationalPID.calculate(0.0, distanceErrorX);
-            double translationalRateY = translationalPID.calculate(0.0, distanceErrorY);
-            double maxVelocity = Constants.DriveConstants.MAXIMUM_TRANSLATIONAL_VELOCITY.in(Units.MetersPerSecond);
-            translationalRateX = Math.max(-maxVelocity, Math.min(maxVelocity, translationalRateX));
-            translationalRateY = Math.max(-maxVelocity, Math.min(maxVelocity, translationalRateY));
-            drivetrain.setControl(request
-                .withVelocityX(translationalRateX)
-                .withVelocityY(translationalRateY)
-                .withRotationalRate(0.0));
-        }, drivetrain)
-        .until(() -> {
-            if (!vision.isTagDetected()) {
-                System.err.println("rangeToTag: lost target tag " + targetTagId + " (no tag in view)");
-                SmartDashboard.putString("Aim/DistanceToTagStatus", "Lost - No tag in view");
-                return true; // Stop and give control back
-            }
-            if (vision.getNearestDetectedTagId() != targetTagId) {
-                System.err.println("rangeToTag: lost target tag " + targetTagId + " (target no longer in view)");
-                SmartDashboard.putString("Aim/DistanceToTagStatus", "Lost - Target tag: " + targetTagId + " not in view");
-                return true; // Stop and give control back
-            }
-            double distanceError = vision.getDistanceToTag(targetTagId) - targetDistanceMeters;
-            SmartDashboard.putString("Aim/RangeToTagStatus", "Remaining distance to tag: " + targetTagId + ": " + distanceError);
-            return Math.abs(distanceError) <= toleranceMeters; // Ranged, done   
-        })
-
-        .withTimeout(3.0) // Always end so default drive command can run again
-        .finallyDo(() -> {
-            translationalPID.reset();
-            translationalPID.close();
-            drivetrain.setControl(request
-                .withVelocityX(0.0)
-                .withVelocityY(0.0)
-                .withRotationalRate(0.0));
-        });
-    }
 
     /**
      * Drives the robot to a target distance (m) from the AprilTag. Uses field-centric X/Y so the
      * robot moves straight toward or away from the tag regardless of heading. 
      * Stops when in tolerance, tag is lost, or timeout.
      */
-    private Command rangeToTag2Command(int targetTagId, double targetDistanceMeters) {
+    private Command rangeToTagCommand(int targetTagId, double targetDistanceMeters) {
         final double toleranceMeters = Constants.DriveConstants.RANGE_TO_TAG_TOLERANCE; // How close to the target is "close enough"?
         final double kP = 4.0; // Proportional Gain: how fast to move toward/away from the tag?
         final double maxVelocity = Constants.DriveConstants.MAXIMUM_TRANSLATIONAL_VELOCITY.in(Units.MetersPerSecond);
