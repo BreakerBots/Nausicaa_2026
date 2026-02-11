@@ -366,10 +366,14 @@ public class RobotContainer {
             }
         }, drivetrain)
         .until(() -> {
-            if (!vision.isTagDetected() || vision.getNearestDetectedTagId() != targetTagId) {
-                return true; // If we lost our tag, bail out
-            }
             double currentDistanceToTagMeters = vision.getDistanceToTag(targetTagId);
+            // Only require tag to be in view when we're close; beyond ~2m cameras often can't see the tag
+            final double requireTagInViewWithinMeters = 2.5;
+            if (currentDistanceToTagMeters >= 0 && currentDistanceToTagMeters <= requireTagInViewWithinMeters) {
+                if (!vision.isTagDetected() || vision.getNearestDetectedTagId() != targetTagId) {
+                    return true; // Close and we lost the tag — bail out
+                }
+            }
             boolean areWeThereYet = currentDistanceToTagMeters >= 0 && Math.abs(currentDistanceToTagMeters - targetDistanceMeters) <= toleranceMeters;
             if (areWeThereYet == true) {
                 SmartDashboard.putString("Aim/RangeToTagStatus", "Done! At the target distance of " + targetDistanceMeters + "m");
