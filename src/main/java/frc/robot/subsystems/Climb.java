@@ -95,6 +95,24 @@ public class Climb extends SubsystemBase {
         return error <= Constants.ClimbConstants.SETPOINT_TOLERANCE;
     }
 
+    /**
+     * True when climber is fully retracted (at DOWN) or actively retracting.
+     * Use to decide: trigger should run extend.
+     */
+    public boolean isRetractedOrRetracting() {
+        return state == State.RETRACTING
+            || (state == State.INACTIVE && atSetpoint(Constants.ClimbConstants.SETPOINT_DOWN));
+    }
+
+    /**
+     * True when climber is fully extended (at UP) or actively extending.
+     * Use to decide: trigger should run retract.
+     */
+    public boolean isExtendedOrExtending() {
+        return state == State.EXTENDING
+            || (state == State.INACTIVE && atSetpoint(Constants.ClimbConstants.SETPOINT_UP));
+    }
+
     /** Get position error (current - target). Positive = above target, negative = below target. */
     public double getPositionError(double setpoint) {
         return getEncoderRotations() - setpoint;
@@ -187,6 +205,22 @@ public class Climb extends SubsystemBase {
                 .andThen(Commands.run(() -> moveToSetpoint(Constants.ClimbConstants.SETPOINT_DOWN), this)
                         .until(() -> atSetpoint(Constants.ClimbConstants.SETPOINT_DOWN)))
                 .andThen(Commands.runOnce(() -> setState(State.INACTIVE), this));
+    }
+
+    /** Command: hold to extend toward UP; release to stop. For manual adjustment. */
+    public Command extendWhileHeld() {
+        return Commands.run(() -> {
+            setState(State.EXTENDING);
+            moveToSetpoint(Constants.ClimbConstants.SETPOINT_UP);
+        }, this).finallyDo(() -> setState(State.INACTIVE));
+    }
+
+    /** Command: hold to retract toward DOWN; release to stop. For manual adjustment. */
+    public Command retractWhileHeld() {
+        return Commands.run(() -> {
+            setState(State.RETRACTING);
+            moveToSetpoint(Constants.ClimbConstants.SETPOINT_DOWN);
+        }, this).finallyDo(() -> setState(State.INACTIVE));
     }
 
     @Override

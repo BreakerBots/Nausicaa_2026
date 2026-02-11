@@ -161,10 +161,20 @@ public class RobotContainer {
 
         // ----------------- CLIMB -------------
 
-        // D-PAD UP --> EXTEND to UP setpoint (fast)
-        controller.getDPad().getUp().onTrue(climb.extend());
-        // D-PAD DOWN --> RETRACT to DOWN setpoint (fast)
-        controller.getDPad().getDown().onTrue(climb.retract());
+        // LEFT TRIGGER --> Extend (if retracted/retracting) or Retract (if extended/extending).
+        // Pressing again during an in-progress extend cancels it and retracts (and vice versa).
+        controller.getLeftTrigger().onTrue(Commands.runOnce(() -> {
+            if (climb.isRetractedOrRetracting()) {
+                CommandScheduler.getInstance().schedule(climb.extend());
+            } else if (climb.isExtendedOrExtending()) {
+                CommandScheduler.getInstance().schedule(climb.retract());
+            }
+        }));
+
+        // D-PAD UP (held) --> Extend manually; release to stop.
+        controller.getDPad().getUp().whileTrue(climb.extendWhileHeld());
+        // D-PAD DOWN (held) --> Retract manually; release to stop.
+        controller.getDPad().getDown().whileTrue(climb.retractWhileHeld());
     }
 
 
@@ -281,7 +291,7 @@ public class RobotContainer {
      */
     private Command rangeToTagCommand(int targetTagId, double targetDistanceMeters) {
         final double toleranceMeters = Constants.DriveConstants.RANGE_TO_TAG_TOLERANCE; // How close to the target is "close enough"?
-        final double kP = 4.0; // Proportional Gain: how fast to move toward/away from the tag?
+        final double kP = Constants.DriveConstants.RANGE_TO_TAG_KP;
         final double maxVelocity = Constants.DriveConstants.MAXIMUM_TRANSLATIONAL_VELOCITY.in(Units.MetersPerSecond);
         final var request = new SwerveRequest.FieldCentric().withDriveRequestType(DriveRequestType.Velocity);
 
@@ -307,7 +317,7 @@ public class RobotContainer {
         .until(() -> {
             double currentDistanceToTagMeters = vision.getDistanceToTag(targetTagId);
             // Only require tag to be in view when we're close; beyond ~2m cameras often can't see the tag
-            final double requireTagInViewWithinMeters = 2.5;
+            final double requireTagInViewWithinMeters = Constants.DriveConstants.RANGE_TO_TAG_REQUIRE_VISION_WITHIN_METERS;
             if (currentDistanceToTagMeters >= 0 && currentDistanceToTagMeters <= requireTagInViewWithinMeters) {
                 if (!vision.isTagDetected() || vision.getNearestDetectedTagId() != targetTagId) {
                     return true; // Close and we lost the tag — bail out

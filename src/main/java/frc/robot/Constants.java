@@ -337,6 +337,10 @@ public final class Constants {
 
         public static final double RANGE_TO_TAG_TOLERANCE = 0.1; // Close enough to target distance, meters
         public static final double RANGE_TO_TAG_MAX_DISTANCE = 5.0; // Maximum distance to target, meters
+        /** Proportional gain for range-to-tag: position error (m) → velocity (m/s). Matches PathPlanner translation for consistency. */
+        public static final double RANGE_TO_TAG_KP = 2.0;
+        /** Only require the tag to be in camera view when within this distance (m). Beyond this, use fused pose + field layout; don't bail on "tag lost" since cameras often can't see tags at range. */
+        public static final double RANGE_TO_TAG_REQUIRE_VISION_WITHIN_METERS = 2.5;
 
         // Motor control gains: PID and feedforward values for steer and drive motors
         // Steer motor = rotates the swerve module (azimuth/steering)
