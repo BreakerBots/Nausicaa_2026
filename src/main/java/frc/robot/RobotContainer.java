@@ -5,6 +5,9 @@
 package frc.robot;
 
 import com.ctre.phoenix6.swerve.SwerveModule.DriveRequestType;
+
+import javax.sound.sampled.SourceDataLine;
+
 import com.ctre.phoenix6.swerve.SwerveRequest;
 
 import com.pathplanner.lib.auto.AutoBuilder;
@@ -150,6 +153,8 @@ public class RobotContainer {
             CommandScheduler.getInstance().schedule(rotateToTagCommand(Constants.FieldConstants.getHubTagID()));
         }));
 
+        controller.getButtonY().onTrue(rotateAndRangeToTagCommand(Constants.FieldConstants.getHubTagID(), 1.0));
+
         // Y: Toggle shooter state (INACTIVE ↔ SHOOTING)
         
         // //INACTIVE
@@ -224,6 +229,7 @@ public class RobotContainer {
      * Uses {@link #rotateToTagCommand(int)} then {@link #rangeToTagCommand(int, double)}.
      */
     private Command rotateAndRangeToTagCommand(int tagID, double targetDistanceMeters) {
+        System.out.println("Sequencing commands...");
         return Commands.sequence(
             rotateToTagCommand(tagID),
             rangeToTagCommand(tagID, targetDistanceMeters));
@@ -296,6 +302,7 @@ public class RobotContainer {
         final var request = new SwerveRequest.FieldCentric().withDriveRequestType(DriveRequestType.Velocity);
 
         return Commands.run(() -> {
+            System.out.println("Command has started");
             Translation2d toTag = vision.getRobotToTagTranslation(targetTagId);
             if (toTag != null) {
                 double currentDistanceToTagMeters = toTag.getNorm();
@@ -312,14 +319,17 @@ public class RobotContainer {
                 SmartDashboard.putString("Aim/RangeRemainingDistance", "Remaining Distance:" + remainingDistanceToTargetMeters);
                 SmartDashboard.putString("Aim/VelocityStraightToTag", "Straight Velocity:" + velocityStraightToTag);
                 drivetrain.setControl(request.withVelocityX(velocityX).withVelocityY(velocityY).withRotationalRate(0.0));
+            } else {     
+                SmartDashboard.putString("Aim/Error", "toTag variable is null");
             }
         }, drivetrain)
         .until(() -> {
-            double currentDistanceToTagMeters = vision.getDistanceToTag(targetTagId);
+            double currentDistanceToTagMeters = vision.getRobotToTagTranslation(targetTagId).getNorm();
             // Only require tag to be in view when we're close; beyond ~2m cameras often can't see the tag
             final double requireTagInViewWithinMeters = Constants.DriveConstants.RANGE_TO_TAG_REQUIRE_VISION_WITHIN_METERS;
             if (currentDistanceToTagMeters >= 0 && currentDistanceToTagMeters <= requireTagInViewWithinMeters) {
                 if (!vision.isTagDetected() || vision.getNearestDetectedTagId() != targetTagId) {
+                    SmartDashboard.putString("Aim/Error", "Cannot see tag (and within range of " + requireTagInViewWithinMeters + " meters)");
                     return true; // Close and we lost the tag — bail out
                 }
             }
@@ -335,7 +345,6 @@ public class RobotContainer {
         .finallyDo(() -> {
                 drivetrain.setControl(request
                     .withVelocityX(0.0).withVelocityY(0.0).withRotationalRate(0.0));
-                SmartDashboard.putString("Aim/RangeToTagStatus", null);
 
             });
         }
