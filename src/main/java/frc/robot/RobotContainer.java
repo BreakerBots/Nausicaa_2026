@@ -16,6 +16,7 @@ import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.units.Units;
+import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -115,7 +116,7 @@ public class RobotContainer {
 
         // A button (pressed) --> Range to tag
         controller.getButtonA().onTrue(Commands.runOnce(() -> {
-            CommandScheduler.getInstance().schedule(rangeToTagCommand(Constants.FieldConstants.getHubTagID(), 1.0));
+            CommandScheduler.getInstance().schedule(rangeToTagCommand(Constants.FieldConstants.getTrenchTagID(), 1.0));
         }));
 
         // ----------------- INTAKE -------------
@@ -265,12 +266,12 @@ public class RobotContainer {
             if (!vision.isTagDetected()) {
                 System.err.println("rotateToTag: lost target tag " + targetTagId + " (no tag in view)");
                 SmartDashboard.putString("Aim/RotateToTagStatus", "Lost - No tag in view");
-                return true; // Stop and give control back
+                //return true; // Stop and give control back
             }
             if (!vision.isTagDetected(targetTagId)) {
                 System.err.println("rotateToTag: lost target tag " + targetTagId + " (target no longer in view)");
                 SmartDashboard.putString("Aim/RotateToTagStatus", "Lost - Target tag: " + targetTagId + " not in view");
-                return true; // Stop and give control back
+                //return true; // Stop and give control back
             }
             double angleError = vision.getAngleToTag(targetTagId);
             boolean areWeThereYet = Math.abs(angleError) <= toleranceRad;
@@ -316,9 +317,10 @@ public class RobotContainer {
                 double velocityStraightToTag = Math.max(-maxVelocity, Math.min(maxVelocity, kP * remainingDistanceToTargetMeters));
                 double velocityX = 0.0; 
                 double velocityY = 0.0; 
+                int allianceFlip = Constants.FieldConstants.getAlliance().get() == Alliance.Red ? -1 : 1;
                 if (currentDistanceToTagMeters > 0) {
-                    velocityX = (-toTag.getX() / currentDistanceToTagMeters) * velocityStraightToTag;
-                    velocityY = (-toTag.getY() / currentDistanceToTagMeters) * velocityStraightToTag;
+                    velocityX = (allianceFlip * toTag.getX() / currentDistanceToTagMeters) * velocityStraightToTag;
+                    velocityY = (allianceFlip * toTag.getY() / currentDistanceToTagMeters) * velocityStraightToTag;
                 }
                 SmartDashboard.putString("Aim/RangeToTagVelocityX", "X Velocity:" + velocityX);
                 SmartDashboard.putString("Aim/RangeToTagVelocityY", "Y Velocity:" + velocityY);
@@ -338,7 +340,7 @@ public class RobotContainer {
                 if (!vision.isTagDetected() || vision.getNearestDetectedTagId() != targetTagId) {
                     System.out.println("rangeToTag: Error: Cannot see tag (and within range of " + requireTagInViewWithinMeters + " meters)");
                     SmartDashboard.putString("Aim/Error", "Cannot see tag (and within range of " + requireTagInViewWithinMeters + " meters)");
-                    return true; // Close and we lost the tag — bail out
+                    // return true; // Close and we lost the tag — bail out
                 }
             }
             boolean areWeThereYet = currentDistanceToTagMeters >= 0 && Math.abs(currentDistanceToTagMeters - targetDistanceMeters) <= toleranceMeters;

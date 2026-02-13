@@ -423,7 +423,7 @@ public Translation2d getRobotToTagTranslation(int tagId) {
      */
     private double getTrustScore(int tagCount, double avgTagDist) {
         double tagTrust = tagCount * VisionConstants.TAG_COUNT_SCALE_FACTOR;
-        double proximityTrust = VisionConstants.PROXIMITY_SCALE_FACTOR / (1.0 + Math.max(avgTagDist, 0));
+        double proximityTrust = tagCount > 0 ? VisionConstants.PROXIMITY_SCALE_FACTOR / (1.0 + Math.max(avgTagDist, 0)) : 0;
         return tagTrust + proximityTrust;
     }
 

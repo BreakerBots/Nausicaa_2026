@@ -87,7 +87,7 @@ public final class Constants {
         // Vision system selection: true = MegaTag2, false = MegaTag1
         // MegaTag2: Uses IMU fusion for improved accuracy, requires SetRobotOrientation() calls
         // MegaTag1: Original AprilTag localization, no IMU fusion required
-        public static final boolean USE_MEGATAG2 = true;
+        public static final boolean USE_MEGATAG2 = false;
 
         // Limelight 4 camera names (configured in Limelight UI)
         public static final String FRONT_CAMERA = "limelight-fr";
@@ -96,9 +96,10 @@ public final class Constants {
         // Camera pose relative to robot center (meters, degrees)
         // Format: [forward, side, up, roll, pitch, yaw]
         // TODO: Measure and configure actual camera positions
-        public static final double[] FRONT_CAMERA_POSE = {0.244983, 0.3155442, 0.2014728, 0.0, 23.0, 34.0};
-        public static final double[] BACK_CAMERA_POSE = {-0.244983, -0.3155442, 0.2014728, 0.0, 23.0, -146.0};
-        
+        //public static final double[] FRONT_CAMERA_POSE = {0.244983, 0.3155442, 0.2014728, 0.0, 23.0, 34.0};
+        //public static final double[] BACK_CAMERA_POSE = {-0.244983, -0.3155442, 0.2014728, 0.0, 23.0, -146.0};
+        public static final double[] FRONT_CAMERA_POSE = {0.32385, 0.24765, 0.2413, 0.0, 23.0, 34.0};
+        public static final double[] BACK_CAMERA_POSE = {-0.32385, -0.24765, 0.2413, 0.0, 23.0, -146.0};
         
         // Minimum number of tags required to trust a vision measurement
         public static final int MIN_TAG_COUNT = 1;
@@ -111,7 +112,7 @@ public final class Constants {
         // Units: meters for x/y, radians for theta
         // Theta: 9999999 to fully trust IMU for rotation (vision won't correct heading)
         public static final Matrix<N3, N1> VISION_STD_DEVS = 
-            VecBuilder.fill(0.05, 0.05, 9999999);        
+            VecBuilder.fill(0.05, 0.05, 0.05);        
         
         // Dynamic standard deviation scaling factors (tag count + proximity)
         // trustScore = tagCount * TAG_COUNT_SCALE_FACTOR + PROXIMITY_SCALE_FACTOR / (1 + avgTagDist)
@@ -134,14 +135,29 @@ public final class Constants {
         public static final int HUB_TAG_ID_RED = 10;
         public static final int HUB_TAG_ID_BLUE = 26;
 
+        public static final int TRENCH_TAG_ID_RED = 12;
+        public static final int TRENCH_TAG_ID_BLUE = 28;
+
         /** Returns the hub AprilTag ID for the current alliance (red or blue). Defaults to blue when alliance is not assigned. */
         public static int getHubTagID() {
-            Optional<Alliance> alliance = DriverStation.getAlliance();
-            if (alliance.isPresent() && alliance.get() == Alliance.Red) {
+            if (getAlliance().isPresent() && getAlliance().get() == Alliance.Red) {
                 return HUB_TAG_ID_RED;
             } else {
                 return HUB_TAG_ID_BLUE;
             }
+        }
+
+        public static int getTrenchTagID() {
+            if (getAlliance().isPresent() && getAlliance().get() == Alliance.Red) {
+                return TRENCH_TAG_ID_RED;
+            } else {
+                return TRENCH_TAG_ID_BLUE;
+            }
+        }
+
+        public static Optional<Alliance> getAlliance() {
+            Optional<Alliance> alliance = DriverStation.getAlliance();
+            return alliance;
         }
     }
 
@@ -534,7 +550,7 @@ public final class Constants {
         private static final int kBackRightEncoderId = 19;
         private static final Angle kBackRightEncoderOffset = Rotations.of(-0.487060546875); // ALPHA
         //private static final Angle kBackRightEncoderOffset = Rotations.of(-0.487060546875); // BRAVO
-        private static final boolean kBackRightSteerInvert = true; // trues
+        private static final boolean kBackRightSteerInvert = true; // true
         private static final boolean kBackRightEncoderInvert = false; // false
         private static final Translation2d kBackRightModulePosition = new Translation2d(
             Units.Inches.of(-kBaseModulePosition),
