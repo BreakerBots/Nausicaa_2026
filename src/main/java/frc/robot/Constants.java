@@ -113,14 +113,13 @@ public final class Constants {
         public static final Matrix<N3, N1> VISION_STD_DEVS = 
             VecBuilder.fill(0.05, 0.05, 9999999);        
         
-        // Dynamic standard deviation scaling factor for tag count
-        // Higher value = more aggressive trust increase with more tags
-        // Formula: stdDev = baseStdDev / (1 + tagCount * TAG_COUNT_SCALE_FACTOR)
-        // With scaleFactor = 0.5:
-        //   1 tag: stdDev = baseStdDev / 1.5 = 0.67x (slightly less trust)
-        //   2 tags: stdDev = baseStdDev / 2.0 = 0.5x (more trust)
-        //   3+ tags: stdDev = baseStdDev / 2.5+ = even more trust
+        // Dynamic standard deviation scaling factors (tag count + proximity)
+        // trustScore = tagCount * TAG_COUNT_SCALE_FACTOR + PROXIMITY_SCALE_FACTOR / (1 + avgTagDist)
+        // stdDev = baseStdDev / (1 + trustScore)  --> higher trustScore = more trust = lower std dev
+        // More tags and closer tags both increase trust. A camera with 1 close tag can beat 2 far tags.
         public static final double TAG_COUNT_SCALE_FACTOR = 0.5;
+        /** How much proximity boosts trust. avgTagDist is in meters. At 1m: 1/(1+1)=0.5 boost. At 4m: 1/5=0.2 boost. */
+        public static final double PROXIMITY_SCALE_FACTOR = 2.0;
     }
 
 

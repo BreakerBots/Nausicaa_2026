@@ -6,8 +6,6 @@ package frc.robot;
 
 import com.ctre.phoenix6.swerve.SwerveModule.DriveRequestType;
 
-import javax.sound.sampled.SourceDataLine;
-
 import com.ctre.phoenix6.swerve.SwerveRequest;
 
 import com.pathplanner.lib.auto.AutoBuilder;
@@ -252,6 +250,7 @@ public class RobotContainer {
 
         return Commands.run(() -> {
             double angleError = vision.getAngleToTag(targetTagId);
+            System.out.println("rotateToTag: Angle error: " + Math.toDegrees(angleError));
             SmartDashboard.putString("Aim/AngleError", "Angle error:" + angleError);
 
             double rotationalRate = rotationPID.calculate(0.0, angleError);
@@ -274,8 +273,15 @@ public class RobotContainer {
                 return true; // Stop and give control back
             }
             double angleError = vision.getAngleToTag(targetTagId);
-            SmartDashboard.putString("Aim/RotateToTagStatus", "Remaining angle to tag: " + targetTagId + ": " + Math.toDegrees(angleError));
-            return Math.abs(angleError) <= toleranceRad; // Aligned, done   
+            boolean areWeThereYet = Math.abs(angleError) <= toleranceRad;
+            if (areWeThereYet) {
+                System.out.println("rotateToTag: Done! Final angle remaining: " + String.format("%.3f", Math.toDegrees(angleError)) + " deg");
+                SmartDashboard.putString("Aim/RotateToTagStatus", "Done! Final angle remaining: " + String.format("%.3f", Math.toDegrees(angleError)) + " deg");
+                return true;
+            }
+            System.out.println("rotateToTag: Remaining angle to tag " + targetTagId + ": " + String.format("%.3f", Math.toDegrees(angleError)) + " deg");
+            SmartDashboard.putString("Aim/RotateToTagStatus", "Remaining angle to tag " + targetTagId + ": " + String.format("%.3f", Math.toDegrees(angleError)) + " deg");
+            return false;
         })
 
         .withTimeout(3.0) // Always end so default drive command can run again
@@ -302,7 +308,7 @@ public class RobotContainer {
         final var request = new SwerveRequest.FieldCentric().withDriveRequestType(DriveRequestType.Velocity);
 
         return Commands.run(() -> {
-            System.out.println("Command has started");
+            System.out.println("rangeToTag: Tag ID: " + targetTagId + ", target distance: " + targetDistanceMeters + " meters");
             Translation2d toTag = vision.getRobotToTagTranslation(targetTagId);
             if (toTag != null) {
                 double currentDistanceToTagMeters = toTag.getNorm();
@@ -320,7 +326,8 @@ public class RobotContainer {
                 SmartDashboard.putString("Aim/VelocityStraightToTag", "Straight Velocity:" + velocityStraightToTag);
                 drivetrain.setControl(request.withVelocityX(velocityX).withVelocityY(velocityY).withRotationalRate(0.0));
             } else {     
-                SmartDashboard.putString("Aim/Error", "toTag variable is null");
+                System.out.println("rangeToTag: Error: toTag (Translation2d) is null!");
+                SmartDashboard.putString("Aim/Error", "toTag (Translation2d) is null!");
             }
         }, drivetrain)
         .until(() -> {
@@ -329,23 +336,32 @@ public class RobotContainer {
             final double requireTagInViewWithinMeters = Constants.DriveConstants.RANGE_TO_TAG_REQUIRE_VISION_WITHIN_METERS;
             if (currentDistanceToTagMeters >= 0 && currentDistanceToTagMeters <= requireTagInViewWithinMeters) {
                 if (!vision.isTagDetected() || vision.getNearestDetectedTagId() != targetTagId) {
+                    System.out.println("rangeToTag: Error: Cannot see tag (and within range of " + requireTagInViewWithinMeters + " meters)");
                     SmartDashboard.putString("Aim/Error", "Cannot see tag (and within range of " + requireTagInViewWithinMeters + " meters)");
                     return true; // Close and we lost the tag — bail out
                 }
             }
             boolean areWeThereYet = currentDistanceToTagMeters >= 0 && Math.abs(currentDistanceToTagMeters - targetDistanceMeters) <= toleranceMeters;
-            if (areWeThereYet == true) {
-                SmartDashboard.putString("Aim/RangeToTagStatus", "Done! At the target distance of " + targetDistanceMeters + "m");
+            if (areWeThereYet) {
+                double errorMeters = currentDistanceToTagMeters - targetDistanceMeters;
+                System.out.println("rangeToTag: Done! Final distance: " + String.format("%.3f", currentDistanceToTagMeters) + "m, remaining error: " + String.format("%.3f", errorMeters) + "m");
+                SmartDashboard.putString("Aim/RangeToTagStatus", "Done! Final distance: " + String.format("%.3f", currentDistanceToTagMeters) + "m, remaining error: " + String.format("%.3f", errorMeters) + "m");
             } else {
-                SmartDashboard.putString("Aim/RangeToTagStatus", "We're " + currentDistanceToTagMeters + "m from the target");
+                System.out.println("rangeToTag: Remaining distance: " + String.format("%.3f", currentDistanceToTagMeters - targetDistanceMeters) + "m (current " + String.format("%.3f", currentDistanceToTagMeters) + "m, target " + targetDistanceMeters + "m)");
+                SmartDashboard.putString("Aim/RangeToTagStatus", "Remaining distance: " + String.format("%.3f", currentDistanceToTagMeters - targetDistanceMeters) + "m (current " + String.format("%.3f", currentDistanceToTagMeters) + "m, target " + targetDistanceMeters + "m)");
             }
             return areWeThereYet;
         })
         .withTimeout(5.0)
-        .finallyDo(() -> {
+        .finallyDo((interrupted) -> {
+                if (interrupted) {
+                    System.out.println("rangeToTag: Command ended (timeout or cancelled)");
+                    SmartDashboard.putString("Aim/RangeToTagError", "Timed out or cancelled");
+                } else {
+                    System.out.println("rangeToTag: Command ended normally");
+                }
                 drivetrain.setControl(request
                     .withVelocityX(0.0).withVelocityY(0.0).withRotationalRate(0.0));
-
             });
         }
 

@@ -223,15 +223,14 @@ public class Vision extends SubsystemBase {
             return; // Vision measurement seems unreliable
         }
 
-        // Calculate dynamic standard deviations based on tag count
-        // More tags = lower std dev = more trust in vision
-        // Fewer tags = higher std dev = less trust in vision
-        Matrix<N3, N1> dynamicStdDevs = calculateDynamicStdDevs(tagCount);
+        // Calculate dynamic standard deviations based on tag count and proximity
+        // More tags and closer tags = lower std dev = more trust in vision
+        Matrix<N3, N1> dynamicStdDevs = calculateDynamicStdDevs(tagCount, estimate.avgTagDist);
         
         // Add vision measurement to pose estimator
         drivetrain.addVisionMeasurement(visionPose, timestampSeconds, dynamicStdDevs);
-        updateStatus(cameraName, String.format("ACCEPTED: Fused (%.2fm diff, %d tags, %.1fms latency)", 
-            poseDifference, tagCount, estimate.latency));
+        updateStatus(cameraName, String.format("ACCEPTED: Fused (%.2fm diff, %d tags @ %.2fm avg, %.1fms latency)", 
+            poseDifference, tagCount, estimate.avgTagDist, estimate.latency));
     }
 
 
@@ -394,27 +393,40 @@ public Translation2d getRobotToTagTranslation(int tagId) {
 }
 
     /**
-     * Calculates dynamic standard deviations for vision measurements based on tag count.
-     * More tags = lower std dev (more trust), fewer tags = higher std dev (less trust).
+     * Calculates dynamic standard deviations for vision measurements based on tag count and proximity.
+     * More tags and closer tags = lower std dev (more trust). A camera with 1 close tag can be trusted
+     * more than a camera with 2 far-away tags.
+     *
+     * @param tagCount Number of tags in view
+     * @param avgTagDist Average distance to tags in meters (from PoseEstimate.avgTagDist)
      */
-    private Matrix<N3, N1> calculateDynamicStdDevs(int tagCount) {
+    private Matrix<N3, N1> calculateDynamicStdDevs(int tagCount, double avgTagDist) {
         // Base standard deviations from constants
         double baseX = VisionConstants.VISION_STD_DEVS.get(0, 0);
         double baseY = VisionConstants.VISION_STD_DEVS.get(1, 0);
         double baseTheta = VisionConstants.VISION_STD_DEVS.get(2, 0);
-        
-        // Scale factor: more tags = lower std dev (more trust)
-        // Formula: stdDev = baseStdDev / (1 + tagCount * scaleFactor)
-        double trustMultiplier = 1.0 / (1.0 + tagCount * VisionConstants.TAG_COUNT_SCALE_FACTOR);
-        
+
+        double trustScore = getTrustScore(tagCount, avgTagDist);
+        double trustMultiplier = 1.0 / (1.0 + trustScore);
+
         // Apply scaling to X and Y, but keep theta high (trust IMU for rotation)
         double dynamicX = baseX * trustMultiplier;
         double dynamicY = baseY * trustMultiplier;
         double dynamicTheta = baseTheta; // Keep rotation std dev constant (trust IMU)
-        
+
         return VecBuilder.fill(dynamicX, dynamicY, dynamicTheta);
     }
-    
+
+    /**
+     * Returns the combined trust score for a vision measurement.
+     * Higher score = more trust. Combines tag count and proximity.
+     */
+    private double getTrustScore(int tagCount, double avgTagDist) {
+        double tagTrust = tagCount * VisionConstants.TAG_COUNT_SCALE_FACTOR;
+        double proximityTrust = VisionConstants.PROXIMITY_SCALE_FACTOR / (1.0 + Math.max(avgTagDist, 0));
+        return tagTrust + proximityTrust;
+    }
+
     /**
      * Logs vision data to both NetworkTables and System.out once per second.
      */
@@ -445,13 +457,31 @@ public Translation2d getRobotToTagTranslation(int tagId) {
             // Pigeon not available
         }
 
+        double frontTrustScore = frontCameraEstimate != null
+                ? getTrustScore(frontCameraEstimate.tagCount, frontCameraEstimate.avgTagDist)
+                : Double.NaN;
+        double backTrustScore = backCameraEstimate != null
+                ? getTrustScore(backCameraEstimate.tagCount, backCameraEstimate.avgTagDist)
+                : Double.NaN;
+
+        double frontDistToFused = (frontCameraPose != null && fusedPose != null)
+                ? frontCameraPose.getTranslation().getDistance(fusedPose.getTranslation())
+                : Double.NaN;
+        double backDistToFused = (backCameraPose != null && fusedPose != null)
+                ? backCameraPose.getTranslation().getDistance(fusedPose.getTranslation())
+                : Double.NaN;
+
         SmartDashboard.putString("Vision/FrontCamera/Tags", frontTagsStr);
         SmartDashboard.putString("Vision/FrontCamera/Pose", frontPoseStr);
+        SmartDashboard.putNumber("Vision/FrontCamera/TrustScore", frontTrustScore);
+        SmartDashboard.putNumber("Vision/FrontCamera/DistToFusedM", frontDistToFused);
         SmartDashboard.putString("Vision/FrontCamera/Status", frontCameraStatus);
         SmartDashboard.putString("Vision/FrontCamera/LastRejection", frontCameraLastRejection);
 
         SmartDashboard.putString("Vision/BackCamera/Tags", backTagsStr);
         SmartDashboard.putString("Vision/BackCamera/Pose", backPoseStr);
+        SmartDashboard.putNumber("Vision/BackCamera/TrustScore", backTrustScore);
+        SmartDashboard.putNumber("Vision/BackCamera/DistToFusedM", backDistToFused);
         SmartDashboard.putString("Vision/BackCamera/Status", backCameraStatus);
         SmartDashboard.putString("Vision/BackCamera/LastRejection", backCameraLastRejection);
 
@@ -462,14 +492,18 @@ public Translation2d getRobotToTagTranslation(int tagId) {
             imuYawForLog = drivetrain.getPigeon2().getRotation2d().getDegrees();
         } catch (Exception ignored) {
         }
+        String frontTrustStr = Double.isNaN(frontTrustScore) ? "—" : String.format("%.3f", frontTrustScore);
+        String backTrustStr = Double.isNaN(backTrustScore) ? "—" : String.format("%.3f", backTrustScore);
+        String frontDistStr = Double.isNaN(frontDistToFused) ? "—" : String.format("%.3fm", frontDistToFused);
+        String backDistStr = Double.isNaN(backDistToFused) ? "—" : String.format("%.3fm", backDistToFused);
         String logMessage = String.format(
                 "------------------------------------------------------\n" +
-                "- Front Camera: Tags %s, Pose %s\n" +
-                "- Back Camera: Tags %s, Pose %s\n" +
+                "- Front Camera: Tags %s, Pose %s, Trust %s, ΔFused %s\n" +
+                "- Back Camera: Tags %s, Pose %s, Trust %s, ΔFused %s\n" +
                 "- Fused: Pose %s (X=%.2f Y=%.2f Yaw=%.2f)\n" +
                 "- IMU Yaw: %.2f deg",
-                frontTagsStr, frontPoseStr,
-                backTagsStr, backPoseStr,
+                frontTagsStr, frontPoseStr, frontTrustStr, frontDistStr,
+                backTagsStr, backPoseStr, backTrustStr, backDistStr,
                 fusedPoseStr,
                 fusedPose != null ? fusedPose.getX() : Double.NaN,
                 fusedPose != null ? fusedPose.getY() : Double.NaN,
