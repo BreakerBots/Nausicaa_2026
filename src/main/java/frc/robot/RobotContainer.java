@@ -16,6 +16,7 @@ import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.units.Units;
+import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
@@ -152,7 +153,7 @@ public class RobotContainer {
             CommandScheduler.getInstance().schedule(rotateToTagCommand(Constants.FieldConstants.getHubTagID()));
         }));
 
-        controller.getButtonY().onTrue(rotateAndRangeToTagCommand(Constants.FieldConstants.getHubTagID(), 1.0));
+        controller.getButtonY().onTrue(trackAndRangeToTagCommand(Constants.FieldConstants.getHubTagID(), 1.0)); // Was rotateAndRangeToTagCommand
 
         // Y: Toggle shooter state (INACTIVE ↔ SHOOTING)
         
@@ -232,6 +233,56 @@ public class RobotContainer {
         return Commands.sequence(
             rotateToTagCommand(tagID),
             rangeToTagCommand(tagID, targetDistanceMeters));
+    }
+
+    /**
+     * Drives to target distance from the AprilTag while actively maintaining heading toward the tag
+     * (like holding trackTag). Combines range-to-tag translation with rotation-to-face-tag.
+     * Stops when within distance tolerance or timeout.
+     */
+    private Command trackAndRangeToTagCommand(int targetTagId, double targetDistanceMeters) {
+        final double toleranceMeters = Constants.DriveConstants.RANGE_TO_TAG_TOLERANCE;
+        final double kP = Constants.DriveConstants.RANGE_TO_TAG_KP;
+        final double maxVelocity = Constants.DriveConstants.MAXIMUM_TRANSLATIONAL_VELOCITY.in(Units.MetersPerSecond);
+        final double maxRotRate = Constants.DriveConstants.MAXIMUM_ROTATIONAL_VELOCITY.in(Units.RadiansPerSecond);
+        final var request = new SwerveRequest.FieldCentric().withDriveRequestType(DriveRequestType.Velocity);
+
+        PIDController rotationPID = new PIDController(9, 0.0, 0.1);
+        rotationPID.enableContinuousInput(-Math.PI, Math.PI);
+
+        return Commands.run(() -> {
+            Translation2d toTag = vision.getRobotToTagTranslation(targetTagId);
+            if (toTag != null) {
+                double currentDistanceToTagMeters = toTag.getNorm();
+                double remainingDistanceToTargetMeters = currentDistanceToTagMeters - targetDistanceMeters;
+                double velocityStraightToTag = Math.max(-maxVelocity, Math.min(maxVelocity, kP * remainingDistanceToTargetMeters));
+                double velocityX = 0.0;
+                double velocityY = 0.0;
+                int allianceFlip = DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Red ? -1 : 1;
+                if (currentDistanceToTagMeters > 0) {
+                    velocityX = (allianceFlip * toTag.getX() / currentDistanceToTagMeters) * velocityStraightToTag;
+                    velocityY = (allianceFlip * toTag.getY() / currentDistanceToTagMeters) * velocityStraightToTag;
+                }
+                double angleError = vision.getAngleToTag(targetTagId);
+                double omega = rotationPID.calculate(0.0, angleError);
+                omega = Math.max(-maxRotRate, Math.min(maxRotRate, omega));
+                drivetrain.setControl(request.withVelocityX(velocityX).withVelocityY(velocityY).withRotationalRate(omega));
+            } else {
+                drivetrain.setControl(request.withVelocityX(0.0).withVelocityY(0.0).withRotationalRate(0.0));
+            }
+        }, drivetrain)
+        .until(() -> {
+            Translation2d toTag = vision.getRobotToTagTranslation(targetTagId);
+            if (toTag == null) return false;
+            double currentDistanceToTagMeters = toTag.getNorm();
+            return currentDistanceToTagMeters >= 0 && Math.abs(currentDistanceToTagMeters - targetDistanceMeters) <= toleranceMeters;
+        })
+        .withTimeout(5.0)
+        .finallyDo((interrupted) -> {
+            rotationPID.reset();
+            rotationPID.close();
+            drivetrain.setControl(request.withVelocityX(0.0).withVelocityY(0.0).withRotationalRate(0.0));
+        });
     }
 
     /**
