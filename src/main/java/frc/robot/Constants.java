@@ -509,7 +509,7 @@ public final class Constants {
         private static final int kFrontLeftDriveMotorId = 8;
         private static final int kFrontLeftSteerMotorId = 9;
         private static final int kFrontLeftEncoderId = 10;
-        private static final Angle kFrontLeftEncoderOffset = Rotations.of(0.21435546875); // ALPHA
+        private static final Angle kFrontLeftEncoderOffset = Rotations.of(0.214111328125); // ALPHA
         //private static final Angle kFrontLeftEncoderOffset = Rotations.of(0.21435546875); // BRAVO
         private static final boolean kFrontLeftSteerInvert = true; //true
         private static final boolean kFrontLeftEncoderInvert = false; //false
@@ -535,7 +535,7 @@ public final class Constants {
         private static final int kBackLeftDriveMotorId = 14;
         private static final int kBackLeftSteerMotorId = 15;
         private static final int kBackLeftEncoderId = 16;
-        private static final Angle kBackLeftEncoderOffset = Rotation.of(0.1337890625); // ALPHA
+        private static final Angle kBackLeftEncoderOffset = Rotation.of(0.133544921875); // ALPHA
         //private static final Angle kBackLeftEncoderOffset = Rotation.of(0.1337890625); // BRAVO
         private static final boolean kBackLeftSteerInvert = true; //true
         private static final boolean kBackLeftEncoderInvert = false; // false
