@@ -129,10 +129,10 @@ public final class Constants {
 
         public static final Pose2d POSE_RED_TRENCH_IN_RED_AZ = new Pose2d(3.0, 1.0, Rotation2d.fromDegrees(0));
 
-        //public static final int HUB_TAG_ID_RED = 10;
-        //public static final int HUB_TAG_ID_BLUE = 26;
-        public static final int HUB_TAG_ID_RED = 12;
-        public static final int HUB_TAG_ID_BLUE = 12;
+        //public static final int HUB_TAG_ID_RED = 12;
+        //public static final int HUB_TAG_ID_BLUE = 12;
+        public static final int HUB_TAG_ID_RED = 10;
+        public static final int HUB_TAG_ID_BLUE = 26;
 
         /** Returns the hub AprilTag ID for the current alliance (red or blue). Defaults to blue when alliance is not assigned. */
         public static int getHubTagID() {
