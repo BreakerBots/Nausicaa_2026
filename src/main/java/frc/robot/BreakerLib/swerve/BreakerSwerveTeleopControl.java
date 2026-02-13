@@ -23,6 +23,7 @@ import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.units.Units;
 import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.LinearVelocity;
@@ -123,6 +124,7 @@ public class BreakerSwerveTeleopControl extends Command {
       if (BreakerLog.isVerboseLogging()) {
         BreakerLog.log("SwerveTeleopControlCommand/CommandedSpeeds", curSetpoint.robotRelativeSpeeds());
       }
+      SmartDashboard.putNumber("Drivetrain/Commanded/omega_radps", curSetpoint.robotRelativeSpeeds().omegaRadiansPerSecond);
       for (int i = 0; i < curSetpoint.moduleStates().length; i++) {
         SwerveModule<TalonFX, TalonFX, CANcoder> module = drivetrain.getModule(i);
         module.apply(new ModuleRequest()
