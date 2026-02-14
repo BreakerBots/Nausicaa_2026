@@ -11,15 +11,21 @@
           }
         },
         {
-          "type": "wait",
+          "type": "path",
           "data": {
-            "waitTime": 2.0
+            "pathName": "Hub - ClimbReady"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "consolidatePose"
           }
         },
         {
           "type": "path",
           "data": {
-            "pathName": "Hub - Climb"
+            "pathName": "ClimbReady - Climb"
           }
         }
       ]

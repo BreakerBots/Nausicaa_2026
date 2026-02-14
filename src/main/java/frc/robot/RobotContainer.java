@@ -58,6 +58,8 @@ public class RobotContainer {
     
     private BreakerInputStream driverX, driverY, driverOmega;
 
+    private boolean slowMode;
+
     /** PathPlanner auto chooser; populated from GUI autos when AutoBuilder is configured. */
     private final SendableChooser<Command> autoChooser;
 
@@ -69,8 +71,10 @@ public class RobotContainer {
         BreakerLog.setVerboseLogging(false);
 
         // Register named commands for PathPlanner event markers (must be before buildAutoChooser)
-        NamedCommands.registerCommand("rotateToHub",
-            Commands.defer(() -> rotateToTagCommand(Constants.FieldConstants.getHubTagID()), Set.of(drivetrain)));
+        NamedCommands.registerCommand("rotateToHub", Commands.defer(() -> rotateToTagCommand(Constants.FieldConstants.getHubTagID()), Set.of(drivetrain)));
+        NamedCommands.registerCommand("enterSlowMode", Commands.defer(() -> Commands.runOnce(() -> slowMode = !slowMode), Set.of(drivetrain)));
+        NamedCommands.registerCommand("consolidatePose", Commands.defer(() -> Commands.runOnce(() -> drivetrain.getLocalizer().resetPose(new Pose2d(0,0, Rotation2d.fromRotations(0.0)))), Set.of(drivetrain)));
+
 
         // Set up our auto-chooser    
         if (AutoBuilder.isConfigured()) {
@@ -92,6 +96,9 @@ public class RobotContainer {
      */
     private void configureBindings() {
 
+        // BACK BUTTON --> SLOW MODE
+        controller.getBackButton().onTrue(Commands.runOnce(() -> slowMode = !slowMode));
+
         // LEFT BUMPER --> RESET LOCALIZER'S POSE
         controller.getLeftBumper().onTrue(Commands.runOnce(() -> drivetrain.getLocalizer().resetPose(new Pose2d(0,0, Rotation2d.fromRotations(0.0)))));
 
@@ -107,12 +114,12 @@ public class RobotContainer {
 
         // "Slow Mode" versus Normal
         DoubleSupplier translationalScale = () -> {
-            return controller.getBackButton().getAsBoolean() ? 
+            return slowMode ? 
                 Constants.DriveConstants.ALIGN_MODE_MAXIMUM_TRANSLATIONAL_VELOCITY.in(Units.MetersPerSecond) : 
                 Constants.DriveConstants.MAXIMUM_TRANSLATIONAL_VELOCITY.in(Units.MetersPerSecond);
         };
         DoubleSupplier rotationalScale = () -> {
-            return controller.getBackButton().getAsBoolean() ? 
+            return slowMode ? 
                 Constants.DriveConstants.ALIGN_MODE_MAXIMUM_ROTATIONAL_VELOCITY.in(Units.RadiansPerSecond) : 
                 Constants.DriveConstants.MAXIMUM_ROTATIONAL_VELOCITY.in(Units.RadiansPerSecond);
         };
@@ -243,9 +250,9 @@ public class RobotContainer {
         }
         // PathConstraints constraints = PathConstraints.unlimitedConstraints(12.0); // Minimal constraints for now
         PathConstraints constraints = new PathConstraints(
-            Constants.DriveConstants.ALIGN_MODE_MAXIMUM_TRANSLATIONAL_VELOCITY.magnitude(), 
+            Constants.DriveConstants.MAXIMUM_TRANSLATIONAL_VELOCITY.magnitude(), 
             1000000000.0, 
-            Constants.DriveConstants.ALIGN_MODE_MAXIMUM_ROTATIONAL_VELOCITY.magnitude(), 
+            Constants.DriveConstants.MAXIMUM_ROTATIONAL_VELOCITY.magnitude(), 
             1000000000.0, 
             12.0, 
             false
