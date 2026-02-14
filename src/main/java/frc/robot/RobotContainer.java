@@ -9,7 +9,10 @@ import com.ctre.phoenix6.swerve.SwerveModule.DriveRequestType;
 import com.ctre.phoenix6.swerve.SwerveRequest;
 
 import com.pathplanner.lib.auto.AutoBuilder;
+import com.pathplanner.lib.auto.NamedCommands;
 import com.pathplanner.lib.path.PathConstraints;
+
+import java.util.Set;
 
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.geometry.Pose2d;
@@ -64,6 +67,10 @@ public class RobotContainer {
         // Flip this back on when debugging/troubleshooting
         BreakerLog.setVerboseLogging(false);
 
+        // Register named commands for PathPlanner event markers (must be before buildAutoChooser)
+        NamedCommands.registerCommand("rotateToHub",
+            Commands.defer(() -> rotateToTagCommand(Constants.FieldConstants.getHubTagID()), Set.of(drivetrain)));
+
         // Set up our auto-chooser    
         if (AutoBuilder.isConfigured()) {
             // Looks for autos in /src/main/deploy/pathplanner/autos/
@@ -87,8 +94,8 @@ public class RobotContainer {
         // LEFT BUMPER --> RESET LOCALIZER'S POSE
         controller.getLeftBumper().onTrue(Commands.runOnce(() -> drivetrain.getLocalizer().resetPose(new Pose2d(0,0, Rotation2d.fromRotations(0.0)))));
 
-        // RIGHT BUMPER --> NAVIGATE FROM CURRENT POSE TO TARGET POSE (PathPlanner)
-        //controller.getRightBumper().onTrue(navigateToPoseCommand(Constants.FieldConstants.POSE_RED_TRENCH_IN_RED_AZ));
+        // RIGHT BUMPER --> Pathfind from current position to POSE_NAVIGATE_TARGET (PathPlanner on-the-fly)
+        controller.getRightBumper().onTrue(navigateToPoseCommand(Constants.FieldConstants.POSE_BLUE_HUB_CENTER));
 
 
         // ---------------- SWERVE DRIVE ----------------

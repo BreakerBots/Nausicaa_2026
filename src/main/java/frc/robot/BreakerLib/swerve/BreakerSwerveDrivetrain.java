@@ -41,7 +41,6 @@ import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Subsystem;
 import edu.wpi.first.wpilibj.Notifier;
@@ -198,17 +197,6 @@ public class BreakerSwerveDrivetrain extends SwerveDrivetrain<TalonFX, TalonFX, 
 
   public Command applyRequest(Supplier<SwerveRequest> requestSupplier) {
     return run(() -> this.setControl(requestSupplier.get()));
-  }
-
-  @Override
-  public void setControl(SwerveRequest request) {
-    // Diagnostic: log commanded omega (expect 0 when driving straight)
-    double omega = 0;
-    if (request instanceof SwerveRequest.FieldCentric fc) {
-      omega = fc.RotationalRate;
-    } 
-    SmartDashboard.putNumber("Drivetrain/Commanded/omega_radps", omega);
-    super.setControl(request);
   }
 
    /**

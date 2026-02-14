@@ -128,7 +128,8 @@ public final class Constants {
 
     public static class FieldConstants {
 
-        public static final Pose2d POSE_RED_TRENCH_IN_RED_AZ = new Pose2d(3.0, 1.0, Rotation2d.fromDegrees(0));
+        /** Target pose for tele-op "navigate to" command. PathPlanner pathfinds from current position to this pose. Tune x, y, rotation as needed. */
+        public static final Pose2d POSE_BLUE_HUB_CENTER = new Pose2d(2.0, 2.0, Rotation2d.fromDegrees(0));
 
         //public static final int HUB_TAG_ID_RED = 12;
         //public static final int HUB_TAG_ID_BLUE = 12;
