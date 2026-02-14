@@ -13,6 +13,7 @@ import com.pathplanner.lib.auto.NamedCommands;
 import com.pathplanner.lib.path.PathConstraints;
 
 import java.util.Set;
+import java.util.function.DoubleSupplier;
 
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.geometry.Pose2d;
@@ -95,10 +96,26 @@ public class RobotContainer {
         controller.getLeftBumper().onTrue(Commands.runOnce(() -> drivetrain.getLocalizer().resetPose(new Pose2d(0,0, Rotation2d.fromRotations(0.0)))));
 
         // RIGHT BUMPER --> Pathfind from current position to POSE_NAVIGATE_TARGET (PathPlanner on-the-fly)
-        controller.getRightBumper().onTrue(navigateToPoseCommand(Constants.FieldConstants.POSE_BLUE_HUB_CENTER));
+        // controller.getRightBumper().whileTrue(
+        //     Commands.runOnce(() -> controller.getLeftBumper().onTrue(navigateToPoseCommand(Constants.FieldConstants.POSE_BLUE_HUB_CENTER)))
+        //     );
+
+        controller.getButtonX().and(controller.getRightBumper()).onTrue(navigateToPoseCommand(Constants.FieldConstants.POSE_BLUE_HUB_CENTER));
 
 
         // ---------------- SWERVE DRIVE ----------------
+
+        // "Slow Mode" versus Normal
+        DoubleSupplier translationalScale = () -> {
+            return controller.getBackButton().getAsBoolean() ? 
+                Constants.DriveConstants.ALIGN_MODE_MAXIMUM_TRANSLATIONAL_VELOCITY.in(Units.MetersPerSecond) : 
+                Constants.DriveConstants.MAXIMUM_TRANSLATIONAL_VELOCITY.in(Units.MetersPerSecond);
+        };
+        DoubleSupplier rotationalScale = () -> {
+            return controller.getBackButton().getAsBoolean() ? 
+                Constants.DriveConstants.ALIGN_MODE_MAXIMUM_ROTATIONAL_VELOCITY.in(Units.RadiansPerSecond) : 
+                Constants.DriveConstants.MAXIMUM_ROTATIONAL_VELOCITY.in(Units.RadiansPerSecond);
+        };
 
         // LEFT THUMBSTICK --> DRIVE
         BreakerInputStream2d driverTranslation = controller.getLeftThumbstick();
@@ -106,16 +123,17 @@ public class RobotContainer {
                 .clamp(1.0)
                 .deadband(Constants.OperatorConstants.TRANSLATIONAL_DEADBAND, 1.0)
                 .mapToMagnitude(new BreakerLinearizedConstrainedExponential(0.075, 3.0, true))
-                .scale(Constants.DriveConstants.MAXIMUM_TRANSLATIONAL_VELOCITY.in(Units.MetersPerSecond));
+                .scale(translationalScale);
         driverX = driverTranslation.getY();
         driverY = driverTranslation.getX();
+
 
         // RIGHT THUMBSTICK --> ROTATE
         driverOmega = controller.getRightThumbstick().getX()
                 .clamp(1.0)
                 .deadband(Constants.OperatorConstants.ROTATIONAL_DEADBAND, 1.0)
                 .map(new BreakerLinearizedConstrainedExponential(0.364, 6.6, true))
-                .scale(Constants.DriveConstants.MAXIMUM_ROTATIONAL_VELOCITY.in(Units.RadiansPerSecond));
+                .scale(rotationalScale);
     
         drivetrain.setDefaultCommand(drivetrain.getTeleopControlCommand(driverX, driverY, driverOmega, Constants.DriveConstants.TELEOP_CONTROL_CONFIG));
 
@@ -156,7 +174,7 @@ public class RobotContainer {
         //}));
 
         // X button (pressed) --> Range to tag
-        controller.getButtonX().onTrue(Commands.runOnce(() -> {
+        controller.getButtonX().and(controller.getRightBumper().negate()).onTrue(Commands.runOnce(() -> {
             CommandScheduler.getInstance().schedule(rotateToTagCommand(Constants.FieldConstants.getHubTagID()));
         }));
 
@@ -223,7 +241,15 @@ public class RobotContainer {
             System.out.println("navigateToPoseCommand: AutoBuilder not configured, skipping pathfind to " + target);
             return Commands.none();
         }
-        PathConstraints constraints = PathConstraints.unlimitedConstraints(12.0); // Minimal constraints for now
+        // PathConstraints constraints = PathConstraints.unlimitedConstraints(12.0); // Minimal constraints for now
+        PathConstraints constraints = new PathConstraints(
+            Constants.DriveConstants.ALIGN_MODE_MAXIMUM_TRANSLATIONAL_VELOCITY.magnitude(), 
+            1000000000.0, 
+            Constants.DriveConstants.ALIGN_MODE_MAXIMUM_ROTATIONAL_VELOCITY.magnitude(), 
+            1000000000.0, 
+            12.0, 
+            false
+            );
         return AutoBuilder.pathfindToPose(
             target,
             constraints,

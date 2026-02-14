@@ -129,7 +129,8 @@ public final class Constants {
     public static class FieldConstants {
 
         /** Target pose for tele-op "navigate to" command. PathPlanner pathfinds from current position to this pose. Tune x, y, rotation as needed. */
-        public static final Pose2d POSE_BLUE_HUB_CENTER = new Pose2d(2.0, 2.0, Rotation2d.fromDegrees(0));
+        public static final Pose2d POSE_BLUE_HUB_CENTER = new Pose2d(3.0, 4.0, Rotation2d.fromDegrees(0));
+        public static final Pose2d POSE_BLUE_CLIMB_READY = new Pose2d(1.05, 4.75, Rotation2d.fromDegrees(180));
 
         //public static final int HUB_TAG_ID_RED = 12;
         //public static final int HUB_TAG_ID_BLUE = 12;
@@ -331,7 +332,9 @@ public final class Constants {
          * Translational = forward/backward and left/right movement (X and Y on the field)
          * Rotational = spinning in place (turning) */
         public static final LinearVelocity MAXIMUM_TRANSLATIONAL_VELOCITY = Units.MetersPerSecond.of(1);
+        public static final LinearVelocity ALIGN_MODE_MAXIMUM_TRANSLATIONAL_VELOCITY = Units.MetersPerSecond.of(0.3);
         public static final AngularVelocity MAXIMUM_ROTATIONAL_VELOCITY = Units.RadiansPerSecond.of(2);
+        public static final AngularVelocity ALIGN_MODE_MAXIMUM_ROTATIONAL_VELOCITY = Units.RadiansPerSecond.of(0.6);
         //public static final LinearVelocity MAXIMUM_TRANSLATIONAL_VELOCITY = Units.MetersPerSecond.of(4.5);
         //public static final AngularVelocity MAXIMUM_ROTATIONAL_VELOCITY = Units.RadiansPerSecond.of(9.5);
 
