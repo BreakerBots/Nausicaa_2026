@@ -206,13 +206,12 @@ public final class Constants {
         public static final int SHOOTER_FLYWHEEL_3_MOTOR_ID = 32;
         public static final int HOOD_MOTOR_ID = 33;
         public static final int HOOD_ENCODER_ID = 35;
-        public static final int SHOOTER_BEAMBREAK_ID = 36;
         public static final double SPEED_IDLE = 0;
-        public static final double SPEED_FLYWHEEL_ACTIVE = 0;
+        public static final double SPEED_FLYWHEEL_ACTIVE = 0.8; // need to tune
 
         /** Hood: external encoder; command takes target rotations. */
-        public static final double SPEED_HOOD_UP = 0.3;
-        public static final double SPEED_HOOD_DOWN = -0.3;
+        public static final double SPEED_HOOD_UP = 0.3; // need to tune
+        public static final double SPEED_HOOD_DOWN = -0.3; // need to tune
     }
 
     // --------------- HOPPER --------------
@@ -221,8 +220,8 @@ public final class Constants {
         public static final int HOPPER_MOTOR_ID = 40;
         public static final int FEEDER_MOTOR_ID = 41;
         public static final double SPEED_INACTIVE = 0;
-        public static final double SPEED_INDEXING = 0;
-        public static final double SPEED_FEEDING = 0;
+        public static final double SPEED_INDEXING = 0.5; // need to tune
+        public static final double SPEED_FEEDING = 0.4; // need to tune
     }
 
     // --------------- CLIMB --------------
@@ -246,8 +245,8 @@ public final class Constants {
         public static final double SETPOINT_TOLERANCE = 0.1;
 
         /** Faster speeds for extending/retracting. */
-        public static final double SPEED_EXTENDING = 0.5;
-        public static final double SPEED_RETRACTING = -0.5;
+        public static final double SPEED_EXTENDING = 0.05; // need to tune
+        public static final double SPEED_RETRACTING = -0.05; // need to tune
         
         /** Slower speeds for ascending/descending (0.2 = 20% motor power) */
         public static final double SPEED_ASCENDING = -0.2;
