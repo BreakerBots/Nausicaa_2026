@@ -232,11 +232,6 @@ public final class Constants {
         public static final int CLIMB_ENCODER_ID = 55;
 
         /** If true, use motor's integrated encoder instead of external CANcoder. */
-        public static final boolean USE_MOTOR_ENCODER = false;
-        
-        /** Motor rotations per climb rotation. Only need this if using motor encoder. */
-        public static final double CLIMB_GEAR_RATIO = 1.0;
-
         /** Setpoints: encoder positions (number of rotations) for UP and DOWN positions. */
         public static final double SETPOINT_UP = -1.68;
         public static final double SETPOINT_CLIMBED = 1.5;

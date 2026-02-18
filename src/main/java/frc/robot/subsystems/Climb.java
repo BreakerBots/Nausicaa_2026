@@ -14,7 +14,7 @@ import frc.robot.Constants;
 import frc.robot.BreakerLib.util.logging.BreakerLog;
 
 /**
- * Climb subsystem: setpoint-based control using external encoder (or motor encoder as fallback).
+ * Climb subsystem: setpoint-based control using external encoder (CANcoder).
  * Assumes DOWN position when robot is enabled.
  */
 public class Climb extends SubsystemBase {
@@ -23,9 +23,6 @@ public class Climb extends SubsystemBase {
             Constants.GeneralConstants.SUPERSTRUCTURE_CANIVORE_BUS);
     private final CANcoder climbEncoder = new CANcoder(Constants.ClimbConstants.CLIMB_ENCODER_ID,
             Constants.GeneralConstants.SUPERSTRUCTURE_CANIVORE_BUS);
-
-    /** Zero offset for motor encoder (when using motor encoder instead of CANcoder). */
-    private double motorEncoderZeroOffset = 0.0;
 
     /** Current target setpoint when moving. */
     private double targetSetpoint = Constants.ClimbConstants.SETPOINT_DOWN;
@@ -66,27 +63,15 @@ public class Climb extends SubsystemBase {
         pidController.setTolerance(Constants.ClimbConstants.SETPOINT_TOLERANCE);
     }
 
-    /** Current encoder position in rotations. Uses motor encoder if USE_MOTOR_ENCODER is true, otherwise CANcoder. */
+    /** Current encoder position in rotations (from external CANcoder). */
     public double getEncoderRotations() {
-        if (Constants.ClimbConstants.USE_MOTOR_ENCODER) {
-            // Motor encoder: get position, subtract zero offset, convert via gear ratio
-            double motorRotations = climbMotor.getPosition().getValueAsDouble() - motorEncoderZeroOffset;
-            return motorRotations / Constants.ClimbConstants.CLIMB_GEAR_RATIO;
-        } else {
-            // CANcoder: use external encoder
-            return climbEncoder.getPosition().getValueAsDouble();
-        }
+        return climbEncoder.getPosition().getValueAsDouble();
     }
 
     /** Zero the encoder (call when climb is at DOWN position). */
     public void zeroEncoder() {
-        if (Constants.ClimbConstants.USE_MOTOR_ENCODER) {
-            motorEncoderZeroOffset = climbMotor.getPosition().getValueAsDouble();
-            BreakerLog.log("Climb/Encoder", "Motor encoder zeroed at position: " + motorEncoderZeroOffset);
-        } else {
-            climbEncoder.setPosition(0.0);
-            BreakerLog.log("Climb/Encoder", "CANcoder zeroed");
-        }
+        climbEncoder.setPosition(0.0);
+        BreakerLog.log("Climb/Encoder", "CANcoder zeroed");
     }
 
     /** Check if within tolerance of the given setpoint. */
@@ -244,6 +229,6 @@ public class Climb extends SubsystemBase {
         double velocity = climbMotor.getVelocity().getValueAsDouble();
         String line = String.format("state=%s pos=%.2f tgt=%.2f %.1fvel", state, position, targetSetpoint, velocity);
         BreakerLog.log("Climb/Status", line);
-        BreakerLog.log("Electrical/Climb/climb", climbMotor);
+        BreakerLog.log("Electrical/Climb", climbMotor);
     }
 }
