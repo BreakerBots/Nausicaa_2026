@@ -173,7 +173,7 @@ public final class Constants {
 
         /** Pivot angles (rotations) – placeholders until tuned. */
         public static final Rotation2d POSITION_STOWED = Rotation2d.fromRotations(0.0);
-        public static final Rotation2d POSITION_EXTENDED = Rotation2d.fromRotations(0.15);
+        public static final Rotation2d POSITION_EXTENDED = Rotation2d.fromRotations(0.18);
         public static final Rotation2d POSITION_JIGGLE_HIGH = Rotation2d.fromRotations(0.0);
         public static final Rotation2d POSITION_JIGGLE_LOW = Rotation2d.fromRotations(0.0);
 
@@ -184,13 +184,13 @@ public final class Constants {
 
         /** Feedforward (Slot0). */
         public static final double PIVOT_kS = 0.08;
-        public static final double PIVOT_kG = 0.01;
+        public static final double PIVOT_kG = 0.00;
         public static final double PIVOT_kV = 0.12;
         public static final double PIVOT_kA = 0.01;
 
         /** PID (Slot0). */
         public static final double PIVOT_kP = 0.4;
-        public static final double PIVOT_kI = 0.01;
+        public static final double PIVOT_kI = 0.00;
         public static final double PIVOT_kD = 0.08;
 
         public static final double SPEED_IDLE = 0;
