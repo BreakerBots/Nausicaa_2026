@@ -73,6 +73,8 @@ public class Hopper extends SubsystemBase {
         String line = String.format("state=%s roller=%.2fcmd %.1fvel %.1fA",
                 state, state.getIndexerSpeed(), vel, cur);
         BreakerLog.log("Hopper/Status", line);
+        BreakerLog.log("Electrical/Hopper/indexer", indexerMotor);
+        BreakerLog.log("Electrical/Hopper/feeder", feederMotor);
     }
 
     private void setIndexerSpeed(double speed) {

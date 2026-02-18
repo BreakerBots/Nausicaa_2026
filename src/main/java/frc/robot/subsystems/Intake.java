@@ -127,6 +127,8 @@ public class Intake extends SubsystemBase {
         String statusMessage = String.format("state=%s pivot=%.3frot tgt=%.3f %.1fvel roller=%.2fcmd %.1fvel",
                 state, pivotPosition, targetPivotRotations, pivotVelocity, state.getSpeed(), rollerVelocity);
         BreakerLog.log("Intake/Status", statusMessage);
+        BreakerLog.log("Electrical/Intake/roller", rollerMotor);
+        BreakerLog.log("Electrical/Intake/pivot", pivotMotor);
     }
 
     private void setIntakePosition(double positionRotations) {
