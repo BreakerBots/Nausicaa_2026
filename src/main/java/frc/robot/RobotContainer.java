@@ -59,7 +59,10 @@ public class RobotContainer {
     private BreakerInputStream driverX, driverY, driverOmega;
 
     private boolean slowMode;
-
+    
+    /** When true, drive controls and autonomous are disabled. */
+    private boolean safetyMode = true;
+    
     /** PathPlanner auto chooser; populated from GUI autos when AutoBuilder is configured. */
     private final SendableChooser<Command> autoChooser;
 
@@ -112,45 +115,48 @@ public class RobotContainer {
 
         // ---------------- SWERVE DRIVE ----------------
 
+
+        if (!safetyMode) {
         // "Slow Mode" versus Normal
-        DoubleSupplier translationalScale = () -> {
-            return slowMode ? 
-                Constants.DriveConstants.ALIGN_MODE_MAXIMUM_TRANSLATIONAL_VELOCITY.in(Units.MetersPerSecond) : 
-                Constants.DriveConstants.MAXIMUM_TRANSLATIONAL_VELOCITY.in(Units.MetersPerSecond);
-        };
-        DoubleSupplier rotationalScale = () -> {
-            return slowMode ? 
-                Constants.DriveConstants.ALIGN_MODE_MAXIMUM_ROTATIONAL_VELOCITY.in(Units.RadiansPerSecond) : 
-                Constants.DriveConstants.MAXIMUM_ROTATIONAL_VELOCITY.in(Units.RadiansPerSecond);
-        };
+            DoubleSupplier translationalScale = () -> {
+                return slowMode ? 
+                    Constants.DriveConstants.ALIGN_MODE_MAXIMUM_TRANSLATIONAL_VELOCITY.in(Units.MetersPerSecond) : 
+                    Constants.DriveConstants.MAXIMUM_TRANSLATIONAL_VELOCITY.in(Units.MetersPerSecond);
+            };
+            DoubleSupplier rotationalScale = () -> {
+                return slowMode ? 
+                    Constants.DriveConstants.ALIGN_MODE_MAXIMUM_ROTATIONAL_VELOCITY.in(Units.RadiansPerSecond) : 
+                    Constants.DriveConstants.MAXIMUM_ROTATIONAL_VELOCITY.in(Units.RadiansPerSecond);
+            };
 
-        // LEFT THUMBSTICK --> DRIVE
-        BreakerInputStream2d driverTranslation = controller.getLeftThumbstick();
-        driverTranslation = driverTranslation
-                .clamp(1.0)
-                .deadband(Constants.OperatorConstants.TRANSLATIONAL_DEADBAND, 1.0)
-                .mapToMagnitude(new BreakerLinearizedConstrainedExponential(0.075, 3.0, true))
-                .scale(translationalScale);
-        driverX = driverTranslation.getY();
-        driverY = driverTranslation.getX();
+            // LEFT THUMBSTICK --> DRIVE
+            BreakerInputStream2d driverTranslation = controller.getLeftThumbstick();
+            driverTranslation = driverTranslation
+                    .clamp(1.0)
+                    .deadband(Constants.OperatorConstants.TRANSLATIONAL_DEADBAND, 1.0)
+                    .mapToMagnitude(new BreakerLinearizedConstrainedExponential(0.075, 3.0, true))
+                    .scale(translationalScale);
+            driverX = driverTranslation.getY();
+            driverY = driverTranslation.getX();
 
 
-        // RIGHT THUMBSTICK --> ROTATE
-        driverOmega = controller.getRightThumbstick().getX()
-                .clamp(1.0)
-                .deadband(Constants.OperatorConstants.ROTATIONAL_DEADBAND, 1.0)
-                .map(new BreakerLinearizedConstrainedExponential(0.364, 6.6, true))
-                .scale(rotationalScale);
-    
-        drivetrain.setDefaultCommand(drivetrain.getTeleopControlCommand(driverX, driverY, driverOmega, Constants.DriveConstants.TELEOP_CONTROL_CONFIG));
+            // RIGHT THUMBSTICK --> ROTATE
+            driverOmega = controller.getRightThumbstick().getX()
+                    .clamp(1.0)
+                    .deadband(Constants.OperatorConstants.ROTATIONAL_DEADBAND, 1.0)
+                    .map(new BreakerLinearizedConstrainedExponential(0.364, 6.6, true))
+                    .scale(rotationalScale);
+        
+            drivetrain.setDefaultCommand(drivetrain.getTeleopControlCommand(driverX, driverY, driverOmega, Constants.DriveConstants.TELEOP_CONTROL_CONFIG));
 
-        // RIGHT TRIGGER (held) --> TRACK TAG; driver keeps X/Y control, rotation follows tag
-        controller.getRightTrigger().whileTrue(trackTagCommand(Constants.FieldConstants.getHubTagID()));
+            // RIGHT TRIGGER (held) --> TRACK TAG; driver keeps X/Y control, rotation follows tag
+            controller.getRightTrigger().whileTrue(trackTagCommand(Constants.FieldConstants.getHubTagID()));
 
-        // A button (pressed) --> Range to tag
-        controller.getButtonA().onTrue(Commands.runOnce(() -> {
-            CommandScheduler.getInstance().schedule(rangeToTagCommand(Constants.FieldConstants.getTrenchTagID(), 1.0));
-        }));
+            // Range to tag
+            // controller.getButtonA().onTrue(Commands.runOnce(() -> {
+            //     CommandScheduler.getInstance().schedule(rangeToTagCommand(Constants.FieldConstants.getTrenchTagID(), 1.0));
+            // }));
+        }
 
         // ----------------- INTAKE -------------
         
@@ -200,13 +206,13 @@ public class RobotContainer {
 
         // LEFT TRIGGER --> Extend (if retracted/retracting) or Retract (if extended/extending).
         // Pressing again during an in-progress extend cancels it and retracts (and vice versa).
-        controller.getLeftTrigger().onTrue(Commands.runOnce(() -> {
-            if (climb.isRetractedOrRetracting()) {
-                CommandScheduler.getInstance().schedule(climb.extend());
-            } else if (climb.isExtendedOrExtending()) {
-                CommandScheduler.getInstance().schedule(climb.retract());
-            }
-        }));
+        // controller.getLeftTrigger().onTrue(Commands.runOnce(() -> {
+        //     if (climb.isRetractedOrRetracting()) {
+        //         CommandScheduler.getInstance().schedule(climb.extend());
+        //     } else if (climb.isExtendedOrExtending()) {
+        //         CommandScheduler.getInstance().schedule(climb.retract());
+        //     }
+        // }));
 
         // // D-PAD UP (held) --> Extend manually; release to stop.
         controller.getDPad().getUp().onTrue(Commands.runOnce(() -> {
@@ -222,7 +228,7 @@ public class RobotContainer {
 
 
     public Command getAutonomousCommand() {
-        return autoChooser.getSelected();
+        return safetyMode ? Commands.none() : autoChooser.getSelected();
     }
 
     public Drivetrain getDrivetrain() {
@@ -244,6 +250,9 @@ public class RobotContainer {
         climb.zeroEncoder();
         climb.setState(Climb.State.INACTIVE);
     }
+
+
+
 
     /**
      * Pathfind from current pose to the given target pose,
