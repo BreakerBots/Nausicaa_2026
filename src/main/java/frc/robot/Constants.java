@@ -173,7 +173,7 @@ public final class Constants {
 
         /** Pivot angles (rotations) – placeholders until tuned. */
         public static final Rotation2d POSITION_STOWED = Rotation2d.fromRotations(0.0);
-        public static final Rotation2d POSITION_EXTENDED = Rotation2d.fromRotations(0.13);
+        public static final Rotation2d POSITION_EXTENDED = Rotation2d.fromRotations(0.15);
         public static final Rotation2d POSITION_JIGGLE_HIGH = Rotation2d.fromRotations(0.0);
         public static final Rotation2d POSITION_JIGGLE_LOW = Rotation2d.fromRotations(0.0);
 
@@ -184,14 +184,14 @@ public final class Constants {
 
         /** Feedforward (Slot0). */
         public static final double PIVOT_kS = 0.08;
-        public static final double PIVOT_kG = 0.02;
+        public static final double PIVOT_kG = 0.01;
         public static final double PIVOT_kV = 0.12;
         public static final double PIVOT_kA = 0.01;
 
         /** PID (Slot0). */
-        public static final double PIVOT_kP = 0.6;
-        public static final double PIVOT_kI = 0.0;
-        public static final double PIVOT_kD = 0.05;
+        public static final double PIVOT_kP = 0.4;
+        public static final double PIVOT_kI = 0.01;
+        public static final double PIVOT_kD = 0.08;
 
         public static final double SPEED_IDLE = 0;
         public static final double SPEED_EXTAKE = 0.5;
@@ -210,8 +210,8 @@ public final class Constants {
         public static final double SPEED_FLYWHEEL_ACTIVE = 0.8; // need to tune
 
         /** Hood: external encoder; command takes target rotations. */
-        public static final double SPEED_HOOD_UP = 0.3; // need to tune
-        public static final double SPEED_HOOD_DOWN = -0.3; // need to tune
+        public static final double SPEED_HOOD_UP = 0.08; // need to tune
+        public static final double SPEED_HOOD_DOWN = -0.08; // need to tune
     }
 
     // --------------- HOPPER --------------
