@@ -14,7 +14,7 @@ import frc.robot.Constants;
 import frc.robot.BreakerLib.util.logging.BreakerLog;
 
 /**
- * Climb subsystem: setpoint-based control using external encoder (CANcoder).
+ * Climb subsystem: setpoint-based control using external encoder (or motor encoder as fallback).
  * Assumes DOWN position when robot is enabled.
  */
 public class Climb extends SubsystemBase {
@@ -23,6 +23,9 @@ public class Climb extends SubsystemBase {
             Constants.GeneralConstants.SUPERSTRUCTURE_CANIVORE_BUS);
     private final CANcoder climbEncoder = new CANcoder(Constants.ClimbConstants.CLIMB_ENCODER_ID,
             Constants.GeneralConstants.SUPERSTRUCTURE_CANIVORE_BUS);
+
+    /** Zero offset for motor encoder (when using motor encoder instead of CANcoder). */
+    private double motorEncoderZeroOffset = 0.0;
 
     /** Current target setpoint when moving. */
     private double targetSetpoint = Constants.ClimbConstants.SETPOINT_DOWN;
@@ -63,8 +66,9 @@ public class Climb extends SubsystemBase {
         pidController.setTolerance(Constants.ClimbConstants.SETPOINT_TOLERANCE);
     }
 
-    /** Current encoder position in rotations (from external CANcoder). */
+    /** Current encoder position in rotations. Uses motor encoder if USE_MOTOR_ENCODER is true, otherwise CANcoder. */
     public double getEncoderRotations() {
+        // CANcoder: use external encoder
         return climbEncoder.getPosition().getValueAsDouble();
     }
 
@@ -140,10 +144,6 @@ public class Climb extends SubsystemBase {
     /** Stop the climb motor. */
     public void stop() {
         climbMotor.setControl(new DutyCycleOut(0.0));
-    }
-
-    public Command setStateCommand(State newState) {
-        return Commands.runOnce(() -> setState(newState), this);
     }
 
     public void setState(State newState) {
@@ -233,6 +233,6 @@ public class Climb extends SubsystemBase {
         double velocity = climbMotor.getVelocity().getValueAsDouble();
         String line = String.format("state=%s pos=%.2f tgt=%.2f %.1fvel", state, position, targetSetpoint, velocity);
         BreakerLog.log("Climb/Status", line);
-        BreakerLog.log("Electrical/Climb", climbMotor);
+        BreakerLog.log("Electrical/Climb/climb", climbMotor);
     }
 }

@@ -87,11 +87,11 @@ public class Shooter extends SubsystemBase {
         hoodEncoder.setPosition(0.0);
     }
 
-    private void runHoodUp() {
+    public void runHoodUp() {
         hoodMotor.setControl(new DutyCycleOut(Constants.ShooterConstants.SPEED_HOOD_UP));
     }
 
-    private void runHoodDown() {
+    public void runHoodDown() {
         hoodMotor.setControl(new DutyCycleOut(Constants.ShooterConstants.SPEED_HOOD_DOWN));
     }
 

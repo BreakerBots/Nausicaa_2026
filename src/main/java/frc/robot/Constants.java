@@ -173,7 +173,7 @@ public final class Constants {
 
         /** Pivot angles (rotations) – placeholders until tuned. */
         public static final Rotation2d POSITION_STOWED = Rotation2d.fromRotations(0.0);
-        public static final Rotation2d POSITION_EXTENDED = Rotation2d.fromRotations(0.05);
+        public static final Rotation2d POSITION_EXTENDED = Rotation2d.fromRotations(0.13);
         public static final Rotation2d POSITION_JIGGLE_HIGH = Rotation2d.fromRotations(0.0);
         public static final Rotation2d POSITION_JIGGLE_LOW = Rotation2d.fromRotations(0.0);
 
@@ -189,13 +189,13 @@ public final class Constants {
         public static final double PIVOT_kA = 0.01;
 
         /** PID (Slot0). */
-        public static final double PIVOT_kP = 0.5;
+        public static final double PIVOT_kP = 0.6;
         public static final double PIVOT_kI = 0.0;
-        public static final double PIVOT_kD = 0.02;
+        public static final double PIVOT_kD = 0.05;
 
         public static final double SPEED_IDLE = 0;
-        public static final double SPEED_EXTAKE = 0.3;
-        public static final double SPEED_INTAKE = -0.3;
+        public static final double SPEED_EXTAKE = 0.5;
+        public static final double SPEED_INTAKE = -0.5;
     }
 
     // --------------- SHOOTER --------------

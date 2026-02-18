@@ -274,7 +274,7 @@ public class Vision extends SubsystemBase {
 
     public boolean isTagDetected(int targetTagId) {
         // Check both cameras for valid pose estimates with tags
-        if (frontCameraEstimate.rawFiducials != null) {
+        if (frontCameraEstimate != null && frontCameraEstimate.rawFiducials != null) {
             for (var i:frontCameraEstimate.rawFiducials) {
                 if (i.id == targetTagId) {
                     return true;

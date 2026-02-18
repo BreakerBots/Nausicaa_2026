@@ -38,6 +38,7 @@ import frc.robot.subsystems.Intake;
 import frc.robot.subsystems.Shooter;
 import frc.robot.subsystems.Vision;
 import frc.robot.subsystems.Climb;
+import frc.robot.subsystems.Hopper;
 
 
 /**
@@ -55,6 +56,7 @@ public class RobotContainer {
     private final Intake intake = new Intake();
     private final Climb climb = new Climb();
     private final Shooter shooter = new Shooter();
+    private final Hopper hopper = new Hopper();
     
     private BreakerInputStream driverX, driverY, driverOmega;
 
@@ -165,12 +167,45 @@ public class RobotContainer {
         
         // B: Toggle between STOWED and EXTENDED_IDLE
         controller.getButtonB().onTrue(Commands.runOnce(() -> {
-            if (intake.state == Intake.State.STOWED) {
+            if (intake.state == Intake.State.EXTENDED_INTAKING) {
                 CommandScheduler.getInstance().schedule(intake.setStateCommand(Intake.State.EXTENDED_IDLE));
             } else {
-                CommandScheduler.getInstance().schedule(intake.setStateCommand(Intake.State.STOWED));
+                CommandScheduler.getInstance().schedule(intake.setStateCommand(Intake.State.EXTENDED_INTAKING));
             }
         }, intake));
+
+        controller.getButtonY().onTrue(Commands.runOnce(() -> {
+            if (intake.state != Intake.State.STOWED) {
+                CommandScheduler.getInstance().schedule(intake.setStateCommand(Intake.State.STOWED));
+            } else {
+                CommandScheduler.getInstance().schedule(intake.setStateCommand(Intake.State.EXTENDED_IDLE));
+            }
+        }, intake));
+
+        controller.getButtonX().onTrue(Commands.runOnce(() -> {
+            if (shooter.state == Shooter.State.SHOOTING) {
+                CommandScheduler.getInstance().schedule(shooter.setStateCommand(Shooter.State.INACTIVE));
+            } else {
+                CommandScheduler.getInstance().schedule(shooter.setStateCommand(Shooter.State.SHOOTING));
+            }
+        }, shooter));
+
+        controller.getButtonA().onTrue(Commands.runOnce(() -> {
+            if (hopper.state == Hopper.State.FEEDING) {
+                CommandScheduler.getInstance().schedule(hopper.setStateCommand(Hopper.State.INACTIVE));
+            } else {
+                CommandScheduler.getInstance().schedule(hopper.setStateCommand(Hopper.State.FEEDING));
+            }
+        }, hopper));
+
+
+        controller.getDPad().getRight().whileTrue(Commands.runOnce(() -> {
+            shooter.runHoodUp();
+        }, shooter));
+
+        controller.getDPad().getLeft().whileTrue(Commands.runOnce(() -> {
+            shooter.runHoodDown();
+        }, shooter));
 
         // B: STOWED → EXTENDED_IDLE → EXTENDED_INTAKING → EXTENDED_IDLE → ... (saved for later)
         // controller.getButtonB().onTrue(Commands.runOnce(() -> {
@@ -195,9 +230,9 @@ public class RobotContainer {
         // controller.getButtonX().and(controller.getRightBumper().negate()).onTrue(rotateAndRangeToTagCommand(Constants.FieldConstants.getHubTagID(), 1.0));
 
         // X button (without Right Bumper) --> Rotate to tag
-        controller.getButtonX().and(controller.getRightBumper().negate()).onTrue(rotateToTagCommand(Constants.FieldConstants.getHubTagID()));
+        //controller.getButtonX().and(controller.getRightBumper().negate()).onTrue(rotateToTagCommand(Constants.FieldConstants.getHubTagID()));
 
-        controller.getButtonY().onTrue(trackAndRangeToTagCommand(Constants.FieldConstants.getHubTagID(), 1.0)); // Was rotateAndRangeToTagCommand
+        //controller.getButtonY().onTrue(trackAndRangeToTagCommand(Constants.FieldConstants.getHubTagID(), 1.0)); // Was rotateAndRangeToTagCommand
 
         // Y: Toggle shooter state (INACTIVE ↔ SHOOTING)
         
