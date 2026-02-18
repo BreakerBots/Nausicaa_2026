@@ -208,10 +208,16 @@ public class RobotContainer {
             }
         }));
 
-        // D-PAD UP (held) --> Extend manually; release to stop.
-        controller.getDPad().getUp().whileTrue(climb.extendWhileHeld());
-        // D-PAD DOWN (held) --> Retract manually; release to stop.
-        controller.getDPad().getDown().whileTrue(climb.retractWhileHeld());
+        // // D-PAD UP (held) --> Extend manually; release to stop.
+        controller.getDPad().getUp().onTrue(Commands.runOnce(() -> {
+            CommandScheduler.getInstance().schedule(climb.extend());
+        }
+        ));
+        // // D-PAD DOWN (held) --> Retract manually; release to stop.
+        controller.getDPad().getDown().onTrue(Commands.runOnce(() -> {
+            CommandScheduler.getInstance().schedule(climb.retract());
+        }
+        ));
     }
 
 

@@ -238,8 +238,9 @@ public final class Constants {
         public static final double CLIMB_GEAR_RATIO = 1.0;
 
         /** Setpoints: encoder positions (number of rotations) for UP and DOWN positions. */
-        public static final double SETPOINT_UP = 10.0;
-        public static final double SETPOINT_DOWN = 0.0;
+        public static final double SETPOINT_UP = -1.68;
+        public static final double SETPOINT_CLIMBED = 1.5;
+        public static final double SETPOINT_DOWN = -0.58252;
         
         /** Tolerance: how close is close enough (rotations). */
         public static final double SETPOINT_TOLERANCE = 0.1;
