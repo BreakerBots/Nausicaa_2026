@@ -199,13 +199,13 @@ public class RobotContainer {
         }, hopper));
 
 
-        controller.getDPad().getRight().whileTrue(Commands.runOnce(() -> {
-            shooter.runHoodUp();
-        }, shooter));
+        // D-PAD RIGHT --> Hood up (while held; stop when released)
+        controller.getDPad().getRight().whileTrue(
+            Commands.startEnd(shooter::runHoodUp, shooter::stopHood, shooter));
 
-        controller.getDPad().getLeft().whileTrue(Commands.runOnce(() -> {
-            shooter.runHoodDown();
-        }, shooter));
+        // D-PAD LEFT --> Hood down (while held; stop when released)
+        controller.getDPad().getLeft().whileTrue(
+            Commands.startEnd(shooter::runHoodDown, shooter::stopHood, shooter));
 
         // B: STOWED → EXTENDED_IDLE → EXTENDED_INTAKING → EXTENDED_IDLE → ... (saved for later)
         // controller.getButtonB().onTrue(Commands.runOnce(() -> {
@@ -278,6 +278,7 @@ public class RobotContainer {
         intake.setState(Intake.State.STOWED);
         climb.zeroEncoder();
         climb.setState(Climb.State.INACTIVE);
+        shooter.zeroHoodEncoder();
     }
 
     /** Called once when the robot enters teleop. */
@@ -286,6 +287,7 @@ public class RobotContainer {
         intake.setState(Intake.State.STOWED);
         climb.zeroEncoder();
         climb.setState(Climb.State.INACTIVE);
+        shooter.zeroHoodEncoder();
     }
 
 
