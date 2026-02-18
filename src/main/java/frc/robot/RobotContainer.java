@@ -95,7 +95,14 @@ public class RobotContainer {
 
 
     /**
-     * Use this method to define your trigger->command mappings. 
+     * Use this method to define your trigger->command mappings.
+     *
+     * Tips:
+     * - Simplest: 
+     *     Default to using onTrue(command), when there's no logic and you have a command.
+     *     Action only while held? Use whileTrue(command).
+     * - If you don't have a command and need a one-shot action (setState, toggle, zero encoder)? Use runOnce(() -> action(), subsystem).
+     * - If you need if/else to determine which command to run? Use runOnce with CommandScheduler.getInstance().schedule() inside.
      */
     private void configureBindings() {
 
@@ -105,10 +112,8 @@ public class RobotContainer {
         // LEFT BUMPER --> RESET LOCALIZER'S POSE
         controller.getLeftBumper().onTrue(Commands.runOnce(() -> drivetrain.getLocalizer().resetPose(new Pose2d(0,0, Rotation2d.fromRotations(0.0)))));
 
-        // RIGHT BUMPER --> Pathfind from current position to POSE_NAVIGATE_TARGET (PathPlanner on-the-fly)
-        // controller.getRightBumper().whileTrue(
-        //     Commands.runOnce(() -> controller.getLeftBumper().onTrue(navigateToPoseCommand(Constants.FieldConstants.POSE_BLUE_HUB_CENTER)))
-        //     );
+        // RIGHT BUMPER --> Pathfind to pose (alternative: while held; current: X+RB = on press)
+        // controller.getRightBumper().whileTrue(navigateToPoseCommand(Constants.FieldConstants.POSE_BLUE_HUB_CENTER));
 
         controller.getButtonX().and(controller.getRightBumper()).onTrue(navigateToPoseCommand(Constants.FieldConstants.POSE_BLUE_HUB_CENTER));
 
@@ -152,25 +157,30 @@ public class RobotContainer {
             // RIGHT TRIGGER (held) --> TRACK TAG; driver keeps X/Y control, rotation follows tag
             controller.getRightTrigger().whileTrue(trackTagCommand(Constants.FieldConstants.getHubTagID()));
 
-            // Range to tag
-            // controller.getButtonA().onTrue(Commands.runOnce(() -> {
-            //     CommandScheduler.getInstance().schedule(rangeToTagCommand(Constants.FieldConstants.getTrenchTagID(), 1.0));
-            // }));
+            // Range to tag (A button)
+            // controller.getButtonA().onTrue(rangeToTagCommand(Constants.FieldConstants.getTrenchTagID(), 1.0));
         }
 
         // ----------------- INTAKE -------------
         
-        // B: EXTENDED_INTAKING ↔ EXTENDED_IDLE (toggle: if not intaking → intaking; if intaking → idle)
+        // B: Toggle between STOWED and EXTENDED_IDLE
         controller.getButtonB().onTrue(Commands.runOnce(() -> {
-            SmartDashboard.putString("Intake/ButtonStatus", "Setting state...");
-            if (intake.state == Intake.State.EXTENDED_IDLE) {
-                SmartDashboard.putString("Intake/ButtonStatus", "Setting state to stowed");
-                intake.setState(Intake.State.STOWED);
+            if (intake.state == Intake.State.STOWED) {
+                CommandScheduler.getInstance().schedule(intake.setStateCommand(Intake.State.EXTENDED_IDLE));
             } else {
-                SmartDashboard.putString("Intake/ButtonStatus", "Setting state to extended-idle");
-                intake.setState(Intake.State.EXTENDED_IDLE);
+                CommandScheduler.getInstance().schedule(intake.setStateCommand(Intake.State.STOWED));
             }
         }, intake));
+
+        // B: STOWED → EXTENDED_IDLE → EXTENDED_INTAKING → EXTENDED_IDLE → ... (saved for later)
+        // controller.getButtonB().onTrue(Commands.runOnce(() -> {
+        //     switch (intake.state) {
+        //         case STOWED -> CommandScheduler.getInstance().schedule(intake.setStateCommand(Intake.State.EXTENDED_IDLE));
+        //         case EXTENDED_IDLE -> CommandScheduler.getInstance().schedule(intake.setStateCommand(Intake.State.EXTENDED_INTAKING));
+        //         case EXTENDED_INTAKING -> CommandScheduler.getInstance().schedule(intake.setStateCommand(Intake.State.EXTENDED_IDLE));
+        //         default -> CommandScheduler.getInstance().schedule(intake.setStateCommand(Intake.State.EXTENDED_IDLE));
+        //     }
+        // }, intake));
 
 
 
@@ -181,15 +191,11 @@ public class RobotContainer {
 
         // ----------------- SHOOTER -------------
 
-        // X: Rotate to face hub tag, then range to target distance (alliance-aware)
-        //controller.getButtonX().onTrue(Commands.runOnce(() -> {
-        //    CommandScheduler.getInstance().schedule(rotateAndRangeToTagCommand(Constants.FieldConstants.getHubTagID(), 1.0));
-        //}));
+        // X: Rotate then range to tag (alternative; conflicts with current X binding)
+        // controller.getButtonX().and(controller.getRightBumper().negate()).onTrue(rotateAndRangeToTagCommand(Constants.FieldConstants.getHubTagID(), 1.0));
 
-        // X button (pressed) --> Range to tag
-        controller.getButtonX().and(controller.getRightBumper().negate()).onTrue(Commands.runOnce(() -> {
-            CommandScheduler.getInstance().schedule(rotateToTagCommand(Constants.FieldConstants.getHubTagID()));
-        }));
+        // X button (without Right Bumper) --> Rotate to tag
+        controller.getButtonX().and(controller.getRightBumper().negate()).onTrue(rotateToTagCommand(Constants.FieldConstants.getHubTagID()));
 
         controller.getButtonY().onTrue(trackAndRangeToTagCommand(Constants.FieldConstants.getHubTagID(), 1.0)); // Was rotateAndRangeToTagCommand
 
@@ -214,16 +220,10 @@ public class RobotContainer {
         //     }
         // }));
 
-        // // D-PAD UP (held) --> Extend manually; release to stop.
-        controller.getDPad().getUp().onTrue(Commands.runOnce(() -> {
-            CommandScheduler.getInstance().schedule(climb.extend());
-        }
-        ));
-        // // D-PAD DOWN (held) --> Retract manually; release to stop.
-        controller.getDPad().getDown().onTrue(Commands.runOnce(() -> {
-            CommandScheduler.getInstance().schedule(climb.retract());
-        }
-        ));
+        // D-PAD UP --> Extend climb
+        controller.getDPad().getUp().onTrue(climb.extend());
+        // D-PAD DOWN --> Retract climb
+        controller.getDPad().getDown().onTrue(climb.retract());
     }
 
 
@@ -235,6 +235,8 @@ public class RobotContainer {
         return drivetrain;
     }
 
+
+    
     /** Called once when the robot enters autonomous. */
     public void autonomousInit() {
         intake.zeroEncoders();

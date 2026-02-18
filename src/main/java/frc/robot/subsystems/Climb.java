@@ -142,6 +142,10 @@ public class Climb extends SubsystemBase {
         climbMotor.setControl(new DutyCycleOut(0.0));
     }
 
+    public Command setStateCommand(State newState) {
+        return Commands.runOnce(() -> setState(newState), this);
+    }
+
     public void setState(State newState) {
         State previousState = state;
         state = newState;
