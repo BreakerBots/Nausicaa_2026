@@ -233,23 +233,36 @@ public final class Constants {
 
         /** If true, use motor's integrated encoder instead of external CANcoder. */
         /** Setpoints: encoder positions (number of rotations) for UP and DOWN positions. */
-        public static final double SETPOINT_UP = -1.68;
+        public static final double SETPOINT_UP = -1.788125;
         public static final double SETPOINT_CLIMBED = 1.5;
-        public static final double SETPOINT_DOWN = -0.58252;
+        public static final double SETPOINT_DOWN = 0.1;
+
+        /**
+         * DOWN:
+         * Magnetic offset: -0.3642578125
+         * Absolute Position: 0.000244
+         * Absolute Position No Offset: 0.294434
+         * 
+         * UP:
+         * same magnetic offset
+         * Absolute Position: 0.297363
+         * Absolute Position No Offset: -1.408691
+         * 
+         */
         
         /** Tolerance: how close is close enough (rotations). */
         public static final double SETPOINT_TOLERANCE = 0.1;
 
         /** Faster speeds for extending/retracting. */
-        public static final double SPEED_EXTENDING = 0.05; // need to tune
-        public static final double SPEED_RETRACTING = -0.05; // need to tune
+        public static final double SPEED_EXTENDING = 0.2; // need to tune
+        public static final double SPEED_RETRACTING = -0.2; // need to tune
         
         /** Slower speeds for ascending/descending (0.2 = 20% motor power) */
         public static final double SPEED_ASCENDING = -0.2;
         public static final double SPEED_DESCENDING = 0.2;
 
         /** PID gains for setpoint control. */
-        public static final double PID_kP = 2.0;
+        public static final double PID_kP = 4.0;
         public static final double PID_kI = 0.0;
         public static final double PID_kD = 0.0;
     }

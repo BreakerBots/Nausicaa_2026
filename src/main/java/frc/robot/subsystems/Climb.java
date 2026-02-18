@@ -7,6 +7,7 @@ import com.ctre.phoenix6.signals.NeutralModeValue;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 
 import edu.wpi.first.math.controller.PIDController;
+import edu.wpi.first.wpilibj.Encoder;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
@@ -23,9 +24,6 @@ public class Climb extends SubsystemBase {
             Constants.GeneralConstants.SUPERSTRUCTURE_CANIVORE_BUS);
     private final CANcoder climbEncoder = new CANcoder(Constants.ClimbConstants.CLIMB_ENCODER_ID,
             Constants.GeneralConstants.SUPERSTRUCTURE_CANIVORE_BUS);
-
-    /** Zero offset for motor encoder (when using motor encoder instead of CANcoder). */
-    private double motorEncoderZeroOffset = 0.0;
 
     /** Current target setpoint when moving. */
     private double targetSetpoint = Constants.ClimbConstants.SETPOINT_DOWN;
@@ -153,11 +151,16 @@ public class Climb extends SubsystemBase {
         if (state == State.INACTIVE) {
             stop();
             targetSetpoint = getEncoderRotations(); // Remember current position
+        } else if (state == State.RETRACTING || state == State.ASCENDING) {
+            targetSetpoint = Constants.ClimbConstants.SETPOINT_DOWN; // Remember current position
+        } else if (state == State.EXTENDING || state == State.DESCENDING) {
+            targetSetpoint = Constants.ClimbConstants.SETPOINT_UP; // Remember current position
         }
 
         BreakerLog.log("Climb/StateChange", previousState + " -> " + state);
         BreakerLog.log("Climb/State/Previous", previousState.toString());
         BreakerLog.log("Climb/State/Current", state.toString());
+        BreakerLog.log("Climb/TargetSetpoint", targetSetpoint);
         
         if (state != State.INACTIVE) {
             BreakerLog.log("Climb/State/Speed", state.getSpeed());

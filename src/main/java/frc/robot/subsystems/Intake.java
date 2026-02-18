@@ -128,7 +128,7 @@ public class Intake extends SubsystemBase {
                 state, pivotPosition, targetPivotRotations, pivotVelocity, state.getSpeed(), rollerVelocity);
         BreakerLog.log("Intake/Status", statusMessage);
         BreakerLog.log("Intake/EncoderPosition", pivotEncoder.getAbsolutePosition().getValueAsDouble());
-        System.out.println("Intake pivot encoder offset:" + pivotEncoder.getAbsolutePosition().getValueAsDouble());
+        // System.out.println("Intake pivot encoder offset:" + pivotEncoder.getAbsolutePosition().getValueAsDouble());
         BreakerLog.log("Electrical/Intake/roller", rollerMotor);
         BreakerLog.log("Electrical/Intake/pivot", pivotMotor);
     }
