@@ -207,11 +207,13 @@ public final class Constants {
         public static final int HOOD_MOTOR_ID = 33;
         public static final int HOOD_ENCODER_ID = 35;
         public static final double SPEED_IDLE = 0;
-        public static final double SPEED_FLYWHEEL_ACTIVE = 0.8; // need to tune
+        public static final double SPEED_FLYWHEEL_ACTIVE = 1.00; // need to tune
 
         /** Hood: external encoder; command takes target rotations. */
         public static final double SPEED_HOOD_UP = 0.08; // need to tune
         public static final double SPEED_HOOD_DOWN = -0.08; // need to tune
+
+        
     }
 
     // --------------- HOPPER --------------
@@ -221,7 +223,7 @@ public final class Constants {
         public static final int FEEDER_MOTOR_ID = 41;
         public static final double SPEED_INACTIVE = 0;
         public static final double SPEED_INDEXING = 0.5; // need to tune
-        public static final double SPEED_FEEDING = 0.4; // need to tune
+        public static final double SPEED_FEEDING = 0.6; // need to tune
     }
 
     // --------------- CLIMB --------------
@@ -234,7 +236,7 @@ public final class Constants {
         /** If true, use motor's integrated encoder instead of external CANcoder. */
         /** Setpoints: encoder positions (number of rotations) for UP and DOWN positions. */
         public static final double SETPOINT_UP = -1.788125;
-        public static final double SETPOINT_CLIMBED = 1.5;
+        public static final double SETPOINT_CLIMBED = -1.5;
         public static final double SETPOINT_DOWN = 0.1;
 
         /**
@@ -456,8 +458,7 @@ public final class Constants {
         private static final int kFrontLeftDriveMotorId = 8;
         private static final int kFrontLeftSteerMotorId = 9;
         private static final int kFrontLeftEncoderId = 10;
-        private static final Angle kFrontLeftEncoderOffset = Rotations.of(0.2138671875); // ALPHA
-        //private static final Angle kFrontLeftEncoderOffset = Rotations.of(0.21435546875); // BRAVO
+        private static final Angle kFrontLeftEncoderOffset = Rotations.of(0.1904296875); 
         private static final boolean kFrontLeftSteerInvert = true; //true
         private static final boolean kFrontLeftEncoderInvert = false; //false
         private static final Translation2d kFrontLeftModulePosition = new Translation2d(
@@ -469,8 +470,7 @@ public final class Constants {
         private static final int kFrontRightDriveMotorId = 11;
         private static final int kFrontRightSteerMotorId = 12;
         private static final int kFrontRightEncoderId = 13;
-        private static final Angle kFrontRightEncoderOffset = Rotations.of(-0.30810546875); // ALPHA
-        //private static final Angle kFrontRightEncoderOffset = Rotations.of(-0.313720703125); // BRAVO
+        private static final Angle kFrontRightEncoderOffset = Rotations.of(0.3896484375); 
         private static final boolean kFrontRightSteerInvert = true; // true
         private static final boolean kFrontRightEncoderInvert = false; // false
         private static final Translation2d kFrontRightModulePosition = new Translation2d(
@@ -482,8 +482,7 @@ public final class Constants {
         private static final int kBackLeftDriveMotorId = 14;
         private static final int kBackLeftSteerMotorId = 15;
         private static final int kBackLeftEncoderId = 16;
-        private static final Angle kBackLeftEncoderOffset = Rotation.of(0.12060546875); // ALPHA
-        //private static final Angle kBackLeftEncoderOffset = Rotation.of(0.1337890625); // BRAVO
+        private static final Angle kBackLeftEncoderOffset = Rotation.of(-0.047607421875); 
         private static final boolean kBackLeftSteerInvert = true; //true
         private static final boolean kBackLeftEncoderInvert = false; // false
         private static final Translation2d kBackLeftModulePosition = new Translation2d(
@@ -495,8 +494,7 @@ public final class Constants {
         private static final int kBackRightDriveMotorId = 17;
         private static final int kBackRightSteerMotorId = 18;
         private static final int kBackRightEncoderId = 19;
-        private static final Angle kBackRightEncoderOffset = Rotations.of(-0.489013671875); // ALPHA
-        //private static final Angle kBackRightEncoderOffset = Rotations.of(-0.487060546875); // BRAVO
+        private static final Angle kBackRightEncoderOffset = Rotations.of(-0.217041015625); 
         private static final boolean kBackRightSteerInvert = true; // true
         private static final boolean kBackRightEncoderInvert = false; // false
         private static final Translation2d kBackRightModulePosition = new Translation2d(
