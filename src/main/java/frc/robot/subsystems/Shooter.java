@@ -6,8 +6,9 @@ import com.ctre.phoenix6.hardware.CANcoder;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.MotorAlignmentValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
+import com.ctre.phoenix6.configs.Slot0Configs;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
-
+import com.ctre.phoenix6.controls.VelocityDutyCycle;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
@@ -30,6 +31,21 @@ public class Shooter extends SubsystemBase {
 
     public Shooter() {
         // Flywheels 2 and 3 follow flywheel 1 (same direction)
+        TalonFXConfiguration flywheelConfig = new TalonFXConfiguration();
+        flywheelConfig.MotorOutput.NeutralMode = NeutralModeValue.Coast;
+        Slot0Configs slot0 = flywheelConfig.Slot0;
+        
+        slot0.kS = Constants.ShooterConstants.SHOOTER_kS;
+        slot0.kV = Constants.ShooterConstants.SHOOTER_kV;
+        slot0.kA = Constants.ShooterConstants.SHOOTER_kA;
+        slot0.kP = Constants.ShooterConstants.SHOOTER_kP;
+        slot0.kI = Constants.ShooterConstants.SHOOTER_kI;
+        slot0.kD = Constants.ShooterConstants.SHOOTER_kD;
+
+         shooterFlywheel1Motor.getConfigurator().apply(flywheelConfig);
+         shooterFlywheel2Motor.getConfigurator().apply(flywheelConfig);
+         shooterFlywheel3Motor.getConfigurator().apply(flywheelConfig);
+
         int leaderId = Constants.ShooterConstants.SHOOTER_FLYWHEEL_1_MOTOR_ID;
         shooterFlywheel2Motor.setControl(new Follower(leaderId, MotorAlignmentValue.Aligned));
         shooterFlywheel3Motor.setControl(new Follower(leaderId, MotorAlignmentValue.Aligned));
@@ -74,6 +90,12 @@ public class Shooter extends SubsystemBase {
     public Command setStateCommand(State newState) {
         return Commands.runOnce(() -> setState(newState), this);
     }
+
+    // public boolean isAtTargetVelocity() {
+    //     double current = shooterFlywheel1Motor.getVelocity().getValueAsDouble();
+    //     double target = state.getFlywheelSpeed();
+    //     return Math.abs(current - target) < Constants.ShooterConstants.VELOCITY_TOLERANCE;
+    // }
 
     // --------------- Hood (external encoder, run until target rotations) ---------------
 
@@ -141,7 +163,12 @@ public class Shooter extends SubsystemBase {
     }
 
     private void setFlywheelSpeed(double speed) {
-        shooterFlywheel1Motor.setControl(new DutyCycleOut(speed));
+        if (speed == 0) {
+            shooterFlywheel1Motor.setControl(new DutyCycleOut(0));
+        } else {
+            shooterFlywheel1Motor.setControl(new VelocityDutyCycle(speed));
+        }
+        
     }
 
 }

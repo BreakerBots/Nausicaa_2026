@@ -208,8 +208,21 @@ public final class Constants {
         public static final int SHOOTER_FLYWHEEL_3_MOTOR_ID = 32;
         public static final int HOOD_MOTOR_ID = 33;
         public static final int HOOD_ENCODER_ID = 35;
+
+        /** Feedforward */
+        public static final double SHOOTER_kS = 0.0;
+        public static final double SHOOTER_kV = 0.0;
+        public static final double SHOOTER_kA = 0.0;
+
+        /**PID */
+        public static final double SHOOTER_kP = 0.2;
+        public static final double SHOOTER_kI = 0.0;
+        public static final double SHOOTER_kD = 0.0;
+
+        // public static final double VELOCITY_TOLERANCE = 2.0;
+        
         public static final double SPEED_IDLE = 0;
-        public static final double SPEED_FLYWHEEL_ACTIVE = 0.3; // need to tune
+        public static final double SPEED_FLYWHEEL_ACTIVE = 50; // need to tune
 
         /** Hood: external encoder; command takes target rotations. */
         public static final double SPEED_HOOD_UP = 0.08; // need to tune
