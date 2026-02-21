@@ -187,6 +187,8 @@ public class RobotContainer {
             intake.setStateCommand(Intake.State.STOWED)
             )
         );
+
+        
         // X: SHOOTER
         controller.getButtonX().onTrue(Commands.runOnce(() -> {
             if (shooter.state == Shooter.State.SHOOTING) {
@@ -195,14 +197,21 @@ public class RobotContainer {
                 CommandScheduler.getInstance().schedule(shooter.setStateCommand(Shooter.State.SHOOTING));
             }
         }, shooter));
-        // A: FEEDER
+        // A: FEEDER and INDEXER
         controller.getButtonA().onTrue(Commands.runOnce(() -> {
             if (hopper.state == Hopper.State.FEEDING) {
                 CommandScheduler.getInstance().schedule(hopper.setStateCommand(Hopper.State.INACTIVE));
             } else {
                 CommandScheduler.getInstance().schedule(hopper.setStateCommand(Hopper.State.FEEDING));
+                Commands.sequence(
+                    Commands.runOnce(() -> intake.setStateCommand(Intake.State.FEED_JIGGLE_HIGH), intake),
+                    Commands.waitSeconds(1.0),
+                    Commands.runOnce(() -> intake.setStateCommand(Intake.State.FEED_JIGGLE_LOW)),
+                    Commands.waitSeconds(1.0)
+                ).repeatedly().until(()-> hopper.state != Hopper.State.FEEDING );
             }
-        }, hopper));
+
+        }, hopper, intake));
 
 
         // D-PAD RIGHT --> Hood up (while held; stop when released)

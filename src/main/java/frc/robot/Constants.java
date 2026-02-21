@@ -173,10 +173,10 @@ public final class Constants {
 
 
         /** Pivot angles (rotations) – placeholders until tuned. */
-        public static final Rotation2d POSITION_STOWED = Rotation2d.fromRotations(0.0);
-        public static final Rotation2d POSITION_EXTENDED = Rotation2d.fromRotations(0.20); // Need to Tune
-        public static final Rotation2d POSITION_JIGGLE_HIGH = Rotation2d.fromRotations(0.0);
-        public static final Rotation2d POSITION_JIGGLE_LOW = Rotation2d.fromRotations(0.0);
+        public static final Rotation2d POSITION_STOWED = Rotation2d.fromRotations(-0.05);
+        public static final Rotation2d POSITION_EXTENDED = Rotation2d.fromRotations(0.21); // Need to Tune
+        public static final Rotation2d POSITION_JIGGLE_HIGH = Rotation2d.fromRotations(0.1);
+        public static final Rotation2d POSITION_JIGGLE_LOW = Rotation2d.fromRotations(0.15);
 
         /** Motion Magic (rotations/s, rotations/s², rotations/s³). */
          public static final double PIVOT_MM_CRUISE_VELOCITY = 1.0;
@@ -210,12 +210,10 @@ public final class Constants {
         public static final int HOOD_ENCODER_ID = 35;
 
         /** Feedforward */
-        public static final double SHOOTER_kS = 0.0;
-        public static final double SHOOTER_kV = 0.0;
-        public static final double SHOOTER_kA = 0.0;
+        public static final double SHOOTER_kV = 0.01;
 
         /**PID */
-        public static final double SHOOTER_kP = 0.2;
+        public static final double SHOOTER_kP = 0.0;
         public static final double SHOOTER_kI = 0.0;
         public static final double SHOOTER_kD = 0.0;
 

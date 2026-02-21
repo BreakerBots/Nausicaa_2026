@@ -35,9 +35,7 @@ public class Shooter extends SubsystemBase {
         flywheelConfig.MotorOutput.NeutralMode = NeutralModeValue.Coast;
         Slot0Configs slot0 = flywheelConfig.Slot0;
         
-        slot0.kS = Constants.ShooterConstants.SHOOTER_kS;
         slot0.kV = Constants.ShooterConstants.SHOOTER_kV;
-        slot0.kA = Constants.ShooterConstants.SHOOTER_kA;
         slot0.kP = Constants.ShooterConstants.SHOOTER_kP;
         slot0.kI = Constants.ShooterConstants.SHOOTER_kI;
         slot0.kD = Constants.ShooterConstants.SHOOTER_kD;

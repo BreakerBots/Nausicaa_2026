@@ -115,6 +115,8 @@ public class Intake extends SubsystemBase {
         return Commands.runOnce(() -> setState(newState), this);
     }
 
+    
+
 
     @Override
     public void periodic() {
