@@ -90,16 +90,18 @@ public final class Constants {
         public static final boolean USE_MEGATAG2 = false;
 
         // Limelight 4 camera names (configured in Limelight UI)
-        public static final String FRONT_CAMERA = "limelight-fr";
-        public static final String BACK_CAMERA = "limelight-bl";
+        public static final String FRONT_CAMERA = "limelight-f";
+        public static final String BACK_LEFT_CAMERA = "limelight-bl";
+        public static final String BACK_RIGHT_CAMERA = "limelight-br";
         
         // Camera pose relative to robot center (meters, degrees)
         // Format: [forward, side, up, roll, pitch, yaw]
         // TODO: Measure and configure actual camera positions
         //public static final double[] FRONT_CAMERA_POSE = {0.244983, 0.3155442, 0.2014728, 0.0, 23.0, 34.0};
         //public static final double[] BACK_CAMERA_POSE = {-0.244983, -0.3155442, 0.2014728, 0.0, 23.0, -146.0};
-        public static final double[] FRONT_CAMERA_POSE = {0.32385, 0.24765, 0.2413, 0.0, 23.0, 34.0};
-        public static final double[] BACK_CAMERA_POSE = {-0.32385, -0.24765, 0.2413, 0.0, 23.0, -146.0};
+        public static final double[] FRONT_CAMERA_POSE = {0.1513179, 0.0, 0.128, 0.0, 26.0, 0};
+        public static final double[] BACK_LEFT_CAMERA_POSE = {-0.30145941, 0.29537006, 0.187641611, 0.0, 28.1, -145.0093};
+        public static final double[] BACK_RIGHT_CAMERA_POSE = {-0.30441567, -0.24862055, 0.1876415856, 28.1, 0.0, 144};
         
         // Minimum number of tags required to trust a vision measurement
         public static final int MIN_TAG_COUNT = 1;
