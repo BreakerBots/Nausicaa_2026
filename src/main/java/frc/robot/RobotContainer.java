@@ -165,15 +165,15 @@ public class RobotContainer {
 
         // ----------------- INTAKE -------------
         
-        // B: Toggle between STOWED and EXTENDED_IDLE
+        // B: ROLLER
         controller.getButtonB().onTrue(Commands.runOnce(() -> {
-            if (intake.state == Intake.State.EXTENDED_INTAKING) {
+            if (intake.state == Intake.State.STOW_INTAKING) {
                 CommandScheduler.getInstance().schedule(intake.setStateCommand(Intake.State.EXTENDED_IDLE));
             } else {
                 CommandScheduler.getInstance().schedule(intake.setStateCommand(Intake.State.STOW_INTAKING));
             }
         }, intake));
-
+        // Y: PIVOT
         controller.getButtonY().onTrue(Commands.runOnce(() -> {
             if (intake.state != Intake.State.STOWED) {
                 CommandScheduler.getInstance().schedule(intake.setStateCommand(Intake.State.STOWED));
@@ -181,7 +181,7 @@ public class RobotContainer {
                 CommandScheduler.getInstance().schedule(intake.setStateCommand(Intake.State.EXTENDED_IDLE));
             }
         }, intake));
-
+        // X: SHOOTER
         controller.getButtonX().onTrue(Commands.runOnce(() -> {
             if (shooter.state == Shooter.State.SHOOTING) {
                 CommandScheduler.getInstance().schedule(shooter.setStateCommand(Shooter.State.INACTIVE));
@@ -189,7 +189,7 @@ public class RobotContainer {
                 CommandScheduler.getInstance().schedule(shooter.setStateCommand(Shooter.State.SHOOTING));
             }
         }, shooter));
-
+        // A: FEEDER
         controller.getButtonA().onTrue(Commands.runOnce(() -> {
             if (hopper.state == Hopper.State.FEEDING) {
                 CommandScheduler.getInstance().schedule(hopper.setStateCommand(Hopper.State.INACTIVE));
