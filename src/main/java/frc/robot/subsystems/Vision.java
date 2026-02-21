@@ -23,7 +23,7 @@ import frc.robot.LimelightHelpers.PoseEstimate;
 import java.util.Optional;
 
 /**
- * Vision subsystem for handling two LimeLight4 (LL4) cameras for localization.
+ * Vision subsystem for handling three LimeLight4 (LL4) cameras for localization.
  */
 public class Vision extends SubsystemBase {
     private final Drivetrain drivetrain;
@@ -32,20 +32,24 @@ public class Vision extends SubsystemBase {
     // Store latest vision poses for visualization
     private Pose2d fusedPose = null;
     private Pose2d frontCameraPose = null;
-    private Pose2d backCameraPose = null;
+    private Pose2d backLeftCameraPose = null;
+    private Pose2d backRightCameraPose = null;
     
     // Store latest pose estimates for metadata
     private PoseEstimate frontCameraEstimate = null;
-    private PoseEstimate backCameraEstimate = null;
+    private PoseEstimate backLeftCameraEstimate = null;
+    private PoseEstimate backRightCameraEstimate = null;
 
     // Timer for periodic logging (once per second)
     private double lastLogTime = 0.0;
 
     // Track measurement acceptance/rejection status for each camera
     private String frontCameraStatus = "No data";
-    private String backCameraStatus = "No data";
+    private String backLeftCameraStatus = "No data";
+    private String backRightCameraStatus = "No data";
     private String frontCameraLastRejection = "None";
-    private String backCameraLastRejection = "None";
+    private String backLeftCameraLastRejection = "None";
+    private String backRightCameraLastRejection = "None";
 
     /** Creates a new Vision subsystem. */
     public Vision(Drivetrain drivetrain) {
@@ -63,13 +67,22 @@ public class Vision extends SubsystemBase {
         );
         
         LimelightHelpers.setCameraPose_RobotSpace(
-            VisionConstants.BACK_CAMERA,
-            VisionConstants.BACK_CAMERA_POSE[0], // forward
-            VisionConstants.BACK_CAMERA_POSE[1], // side
-            VisionConstants.BACK_CAMERA_POSE[2], // up
-            VisionConstants.BACK_CAMERA_POSE[3], // roll
-            VisionConstants.BACK_CAMERA_POSE[4], // pitch
-            VisionConstants.BACK_CAMERA_POSE[5]  // yaw
+            VisionConstants.BACK_LEFT_CAMERA,
+            VisionConstants.BACK_LEFT_CAMERA_POSE[0], // forward
+            VisionConstants.BACK_LEFT_CAMERA_POSE[1], // side
+            VisionConstants.BACK_LEFT_CAMERA_POSE[2], // up
+            VisionConstants.BACK_LEFT_CAMERA_POSE[3], // roll
+            VisionConstants.BACK_LEFT_CAMERA_POSE[4], // pitch
+            VisionConstants.BACK_LEFT_CAMERA_POSE[5]  // yaw
+        );
+        LimelightHelpers.setCameraPose_RobotSpace(
+            VisionConstants.BACK_RIGHT_CAMERA,
+            VisionConstants.BACK_RIGHT_CAMERA_POSE[0], // forward
+            VisionConstants.BACK_RIGHT_CAMERA_POSE[1], // side
+            VisionConstants.BACK_RIGHT_CAMERA_POSE[2], // up
+            VisionConstants.BACK_RIGHT_CAMERA_POSE[3], // roll
+            VisionConstants.BACK_RIGHT_CAMERA_POSE[4], // pitch
+            VisionConstants.BACK_RIGHT_CAMERA_POSE[5]  // yaw
         );
 
         // Set up the field and start sending its info to Elastic
@@ -85,12 +98,14 @@ public class Vision extends SubsystemBase {
         // Send robot orientation (IMU data) to Limelights for MegaTag2 (only needed for MegaTag2)
         if (VisionConstants.USE_MEGATAG2) {
             sendRobotOrientationToLimelight(VisionConstants.FRONT_CAMERA);
-            sendRobotOrientationToLimelight(VisionConstants.BACK_CAMERA);
+            sendRobotOrientationToLimelight(VisionConstants.BACK_LEFT_CAMERA);
+            sendRobotOrientationToLimelight(VisionConstants.BACK_RIGHT_CAMERA);
         }
 
-        // Process vision poses from both cameras
+        // Process vision poses from all three cameras
         updatePoseEstimate(VisionConstants.FRONT_CAMERA);
-        updatePoseEstimate(VisionConstants.BACK_CAMERA);
+        updatePoseEstimate(VisionConstants.BACK_LEFT_CAMERA);
+        updatePoseEstimate(VisionConstants.BACK_RIGHT_CAMERA);
 
         // Update Field2d with all poses (fused, and one for each camera) for Elastic
         // dashboard visualization
@@ -99,8 +114,11 @@ public class Vision extends SubsystemBase {
         if (frontCameraPose != null) {
             field.getObject(VisionConstants.FRONT_CAMERA).setPose(frontCameraPose);
         }
-        if (backCameraPose != null) {
-            field.getObject(VisionConstants.BACK_CAMERA).setPose(backCameraPose);
+        if (backLeftCameraPose != null) {
+            field.getObject(VisionConstants.BACK_LEFT_CAMERA).setPose(backLeftCameraPose);
+        }
+        if (backRightCameraPose != null) {
+            field.getObject(VisionConstants.BACK_RIGHT_CAMERA).setPose(backRightCameraPose);
         }
 
         // Log vision data once per second
@@ -176,9 +194,12 @@ public class Vision extends SubsystemBase {
         if (cameraName.equals(VisionConstants.FRONT_CAMERA)) {
             frontCameraPose = visionPose;
             frontCameraEstimate = estimate;
-        } else {
-            backCameraPose = visionPose;
-            backCameraEstimate = estimate;
+        } else if (cameraName.equals(VisionConstants.BACK_LEFT_CAMERA)) {
+            backLeftCameraPose = visionPose;
+            backLeftCameraEstimate = estimate;
+        } else if (cameraName.equals(VisionConstants.BACK_RIGHT_CAMERA)) {
+            backRightCameraPose = visionPose;
+            backRightCameraEstimate = estimate;
         }
 
         // Only use vision data if we have enough tags
@@ -262,27 +283,37 @@ public class Vision extends SubsystemBase {
      * Checks if any camera detects a tag.
      */
     public boolean isTagDetected() {
-        // Check both cameras for valid pose estimates with tags
+        // Check all cameras for valid pose estimates with tags
         if (frontCameraEstimate != null && frontCameraEstimate.tagCount > 0) {
             return true;
         }
-        if (backCameraEstimate != null && backCameraEstimate.tagCount > 0) {
+        if (backLeftCameraEstimate != null && backLeftCameraEstimate.tagCount > 0) {
+            return true;
+        }
+        if (backRightCameraEstimate != null && backRightCameraEstimate.tagCount > 0) {
             return true;
         }
         return false;
     }
 
     public boolean isTagDetected(int targetTagId) {
-        // Check both cameras for valid pose estimates with tags
+        // Check all cameras for valid pose estimates with tags
         if (frontCameraEstimate != null && frontCameraEstimate.rawFiducials != null) {
-            for (var i:frontCameraEstimate.rawFiducials) {
+            for (var i : frontCameraEstimate.rawFiducials) {
                 if (i.id == targetTagId) {
                     return true;
                 }
             }
         }
-        if (backCameraEstimate.rawFiducials != null) {
-            for (var i:backCameraEstimate.rawFiducials) {
+        if (backLeftCameraEstimate != null && backLeftCameraEstimate.rawFiducials != null) {
+            for (var i : backLeftCameraEstimate.rawFiducials) {
+                if (i.id == targetTagId) {
+                    return true;
+                }
+            }
+        }
+        if (backRightCameraEstimate != null && backRightCameraEstimate.rawFiducials != null) {
+            for (var i : backRightCameraEstimate.rawFiducials) {
                 if (i.id == targetTagId) {
                     return true;
                 }
@@ -293,22 +324,26 @@ public class Vision extends SubsystemBase {
 
     /**
      * Gets the ID of the primary tag detected by any camera.
-     * Checks both cameras and returns the first tag found.
+     * Checks all cameras and returns the first tag found.
      */
     public int getDetectedTagId() {
         // Check front camera first
         if (frontCameraEstimate != null && frontCameraEstimate.rawFiducials != null && frontCameraEstimate.rawFiducials.length > 0) {
             return (int) frontCameraEstimate.rawFiducials[0].id;
         }
-        // Check back camera
-        if (backCameraEstimate != null && backCameraEstimate.rawFiducials != null && backCameraEstimate.rawFiducials.length > 0) {
-            return (int) backCameraEstimate.rawFiducials[0].id;
+        // Check back-left camera
+        if (backLeftCameraEstimate != null && backLeftCameraEstimate.rawFiducials != null && backLeftCameraEstimate.rawFiducials.length > 0) {
+            return (int) backLeftCameraEstimate.rawFiducials[0].id;
+        }
+        // Check back-right camera
+        if (backRightCameraEstimate != null && backRightCameraEstimate.rawFiducials != null && backRightCameraEstimate.rawFiducials.length > 0) {
+            return (int) backRightCameraEstimate.rawFiducials[0].id;
         }
         return -1; // No tag detected
     }
 
     /**
-     * Gets the ID of the nearest AprilTag currently detected (front or back camera).
+     * Gets the ID of the nearest AprilTag currently detected (any camera).
      * Uses fused pose and field layout to compute distance; returns -1 if no tags detected.
      */
     public int getNearestDetectedTagId() {
@@ -324,8 +359,18 @@ public class Vision extends SubsystemBase {
                 }
             }
         }
-        if (backCameraEstimate != null && backCameraEstimate.rawFiducials != null) {
-            for (var f : backCameraEstimate.rawFiducials) {
+        if (backLeftCameraEstimate != null && backLeftCameraEstimate.rawFiducials != null) {
+            for (var f : backLeftCameraEstimate.rawFiducials) {
+                int id = (int) f.id;
+                double d = getDistanceToTag(id);
+                if (d >= 0 && d < minDistance) {
+                    minDistance = d;
+                    nearestTagId = id;
+                }
+            }
+        }
+        if (backRightCameraEstimate != null && backRightCameraEstimate.rawFiducials != null) {
+            for (var f : backRightCameraEstimate.rawFiducials) {
                 int id = (int) f.id;
                 double d = getDistanceToTag(id);
                 if (d >= 0 && d < minDistance) {
@@ -434,13 +479,16 @@ public Translation2d getRobotToTagTranslation(int tagId) {
 
         // Get tag IDs from pose estimates
         int[] frontTags = getTagIdsFromEstimate(frontCameraEstimate);
-        int[] backTags = getTagIdsFromEstimate(backCameraEstimate);
+        int[] backLeftTags = getTagIdsFromEstimate(backLeftCameraEstimate);
+        int[] backRightTags = getTagIdsFromEstimate(backRightCameraEstimate);
         String frontTagsStr = formatTagArray(frontTags);
-        String backTagsStr = formatTagArray(backTags);
+        String backLeftTagsStr = formatTagArray(backLeftTags);
+        String backRightTagsStr = formatTagArray(backRightTags);
 
         // Format poses with 2 decimal places
         String frontPoseStr = formatPose(frontCameraPose);
-        String backPoseStr = formatPose(backCameraPose);
+        String backLeftPoseStr = formatPose(backLeftCameraPose);
+        String backRightPoseStr = formatPose(backRightCameraPose);
         String fusedPoseStr = formatPose(fusedPose);
 
         // Fused pose (odometry + vision): X, Y, yaw
@@ -460,15 +508,21 @@ public Translation2d getRobotToTagTranslation(int tagId) {
         double frontTrustScore = frontCameraEstimate != null
                 ? getTrustScore(frontCameraEstimate.tagCount, frontCameraEstimate.avgTagDist)
                 : Double.NaN;
-        double backTrustScore = backCameraEstimate != null
-                ? getTrustScore(backCameraEstimate.tagCount, backCameraEstimate.avgTagDist)
+        double backLeftTrustScore = backLeftCameraEstimate != null
+                ? getTrustScore(backLeftCameraEstimate.tagCount, backLeftCameraEstimate.avgTagDist)
+                : Double.NaN;
+        double backRightTrustScore = backRightCameraEstimate != null
+                ? getTrustScore(backRightCameraEstimate.tagCount, backRightCameraEstimate.avgTagDist)
                 : Double.NaN;
 
         double frontDistToFused = (frontCameraPose != null && fusedPose != null)
                 ? frontCameraPose.getTranslation().getDistance(fusedPose.getTranslation())
                 : Double.NaN;
-        double backDistToFused = (backCameraPose != null && fusedPose != null)
-                ? backCameraPose.getTranslation().getDistance(fusedPose.getTranslation())
+        double backLeftDistToFused = (backLeftCameraPose != null && fusedPose != null)
+                ? backLeftCameraPose.getTranslation().getDistance(fusedPose.getTranslation())
+                : Double.NaN;
+        double backRightDistToFused = (backRightCameraPose != null && fusedPose != null)
+                ? backRightCameraPose.getTranslation().getDistance(fusedPose.getTranslation())
                 : Double.NaN;
 
         SmartDashboard.putString("Vision/FrontCamera/Tags", frontTagsStr);
@@ -478,12 +532,19 @@ public Translation2d getRobotToTagTranslation(int tagId) {
         SmartDashboard.putString("Vision/FrontCamera/Status", frontCameraStatus);
         SmartDashboard.putString("Vision/FrontCamera/LastRejection", frontCameraLastRejection);
 
-        SmartDashboard.putString("Vision/BackCamera/Tags", backTagsStr);
-        SmartDashboard.putString("Vision/BackCamera/Pose", backPoseStr);
-        SmartDashboard.putNumber("Vision/BackCamera/TrustScore", backTrustScore);
-        SmartDashboard.putNumber("Vision/BackCamera/DistToFusedM", backDistToFused);
-        SmartDashboard.putString("Vision/BackCamera/Status", backCameraStatus);
-        SmartDashboard.putString("Vision/BackCamera/LastRejection", backCameraLastRejection);
+        SmartDashboard.putString("Vision/BackLeftCamera/Tags", backLeftTagsStr);
+        SmartDashboard.putString("Vision/BackLeftCamera/Pose", backLeftPoseStr);
+        SmartDashboard.putNumber("Vision/BackLeftCamera/TrustScore", backLeftTrustScore);
+        SmartDashboard.putNumber("Vision/BackLeftCamera/DistToFusedM", backLeftDistToFused);
+        SmartDashboard.putString("Vision/BackLeftCamera/Status", backLeftCameraStatus);
+        SmartDashboard.putString("Vision/BackLeftCamera/LastRejection", backLeftCameraLastRejection);
+
+        SmartDashboard.putString("Vision/BackRightCamera/Tags", backRightTagsStr);
+        SmartDashboard.putString("Vision/BackRightCamera/Pose", backRightPoseStr);
+        SmartDashboard.putNumber("Vision/BackRightCamera/TrustScore", backRightTrustScore);
+        SmartDashboard.putNumber("Vision/BackRightCamera/DistToFusedM", backRightDistToFused);
+        SmartDashboard.putString("Vision/BackRightCamera/Status", backRightCameraStatus);
+        SmartDashboard.putString("Vision/BackRightCamera/LastRejection", backRightCameraLastRejection);
 
         SmartDashboard.putString("Vision/FusedPose/Pose", fusedPoseStr);
 
@@ -493,17 +554,21 @@ public Translation2d getRobotToTagTranslation(int tagId) {
         } catch (Exception ignored) {
         }
         String frontTrustStr = Double.isNaN(frontTrustScore) ? "—" : String.format("%.3f", frontTrustScore);
-        String backTrustStr = Double.isNaN(backTrustScore) ? "—" : String.format("%.3f", backTrustScore);
+        String backLeftTrustStr = Double.isNaN(backLeftTrustScore) ? "—" : String.format("%.3f", backLeftTrustScore);
+        String backRightTrustStr = Double.isNaN(backRightTrustScore) ? "—" : String.format("%.3f", backRightTrustScore);
         String frontDistStr = Double.isNaN(frontDistToFused) ? "—" : String.format("%.3fm", frontDistToFused);
-        String backDistStr = Double.isNaN(backDistToFused) ? "—" : String.format("%.3fm", backDistToFused);
+        String backLeftDistStr = Double.isNaN(backLeftDistToFused) ? "—" : String.format("%.3fm", backLeftDistToFused);
+        String backRightDistStr = Double.isNaN(backRightDistToFused) ? "—" : String.format("%.3fm", backRightDistToFused);
         String logMessage = String.format(
                 "------------------------------------------------------\n" +
                 "- Front Camera: Tags %s, Pose %s, Trust %s, ΔFused %s\n" +
-                "- Back Camera: Tags %s, Pose %s, Trust %s, ΔFused %s\n" +
+                "- Back-Left Camera: Tags %s, Pose %s, Trust %s, ΔFused %s\n" +
+                "- Back-Right Camera: Tags %s, Pose %s, Trust %s, ΔFused %s\n" +
                 "- Fused: Pose %s (X=%.2f Y=%.2f Yaw=%.2f)\n" +
                 "- IMU Yaw: %.2f deg",
                 frontTagsStr, frontPoseStr, frontTrustStr, frontDistStr,
-                backTagsStr, backPoseStr, backTrustStr, backDistStr,
+                backLeftTagsStr, backLeftPoseStr, backLeftTrustStr, backLeftDistStr,
+                backRightTagsStr, backRightPoseStr, backRightTrustStr, backRightDistStr,
                 fusedPoseStr,
                 fusedPose != null ? fusedPose.getX() : Double.NaN,
                 fusedPose != null ? fusedPose.getY() : Double.NaN,
@@ -566,8 +631,10 @@ public Translation2d getRobotToTagTranslation(int tagId) {
     private void updateStatus(String cameraName, String status) {
         if (cameraName.equals(VisionConstants.FRONT_CAMERA)) {
             frontCameraStatus = status;
-        } else {
-            backCameraStatus = status;
+        } else if (cameraName.equals(VisionConstants.BACK_LEFT_CAMERA)) {
+            backLeftCameraStatus = status;
+        } else if (cameraName.equals(VisionConstants.BACK_RIGHT_CAMERA)) {
+            backRightCameraStatus = status;
         }
     }
 
@@ -581,8 +648,10 @@ public Translation2d getRobotToTagTranslation(int tagId) {
         // Store the rejection reason
         if (cameraName.equals(VisionConstants.FRONT_CAMERA)) {
             frontCameraLastRejection = rejectionMessage;
-        } else {
-            backCameraLastRejection = rejectionMessage;
+        } else if (cameraName.equals(VisionConstants.BACK_LEFT_CAMERA)) {
+            backLeftCameraLastRejection = rejectionMessage;
+        } else if (cameraName.equals(VisionConstants.BACK_RIGHT_CAMERA)) {
+            backRightCameraLastRejection = rejectionMessage;
         }
         
         // Update the comprehensive status
