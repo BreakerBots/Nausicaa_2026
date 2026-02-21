@@ -15,6 +15,8 @@ import com.pathplanner.lib.path.PathConstraints;
 import java.util.Set;
 import java.util.function.DoubleSupplier;
 
+import javax.sound.sampled.SourceDataLine;
+
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -187,30 +189,31 @@ public class RobotContainer {
             intake.setStateCommand(Intake.State.STOWED)
             )
         );
-
-        
         // X: SHOOTER
         controller.getButtonX().onTrue(Commands.runOnce(() -> {
             if (shooter.state == Shooter.State.SHOOTING) {
-                CommandScheduler.getInstance().schedule(shooter.setStateCommand(Shooter.State.INACTIVE));
+                shooter.setState(Shooter.State.INACTIVE);
             } else {
-                CommandScheduler.getInstance().schedule(shooter.setStateCommand(Shooter.State.SHOOTING));
+                shooter.setState(Shooter.State.SHOOTING);
             }
         }, shooter));
-        // A: FEEDER and INDEXER
+        // A: FEEDER and INDEXER and INTAKE JIGGLE
         controller.getButtonA().onTrue(Commands.runOnce(() -> {
             if (hopper.state == Hopper.State.FEEDING) {
-                CommandScheduler.getInstance().schedule(hopper.setStateCommand(Hopper.State.INACTIVE));
+                hopper.setState(Hopper.State.INACTIVE);
             } else {
-                CommandScheduler.getInstance().schedule(hopper.setStateCommand(Hopper.State.FEEDING));
-                Commands.sequence(
-                    Commands.runOnce(() -> intake.setStateCommand(Intake.State.FEED_JIGGLE_HIGH), intake),
-                    Commands.waitSeconds(1.0),
-                    Commands.runOnce(() -> intake.setStateCommand(Intake.State.FEED_JIGGLE_LOW)),
-                    Commands.waitSeconds(1.0)
-                ).repeatedly().until(()-> hopper.state != Hopper.State.FEEDING );
+                System.out.println("Starting Sequence");
+                hopper.setState(Hopper.State.FEEDING);
+                CommandScheduler.getInstance().schedule(
+                    Commands.sequence(
+                        intake.setStateCommand(Intake.State.FEED_JIGGLE_HIGH),
+                        Commands.waitSeconds(0.5),
+                        intake.setStateCommand(Intake.State.FEED_JIGGLE_LOW),
+                        Commands.waitSeconds(0.5)
+                    ).repeatedly().until(()-> hopper.state != Hopper.State.FEEDING)
+                );
+                System.out.println("Sequence Complete");
             }
-
         }, hopper, intake));
 
 

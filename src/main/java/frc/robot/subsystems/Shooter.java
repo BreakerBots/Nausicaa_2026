@@ -9,6 +9,8 @@ import com.ctre.phoenix6.signals.NeutralModeValue;
 import com.ctre.phoenix6.configs.Slot0Configs;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.VelocityDutyCycle;
+import com.ctre.phoenix6.controls.VelocityVoltage;
+
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
@@ -35,6 +37,7 @@ public class Shooter extends SubsystemBase {
         flywheelConfig.MotorOutput.NeutralMode = NeutralModeValue.Coast;
         Slot0Configs slot0 = flywheelConfig.Slot0;
         
+        slot0.kD = Constants.ShooterConstants.SHOOTER_kS;
         slot0.kV = Constants.ShooterConstants.SHOOTER_kV;
         slot0.kP = Constants.ShooterConstants.SHOOTER_kP;
         slot0.kI = Constants.ShooterConstants.SHOOTER_kI;
@@ -162,9 +165,9 @@ public class Shooter extends SubsystemBase {
 
     private void setFlywheelSpeed(double speed) {
         if (speed == 0) {
-            shooterFlywheel1Motor.setControl(new DutyCycleOut(0));
+            shooterFlywheel1Motor.setControl(new DutyCycleOut(0).withOverrideBrakeDurNeutral(false));
         } else {
-            shooterFlywheel1Motor.setControl(new VelocityDutyCycle(speed));
+            shooterFlywheel1Motor.setControl(new VelocityVoltage(speed).withAcceleration(20));
         }
         
     }
