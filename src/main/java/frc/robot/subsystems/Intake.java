@@ -36,12 +36,12 @@ public class Intake extends SubsystemBase {
 
         Slot0Configs slot0 = config.Slot0;
 
-        // // Motion Magic
+        // Motion Magic
         config.MotionMagic.MotionMagicCruiseVelocity = Constants.IntakeConstants.PIVOT_MM_CRUISE_VELOCITY;
         config.MotionMagic.MotionMagicAcceleration = Constants.IntakeConstants.PIVOT_MM_ACCELERATION;
         config.MotionMagic.MotionMagicJerk = Constants.IntakeConstants.PIVOT_MM_JERK;
          
-        // // Feedforward
+        // Feedforward
         slot0.kS = Constants.IntakeConstants.PIVOT_kS;
         slot0.kG = Constants.IntakeConstants.PIVOT_kG;
         slot0.kV = Constants.IntakeConstants.PIVOT_kV;

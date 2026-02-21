@@ -171,31 +171,33 @@ public final class Constants {
         public static final int ROLLER_MOTOR_ID = 21;
         public static final int PIVOT_ENCODER_ID = 25;
 
+
         /** Pivot angles (rotations) – placeholders until tuned. */
         public static final Rotation2d POSITION_STOWED = Rotation2d.fromRotations(0.0);
-        public static final Rotation2d POSITION_EXTENDED = Rotation2d.fromRotations(0.18);
+        public static final Rotation2d POSITION_EXTENDED = Rotation2d.fromRotations(0.20); // Need to Tune
         public static final Rotation2d POSITION_JIGGLE_HIGH = Rotation2d.fromRotations(0.0);
         public static final Rotation2d POSITION_JIGGLE_LOW = Rotation2d.fromRotations(0.0);
 
         /** Motion Magic (rotations/s, rotations/s², rotations/s³). */
-        public static final double PIVOT_MM_CRUISE_VELOCITY = 1.0;
-        public static final double PIVOT_MM_ACCELERATION = 2.0;
-        public static final double PIVOT_MM_JERK = 0.5;
+         public static final double PIVOT_MM_CRUISE_VELOCITY = 1.0;
+         public static final double PIVOT_MM_ACCELERATION = 2.0;
+         public static final double PIVOT_MM_JERK = 10;
 
         /** Feedforward (Slot0). */
-        public static final double PIVOT_kS = 0.08;
-        public static final double PIVOT_kG = 0.00;
-        public static final double PIVOT_kV = 0.12;
-        public static final double PIVOT_kA = 0.01;
+         public static final double PIVOT_kS = 0.08;
+         public static final double PIVOT_kG = 0.08;
+         public static final double PIVOT_kV = 0.12;
+         public static final double PIVOT_kA = 0.01;
 
         /** PID (Slot0). */
-        public static final double PIVOT_kP = 0.4;
+        public static final double PIVOT_kP = 2.0;
         public static final double PIVOT_kI = 0.00;
         public static final double PIVOT_kD = 0.08;
 
         public static final double SPEED_IDLE = 0;
         public static final double SPEED_EXTAKE = 0.5;
-        public static final double SPEED_INTAKE = -0.5;
+
+        public static final double SPEED_INTAKE = -0.7;
     }
 
     // --------------- SHOOTER --------------
@@ -207,7 +209,7 @@ public final class Constants {
         public static final int HOOD_MOTOR_ID = 33;
         public static final int HOOD_ENCODER_ID = 35;
         public static final double SPEED_IDLE = 0;
-        public static final double SPEED_FLYWHEEL_ACTIVE = 1.00; // need to tune
+        public static final double SPEED_FLYWHEEL_ACTIVE = 0.3; // need to tune
 
         /** Hood: external encoder; command takes target rotations. */
         public static final double SPEED_HOOD_UP = 0.08; // need to tune

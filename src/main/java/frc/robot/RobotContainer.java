@@ -163,14 +163,14 @@ public class RobotContainer {
             // controller.getButtonA().onTrue(rangeToTagCommand(Constants.FieldConstants.getTrenchTagID(), 1.0));
         }
 
-        // ----------------- INTAKE -------------
+        // ----------------- TEST CONTROLS -------------
         
         // B: ROLLER
         controller.getButtonB().onTrue(Commands.runOnce(() -> {
-            if (intake.state == Intake.State.STOW_INTAKING) {
+            if (intake.state == Intake.State.EXTENDED_INTAKING) {
                 CommandScheduler.getInstance().schedule(intake.setStateCommand(Intake.State.EXTENDED_IDLE));
             } else {
-                CommandScheduler.getInstance().schedule(intake.setStateCommand(Intake.State.STOW_INTAKING));
+                CommandScheduler.getInstance().schedule(intake.setStateCommand(Intake.State.STOWED));
             }
         }, intake));
         // Y: PIVOT
@@ -178,9 +178,15 @@ public class RobotContainer {
             if (intake.state != Intake.State.STOWED) {
                 CommandScheduler.getInstance().schedule(intake.setStateCommand(Intake.State.STOWED));
             } else {
-                CommandScheduler.getInstance().schedule(intake.setStateCommand(Intake.State.EXTENDED_IDLE));
+                CommandScheduler.getInstance().schedule(intake.setStateCommand(Intake.State.EXTENDED_INTAKING));
             }
         }, intake));
+        controller.getButtonY().whileTrue(
+        Commands.sequence(
+            Commands.waitSeconds(1.0),
+            intake.setStateCommand(Intake.State.STOWED)
+            )
+        );
         // X: SHOOTER
         controller.getButtonX().onTrue(Commands.runOnce(() -> {
             if (shooter.state == Shooter.State.SHOOTING) {
