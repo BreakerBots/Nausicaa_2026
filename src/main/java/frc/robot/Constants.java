@@ -114,7 +114,7 @@ public final class Constants {
         // Units: meters for x/y, radians for theta
         // Theta: 9999999 to fully trust IMU for rotation (vision won't correct heading)
         public static final Matrix<N3, N1> VISION_STD_DEVS = 
-            VecBuilder.fill(0.05, 0.05, 0.05);        
+            VecBuilder.fill(0.02, 0.02, 0.05);        
         
         // Dynamic standard deviation scaling factors (tag count + proximity)
         // trustScore = tagCount * TAG_COUNT_SCALE_FACTOR + PROXIMITY_SCALE_FACTOR / (1 + avgTagDist)
@@ -131,7 +131,7 @@ public final class Constants {
     public static class FieldConstants {
 
         /** Target pose for tele-op "navigate to" command. PathPlanner pathfinds from current position to this pose. Tune x, y, rotation as needed. */
-        public static final Pose2d POSE_BLUE_HUB_CENTER = new Pose2d(3.0, 4.0, Rotation2d.fromDegrees(0));
+        public static final Pose2d POSE_BLUE_HUB_CENTER = new Pose2d(2.6, 4.0, Rotation2d.fromDegrees(0));
         public static final Pose2d POSE_BLUE_CLIMB_READY = new Pose2d(1.05, 4.75, Rotation2d.fromDegrees(180));
 
         //public static final int HUB_TAG_ID_RED = 12;
@@ -223,12 +223,13 @@ public final class Constants {
         // public static final double VELOCITY_TOLERANCE = 2.0;
         
         public static final double SPEED_IDLE = 0;
-        public static final double SPEED_FLYWHEEL_ACTIVE = 60; // need to tune - TOGGLE ME
+        public static final double SPEED_FLYWHEEL_ACTIVE = 52; // need to tune - TOGGLE ME
 
         /** Hood: external encoder; command takes target rotations. */
         public static final double SPEED_HOOD_UP = 0.08; // need to tune
         public static final double SPEED_HOOD_DOWN = -0.08; // need to tune
-
+        public static final double POSITION_HOOD_UP = -0.10; // need to tune
+        public static final double POSITION_HOOD_DOWN = 0.0; // need to tune
         
     }
 
@@ -252,7 +253,7 @@ public final class Constants {
         /** If true, use motor's integrated encoder instead of external CANcoder. */
         /** Setpoints: encoder positions (number of rotations) for UP and DOWN positions. */
         public static final double SETPOINT_UP = -1.788125;
-        public static final double SETPOINT_CLIMBED = -1.5;
+        public static final double SETPOINT_CLIMBED = -0.5;
         public static final double SETPOINT_DOWN = 0.1;
 
         /**

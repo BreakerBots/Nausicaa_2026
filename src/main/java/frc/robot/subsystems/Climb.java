@@ -178,8 +178,8 @@ public class Climb extends SubsystemBase {
     /** Command: ascend to DOWN setpoint (slow). */
     public Command ascend() {
         return Commands.runOnce(() -> setState(State.ASCENDING), this)
-                .andThen(Commands.run(() -> moveToSetpoint(Constants.ClimbConstants.SETPOINT_DOWN), this)
-                        .until(() -> atSetpoint(Constants.ClimbConstants.SETPOINT_DOWN)))
+                .andThen(Commands.run(() -> moveToSetpoint(Constants.ClimbConstants.SETPOINT_CLIMBED), this)
+                        .until(() -> atSetpoint(Constants.ClimbConstants.SETPOINT_CLIMBED)))
                 .andThen(Commands.runOnce(() -> setState(State.INACTIVE), this));
     }
 

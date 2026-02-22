@@ -189,16 +189,18 @@ public class RobotContainer {
             intake.setStateCommand(Intake.State.STOWED)
             )
         );
-        // X: SHOOTER
+        // RIGHT TRIGGER: SHOOTER FLYWHEELs
+        controller.getRightTrigger().whileTrue(Commands.runOnce(() -> shooter.setState(Shooter.State.SHOOTING), shooter));
+        controller.getRightTrigger().onFalse(Commands.runOnce(() -> shooter.setState(Shooter.State.INACTIVE), shooter));
+        // X -> Move to Pose and Move HoodToRotation
         controller.getButtonX().onTrue(Commands.runOnce(() -> {
-            if (shooter.state == Shooter.State.SHOOTING) {
-                shooter.setState(Shooter.State.INACTIVE);
-            } else {
-                shooter.setState(Shooter.State.SHOOTING);
-            }
+            CommandScheduler.getInstance().schedule(
+                    shooter.hoodToRotationsCommand(Constants.ShooterConstants.POSITION_HOOD_UP).alongWith(
+                    navigateToPoseCommand(Constants.FieldConstants.POSE_BLUE_HUB_CENTER))
+            );
         }, shooter));
         // A: FEEDER and INDEXER and INTAKE JIGGLE
-        controller.getButtonA().onTrue(Commands.runOnce(() -> {
+        controller.getButtonA().onFalse(Commands.runOnce(() -> {
             if (hopper.state == Hopper.State.FEEDING) {
                 hopper.setState(Hopper.State.INACTIVE);
             } else {
@@ -215,15 +217,14 @@ public class RobotContainer {
                 System.out.println("Sequence Complete");
             }
         }, hopper, intake));
-
-
         // D-PAD RIGHT --> Hood up (while held; stop when released)
         controller.getDPad().getRight().whileTrue(
             Commands.startEnd(shooter::runHoodUp, shooter::stopHood, shooter));
-
         // D-PAD LEFT --> Hood down (while held; stop when released)
         controller.getDPad().getLeft().whileTrue(
             Commands.startEnd(shooter::runHoodDown, shooter::stopHood, shooter));
+
+
 
         // B: STOWED → EXTENDED_IDLE → EXTENDED_INTAKING → EXTENDED_IDLE → ... (saved for later)
         // controller.getButtonB().onTrue(Commands.runOnce(() -> {
@@ -277,6 +278,8 @@ public class RobotContainer {
         controller.getDPad().getUp().onTrue(climb.extend());
         // D-PAD DOWN --> Retract climb
         controller.getDPad().getDown().onTrue(climb.retract());
+        // Right Bumper --> Climb UP
+        controller.getRightBumper().onTrue(climb.ascend());
     }
 
 
