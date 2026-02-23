@@ -15,8 +15,6 @@ import com.pathplanner.lib.path.PathConstraints;
 import java.util.Set;
 import java.util.function.DoubleSupplier;
 
-import javax.sound.sampled.SourceDataLine;
-
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -125,8 +123,10 @@ public class RobotContainer {
         // ---------------- SWERVE DRIVE ----------------
 
 
+        // Don't bind these is it's not safe to drive (ie. when the robot is on a table)
         if (!safetyMode) {
-        // "Slow Mode" versus Normal
+        
+            // "Slow Mode" versus Normal
             DoubleSupplier translationalScale = () -> {
                 return slowMode ? 
                     Constants.DriveConstants.ALIGN_MODE_MAXIMUM_TRANSLATIONAL_VELOCITY.in(Units.MetersPerSecond) : 
@@ -157,12 +157,9 @@ public class RobotContainer {
                     .scale(rotationalScale);
         
             drivetrain.setDefaultCommand(drivetrain.getTeleopControlCommand(driverX, driverY, driverOmega, Constants.DriveConstants.TELEOP_CONTROL_CONFIG));
-
-            // RIGHT TRIGGER (held) --> TRACK TAG; driver keeps X/Y control, rotation follows tag
-            controller.getRightTrigger().whileTrue(trackTagCommand(Constants.FieldConstants.getHubTagID()));
-
+        
             // Range to tag (A button)
-            // controller.getButtonA().onTrue(rangeToTagCommand(Constants.FieldConstants.getTrenchTagID(), 1.0));
+            // controller.getButtonA().onTrue(rangeToTagCommand(Constants.FieldConstants.getTrenchTagID(), 1.0));        
         }
 
         // ----------------- TEST CONTROLS -------------
@@ -175,6 +172,7 @@ public class RobotContainer {
                 CommandScheduler.getInstance().schedule(intake.setStateCommand(Intake.State.STOWED));
             }
         }, intake));
+
         // Y: PIVOT
         controller.getButtonY().onTrue(Commands.runOnce(() -> {
             if (intake.state != Intake.State.STOWED) {
@@ -189,6 +187,13 @@ public class RobotContainer {
             intake.setStateCommand(Intake.State.STOWED)
             )
         );
+
+
+        // RIGHT TRIGGER (held) --> TRACK TAG; driver keeps X/Y control, rotation follows tag
+        if (!safetyMode) {
+            controller.getRightTrigger().whileTrue(trackTagCommand(Constants.FieldConstants.getHubTagID()));
+        }
+
         // RIGHT TRIGGER: SHOOTER FLYWHEELs
         controller.getRightTrigger().whileTrue(Commands.runOnce(() -> shooter.setState(Shooter.State.SHOOTING), shooter));
         controller.getRightTrigger().onFalse(Commands.runOnce(() -> shooter.setState(Shooter.State.INACTIVE), shooter));
@@ -199,12 +204,12 @@ public class RobotContainer {
                     navigateToPoseCommand(Constants.FieldConstants.POSE_BLUE_HUB_CENTER))
             );
         }, shooter));
+
         // A: FEEDER and INDEXER and INTAKE JIGGLE
         controller.getButtonA().onFalse(Commands.runOnce(() -> {
             if (hopper.state == Hopper.State.FEEDING) {
                 hopper.setState(Hopper.State.INACTIVE);
             } else {
-                System.out.println("Starting Sequence");
                 hopper.setState(Hopper.State.FEEDING);
                 CommandScheduler.getInstance().schedule(
                     Commands.sequence(
@@ -214,12 +219,14 @@ public class RobotContainer {
                         Commands.waitSeconds(0.5)
                     ).repeatedly().until(()-> hopper.state != Hopper.State.FEEDING)
                 );
-                System.out.println("Sequence Complete");
             }
         }, hopper, intake));
+
+
         // D-PAD RIGHT --> Hood up (while held; stop when released)
         controller.getDPad().getRight().whileTrue(
             Commands.startEnd(shooter::runHoodUp, shooter::stopHood, shooter));
+        
         // D-PAD LEFT --> Hood down (while held; stop when released)
         controller.getDPad().getLeft().whileTrue(
             Commands.startEnd(shooter::runHoodDown, shooter::stopHood, shooter));
@@ -276,8 +283,10 @@ public class RobotContainer {
 
         // D-PAD UP --> Extend climb
         controller.getDPad().getUp().onTrue(climb.extend());
+
         // D-PAD DOWN --> Retract climb
         controller.getDPad().getDown().onTrue(climb.retract());
+
         // Right Bumper --> Climb UP
         controller.getRightBumper().onTrue(climb.ascend());
     }
@@ -300,8 +309,8 @@ public class RobotContainer {
         climb.zeroEncoder();
         climb.setState(Climb.State.INACTIVE);
         shooter.zeroHoodEncoder();
-        hopper.setState(Hopper.State.INACTIVE);
         shooter.setState(Shooter.State.INACTIVE);
+        hopper.setState(Hopper.State.INACTIVE);
     }
 
     /** Called once when the robot enters teleop. */
@@ -311,9 +320,8 @@ public class RobotContainer {
         climb.zeroEncoder();
         climb.setState(Climb.State.INACTIVE);
         shooter.zeroHoodEncoder();
-        hopper.setState(Hopper.State.INACTIVE);
         shooter.setState(Shooter.State.INACTIVE);
-
+        hopper.setState(Hopper.State.INACTIVE);
     }
 
 
@@ -344,9 +352,17 @@ public class RobotContainer {
         );
     }
 
+
+
+
+
+
+
+    // ----------------- NOT USED -------------
+
+
     /**
      * Rotates to face the given AprilTag, then drives to the target distance from it.
-     * Uses {@link #rotateToTagCommand(int)} then {@link #rangeToTagCommand(int, double)}.
      */
     private Command rotateAndRangeToTagCommand(int tagID, double targetDistanceMeters) {
         System.out.println("Sequencing commands...");

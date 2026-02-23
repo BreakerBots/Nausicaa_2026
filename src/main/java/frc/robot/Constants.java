@@ -36,9 +36,9 @@ import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.units.Units;
+import edu.wpi.first.units.measure.Current;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.AngularVelocity;
-import edu.wpi.first.units.measure.Current;
 import edu.wpi.first.units.measure.Distance;
 import edu.wpi.first.units.measure.LinearVelocity;
 import java.util.Optional;
@@ -200,6 +200,25 @@ public final class Constants {
         public static final double SPEED_EXTAKE = 0.5;
 
         public static final double SPEED_INTAKE = -0.7;
+
+        /** Homing: voltage to move pivot toward stowed (negative = up toward limit). */
+        public static final double HOMING_VOLTAGE = -2.0;
+        /** Supply current threshold (A) to detect stall at mechanical limit. */
+        public static final Current HOMING_DETECT_CURRENT_THRESHOLD = Amps.of(0.3);
+        /** Time (s) current must stay above threshold before accepting stall. */
+        public static final double HOMING_STALL_TIME_SECONDS = 0.8;
+        /** Homing timeout (s) – bail if stall not detected. */
+        public static final double HOMING_TIMEOUT_SECONDS = 5.0;
+        /** Stator current limit (A) during homing – loosened so motor can stall without tripping. */
+        public static final int HOMING_STATOR_CURRENT_LIMIT = 60;
+        /** Stator current limit (A) for normal operation (restored after homing). */
+        public static final int NORMAL_STATOR_CURRENT_LIMIT = 40;
+        public static final CurrentLimitsConfigs HOMING_CURRENT_LIMITS = new CurrentLimitsConfigs()
+                .withStatorCurrentLimit(HOMING_STATOR_CURRENT_LIMIT)
+                .withStatorCurrentLimitEnable(true);
+        public static final CurrentLimitsConfigs NORMAL_CURRENT_LIMITS = new CurrentLimitsConfigs()
+                .withStatorCurrentLimit(NORMAL_STATOR_CURRENT_LIMIT)
+                .withStatorCurrentLimitEnable(true);
     }
 
     // --------------- SHOOTER --------------
