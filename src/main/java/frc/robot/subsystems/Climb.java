@@ -1,6 +1,9 @@
 package frc.robot.subsystems;
 
+import static edu.wpi.first.units.Units.Amps;
+
 import com.ctre.phoenix6.controls.DutyCycleOut;
+import com.ctre.phoenix6.controls.VoltageOut;
 import com.ctre.phoenix6.hardware.CANcoder;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.NeutralModeValue;
@@ -11,6 +14,7 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
+import frc.robot.BreakerLib.util.commands.TimedWaitUntilCommand;
 import frc.robot.BreakerLib.util.logging.BreakerLog;
 
 /**
@@ -73,6 +77,38 @@ public class Climb extends SubsystemBase {
     public void zeroEncoder() {
         climbEncoder.setPosition(0.0);
         BreakerLog.log("Climb/Encoder", "CANcoder zeroed");
+    }
+
+    public Command goHome() {
+        return Commands.sequence(
+                // Set current limits for homing
+                Commands.runOnce(() -> setHomingCurrents(true), this),
+                // Move pivot toward home until we detect a stall
+                Commands.runOnce(() -> climbMotor.setControl(
+                    new VoltageOut(Constants.ClimbConstants.HOMING_VOLTAGE)), this),
+                new TimedWaitUntilCommand(this::detectHome,
+                    Constants.ClimbConstants.HOMING_STALL_TIME_SECONDS)
+                        .raceWith(Commands.waitSeconds(Constants.ClimbConstants.HOMING_TIMEOUT_SECONDS)),
+                // Stop the motor
+                Commands.runOnce(() -> climbMotor.setControl(new VoltageOut(0.0)), this),
+                Commands.waitSeconds(0.2),
+                // Zero the encoder and set the state to stowed
+                Commands.runOnce(() -> {
+                    zeroEncoder();
+                    setState(State.INACTIVE);
+                }, this))
+                .finallyDo((interrupted) -> setHomingCurrents(false));
+    }
+
+    private boolean detectHome() {
+        return Math.abs(climbMotor.getSupplyCurrent().getValueAsDouble())
+                >= Constants.ClimbConstants.HOMING_DETECT_CURRENT_THRESHOLD.in(Amps);
+    }
+
+    private void setHomingCurrents(boolean isHoming) {
+        climbMotor.getConfigurator().apply(isHoming
+                ? Constants.ClimbConstants.HOMING_CURRENT_LIMITS
+                : Constants.ClimbConstants.NORMAL_CURRENT_LIMITS);
     }
 
     /** Check if within tolerance of the given setpoint. */

@@ -119,8 +119,11 @@ public class RobotContainer {
 
         controller.getButtonX().and(controller.getRightBumper()).onTrue(navigateToPoseCommand(Constants.FieldConstants.POSE_BLUE_HUB_CENTER));
 
+        controller.getDPad().getLeft().and(controller.getRightBumper()).onTrue(climb.goHome());
+
 
         // ---------------- SWERVE DRIVE ----------------
+
 
 
         // Don't bind these is it's not safe to drive (ie. when the robot is on a table)
@@ -228,7 +231,7 @@ public class RobotContainer {
             Commands.startEnd(shooter::runHoodUp, shooter::stopHood, shooter));
         
         // D-PAD LEFT --> Hood down (while held; stop when released)
-        controller.getDPad().getLeft().whileTrue(
+        controller.getDPad().getLeft().and(controller.getRightBumper().negate()).whileTrue(
             Commands.startEnd(shooter::runHoodDown, shooter::stopHood, shooter));
 
 
@@ -288,7 +291,7 @@ public class RobotContainer {
         controller.getDPad().getDown().onTrue(climb.retract());
 
         // Right Bumper --> Climb UP
-        controller.getRightBumper().onTrue(climb.ascend());
+        // controller.getRightBumper().onTrue(climb.ascend());
     }
 
 

@@ -83,11 +83,13 @@ public class Intake extends SubsystemBase {
                 // Move pivot toward home until we detect a stall
                 Commands.runOnce(() -> pivotMotor.setControl(
                     new VoltageOut(Constants.IntakeConstants.HOMING_VOLTAGE)), this),
-                    new TimedWaitUntilCommand(this::detectHome,
-                        Constants.IntakeConstants.HOMING_STALL_TIME_SECONDS)
-                            .raceWith(Commands.waitSeconds(Constants.IntakeConstants.HOMING_TIMEOUT_SECONDS)),
+                new TimedWaitUntilCommand(this::detectHome,
+                    Constants.IntakeConstants.HOMING_STALL_TIME_SECONDS)
+                        .raceWith(Commands.waitSeconds(Constants.IntakeConstants.HOMING_TIMEOUT_SECONDS)),
                 // Stop the motor
                 Commands.runOnce(() -> pivotMotor.setControl(new VoltageOut(0.0)), this),
+                // Log that we think we have reached zero
+                Commands.runOnce(() -> System.out.println("Intake has stopped"), this),
                 Commands.waitSeconds(0.2),
                 // Zero the encoder and set the state to stowed
                 Commands.runOnce(() -> {
