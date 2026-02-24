@@ -28,10 +28,9 @@ public class Climb extends SubsystemBase {
     private final CANcoder climbEncoder = new CANcoder(Constants.ClimbConstants.CLIMB_ENCODER_ID,
             Constants.GeneralConstants.SUPERSTRUCTURE_CANIVORE_BUS);
 
-    /** Current target setpoint when moving. */
+    /** Which setpoint are we moving toward? */
     private double targetSetpoint = Constants.ClimbConstants.SETPOINT_DOWN;
 
-    /** PID controller for setpoint control. */
     private final PIDController pidController = new PIDController(
         Constants.ClimbConstants.PID_kP,
         Constants.ClimbConstants.PID_kI,
@@ -39,7 +38,6 @@ public class Climb extends SubsystemBase {
 
     public State state = State.INACTIVE;
 
-    /** Climb states with associated speeds. */
     public enum State {
         INACTIVE(0.0),
         EXTENDING(Constants.ClimbConstants.SPEED_EXTENDING),
@@ -79,6 +77,12 @@ public class Climb extends SubsystemBase {
         BreakerLog.log("Climb/Encoder", "CANcoder zeroed to SETPOINT_DOWN");
     }
 
+    /**
+     * The climb encoder rotates about 2 full turns between DOWN and UP. 
+     * Absolute position only gives you 0–1 rotations, so you can’t tell which of the two turns you’re in.
+     * Instead, this command moves the climb toward the DOWN limit until we detect a stall,
+     * then zeros the encoder to SETPOINT_DOWN and sets the state to INACTIVE.
+     */
     public Command goHome() {
         return Commands.sequence(
                 // Set current limits for homing
@@ -101,11 +105,13 @@ public class Climb extends SubsystemBase {
                 .finallyDo((interrupted) -> setHomingCurrents(false));
     }
 
+    /** Detect stall at DOWN limit. */
     private boolean detectHome() {
         return Math.abs(climbMotor.getSupplyCurrent().getValueAsDouble())
                 >= Constants.ClimbConstants.HOMING_DETECT_CURRENT_THRESHOLD.in(Amps);
     }
 
+    /** Set current limits for homing, which is loosened so the motor can stall without tripping. */
     private void setHomingCurrents(boolean isHoming) {
         climbMotor.getConfigurator().apply(isHoming
                 ? Constants.ClimbConstants.HOMING_CURRENT_LIMITS
