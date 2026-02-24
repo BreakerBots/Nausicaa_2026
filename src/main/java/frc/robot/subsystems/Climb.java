@@ -18,8 +18,8 @@ import frc.robot.BreakerLib.util.commands.TimedWaitUntilCommand;
 import frc.robot.BreakerLib.util.logging.BreakerLog;
 
 /**
- * Climb subsystem: setpoint-based control using external encoder (or motor encoder as fallback).
- * Assumes DOWN position when robot is enabled.
+ * Climb subsystem: setpoint-based control using external encoder.
+ * Run goHome() to establish the DOWN reference.
  */
 public class Climb extends SubsystemBase {
 
@@ -73,17 +73,17 @@ public class Climb extends SubsystemBase {
         return climbEncoder.getPosition().getValueAsDouble();
     }
 
-    /** Zero the encoder (call when climb is at DOWN position). */
+    /** Zero the encoder to SETPOINT_DOWN (call when climb is at DOWN position). */
     public void zeroEncoder() {
-        climbEncoder.setPosition(0.0);
-        BreakerLog.log("Climb/Encoder", "CANcoder zeroed");
+        climbEncoder.setPosition(Constants.ClimbConstants.SETPOINT_DOWN);
+        BreakerLog.log("Climb/Encoder", "CANcoder zeroed to SETPOINT_DOWN");
     }
 
     public Command goHome() {
         return Commands.sequence(
                 // Set current limits for homing
                 Commands.runOnce(() -> setHomingCurrents(true), this),
-                // Move pivot toward home until we detect a stall
+                // Move climb toward DOWN limit until we detect a stall
                 Commands.runOnce(() -> climbMotor.setControl(
                     new VoltageOut(Constants.ClimbConstants.HOMING_VOLTAGE)), this),
                 new TimedWaitUntilCommand(this::detectHome,
@@ -92,9 +92,10 @@ public class Climb extends SubsystemBase {
                 // Stop the motor
                 Commands.runOnce(() -> climbMotor.setControl(new VoltageOut(0.0)), this),
                 Commands.waitSeconds(0.2),
-                // Zero the encoder and set the state to stowed
+                // Zero encoder to SETPOINT_DOWN and set state to INACTIVE
                 Commands.runOnce(() -> {
-                    zeroEncoder();
+                    climbEncoder.setPosition(Constants.ClimbConstants.SETPOINT_DOWN);
+                    BreakerLog.log("Climb/Encoder", "CANcoder zeroed to SETPOINT_DOWN");
                     setState(State.INACTIVE);
                 }, this))
                 .finallyDo((interrupted) -> setHomingCurrents(false));
