@@ -71,6 +71,7 @@ public class RobotContainer {
 
     /** The container for the robot. Contains subsystems, OI devices, and commands. */
     public RobotContainer() {
+        
         // Disable verbose logging to reduce noise
         // Flip this back on when debugging/troubleshooting
         BreakerLog.setVerboseLogging(false);
@@ -79,7 +80,6 @@ public class RobotContainer {
         NamedCommands.registerCommand("rotateToHub", Commands.defer(() -> rotateToTagCommand(Constants.FieldConstants.getHubTagID()), Set.of(drivetrain)));
         NamedCommands.registerCommand("enterSlowMode", Commands.defer(() -> Commands.runOnce(() -> slowMode = !slowMode), Set.of(drivetrain)));
         NamedCommands.registerCommand("consolidatePose", Commands.defer(() -> Commands.runOnce(() -> drivetrain.getLocalizer().resetPose(new Pose2d(0,0, Rotation2d.fromRotations(0.0)))), Set.of(drivetrain)));
-
 
         // Set up our auto-chooser    
         if (AutoBuilder.isConfigured()) {
@@ -307,22 +307,18 @@ public class RobotContainer {
     
     /** Called once when the robot enters autonomous. */
     public void autonomousInit() {
-        intake.zeroEncoders();
         intake.setState(Intake.State.STOWED);
         climb.zeroEncoder();
         climb.setState(Climb.State.INACTIVE);
-        shooter.zeroHoodEncoder();
         shooter.setState(Shooter.State.INACTIVE);
         hopper.setState(Hopper.State.INACTIVE);
     }
 
     /** Called once when the robot enters teleop. */
     public void teleopInit() {
-        intake.zeroEncoders();
         intake.setState(Intake.State.STOWED);
         climb.zeroEncoder();
         climb.setState(Climb.State.INACTIVE);
-        shooter.zeroHoodEncoder();
         shooter.setState(Shooter.State.INACTIVE);
         hopper.setState(Hopper.State.INACTIVE);
     }

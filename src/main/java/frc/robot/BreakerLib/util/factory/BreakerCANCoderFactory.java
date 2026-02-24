@@ -1,7 +1,3 @@
-        // Copyright (c) FIRST and other WPILib contributors.
-// Open Source Software; you can modify and/or share it under the terms of
-// the WPILib BSD license file in the root directory of this project.
-
 package frc.robot.BreakerLib.util.factory;
 
 import com.ctre.phoenix6.CANBus;
@@ -11,31 +7,26 @@ import com.ctre.phoenix6.signals.SensorDirectionValue;
 
 import edu.wpi.first.units.measure.Angle;
 
-/** Factory for producing CANcoders. */
+/**
+ * Creates and configures CTRE CANcoders so they report absolute position correctly.
+ *
+ * It sets:
+ * 1. Magnet offset – Shifts the reading so a chosen physical pose (e.g. stowed) maps to the desired value.
+ * 2. Discontinuity point – Where the 0→1 rollover happens (e.g. 0.5 for ±180°), so the wrap is outside the mechanism's range.
+ * 3. Sensor direction – Which rotation direction is positive.
+ *
+ * With this, getPosition() gives the right value on power-up without homing or 
+ * zeroing. It's intended for on-axis (1:1) mechanisms where each absolute angle 
+ * corresponds to a unique mechanism pose.
+ */
 public class BreakerCANCoderFactory {
 
-    /**
-     */
-    public static CANcoder createCANCoder(int deviceID, double absoluteSensorDiscontinuityPoint, Angle absoluteOffset, SensorDirectionValue encoderDirection) {
-        
-        return createCANCoder(deviceID, "rio", absoluteSensorDiscontinuityPoint, absoluteOffset, encoderDirection);
-    }
-
-    /**
-     */
-    public static CANcoder createCANCoder(int deviceID, String busName,
-        double absoluteSensorDiscontinuityPoint, Angle absoluteOffset, SensorDirectionValue encoderDirection) {
-        CANcoder encoder = new CANcoder(deviceID);
+    public static CANcoder createCANCoder(int deviceID, CANBus canBus, double absoluteSensorDiscontinuityPoint, Angle absoluteOffset, SensorDirectionValue encoderDirection) {
+        CANcoder encoder = new CANcoder(deviceID, canBus);
         configExistingCANCoder(encoder, absoluteSensorDiscontinuityPoint, absoluteOffset, encoderDirection);
         return encoder;
     }
 
-    public static CANcoder createCANCoder(int deviceID, CANBus canBus, double absoluteSensorDiscontinuityPoint, Angle absoluteOffset, SensorDirectionValue encoderDirection) {
-        return createCANCoder(deviceID, canBus, absoluteSensorDiscontinuityPoint, absoluteOffset, encoderDirection);
-    }
-
-    /**
-     */
     public static void configExistingCANCoder(CANcoder encoder, double absoluteSensorDiscontinuityPoint, Angle absoluteOffset, SensorDirectionValue encoderDirection) {
         CANcoderConfiguration config =  new CANcoderConfiguration();
         config.MagnetSensor.AbsoluteSensorDiscontinuityPoint = absoluteSensorDiscontinuityPoint;

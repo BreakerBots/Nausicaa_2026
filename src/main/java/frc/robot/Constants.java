@@ -173,6 +173,13 @@ public final class Constants {
         public static final int ROLLER_MOTOR_ID = 21;
         public static final int PIVOT_ENCODER_ID = 25;
 
+        /** CANcoder: offset so position reads POSITION_STOWED when pivot is physically stowed. 
+         * Determine the raw value via Phoenix Tuner.
+         * offset = desiredValue - rawValue = 0 - 0.25 = -0.25. */
+        public static final double PIVOT_ENCODER_OFFSET_ROTATIONS = 0.0;
+        /** Choose a value safely beyond the mechanism's travel 
+         * 0.5 is safe for an arm that rotates less than 180 degrees. */
+        public static final double PIVOT_ENCODER_DISCONTINUITY = 0.5;
 
         /** Pivot angles (rotations) – placeholders until tuned. */
         public static final Rotation2d POSITION_STOWED = Rotation2d.fromRotations(-0.05);
@@ -200,25 +207,6 @@ public final class Constants {
         public static final double SPEED_EXTAKE = 0.5;
 
         public static final double SPEED_INTAKE = -0.7;
-
-        /** Homing: voltage to move pivot toward stowed (negative = up toward limit). */
-        public static final double HOMING_VOLTAGE = -2.0;
-        /** Supply current threshold (A) to detect stall at mechanical limit. */
-        public static final Current HOMING_DETECT_CURRENT_THRESHOLD = Amps.of(0.3);
-        /** Time (s) current must stay above threshold before accepting stall. */
-        public static final double HOMING_STALL_TIME_SECONDS = 0.8;
-        /** Homing timeout (s) – bail if stall not detected. */
-        public static final double HOMING_TIMEOUT_SECONDS = 5.0;
-        /** Stator current limit (A) during homing – loosened so motor can stall without tripping. */
-        public static final int HOMING_STATOR_CURRENT_LIMIT = 60;
-        /** Stator current limit (A) for normal operation (restored after homing). */
-        public static final int NORMAL_STATOR_CURRENT_LIMIT = 40;
-        public static final CurrentLimitsConfigs HOMING_CURRENT_LIMITS = new CurrentLimitsConfigs()
-                .withStatorCurrentLimit(HOMING_STATOR_CURRENT_LIMIT)
-                .withStatorCurrentLimitEnable(true);
-        public static final CurrentLimitsConfigs NORMAL_CURRENT_LIMITS = new CurrentLimitsConfigs()
-                .withStatorCurrentLimit(NORMAL_STATOR_CURRENT_LIMIT)
-                .withStatorCurrentLimitEnable(true);
     }
 
     // --------------- SHOOTER --------------
@@ -229,6 +217,11 @@ public final class Constants {
         public static final int SHOOTER_FLYWHEEL_3_MOTOR_ID = 32;
         public static final int HOOD_MOTOR_ID = 33;
         public static final int HOOD_ENCODER_ID = 35;
+
+        /** CANcoder: offset so position reads POSITION_HOOD_DOWN when hood is physically down. Calibrate via Phoenix Tuner. */
+        public static final double HOOD_ENCODER_OFFSET_ROTATIONS = 0.0;
+        /** CANcoder: 0.5 = ±180° range. Set so discontinuity is outside mechanism travel. */
+        public static final double HOOD_ENCODER_DISCONTINUITY = 0.5;
 
         /** Feedforward */
         public static final double SHOOTER_kS = 0.1;

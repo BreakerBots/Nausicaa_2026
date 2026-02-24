@@ -1,20 +1,23 @@
 package frc.robot.subsystems;
 
+import static edu.wpi.first.units.Units.Rotations;
+
 import com.ctre.phoenix6.controls.DutyCycleOut;
 import com.ctre.phoenix6.controls.Follower;
 import com.ctre.phoenix6.hardware.CANcoder;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.MotorAlignmentValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
+import com.ctre.phoenix6.signals.SensorDirectionValue;
 import com.ctre.phoenix6.configs.Slot0Configs;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
-import com.ctre.phoenix6.controls.VelocityDutyCycle;
 import com.ctre.phoenix6.controls.VelocityVoltage;
 
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
+import frc.robot.BreakerLib.util.factory.BreakerCANCoderFactory;
 import frc.robot.BreakerLib.util.logging.BreakerLog;
 
 public class Shooter extends SubsystemBase {
@@ -28,8 +31,12 @@ public class Shooter extends SubsystemBase {
 
     private final TalonFX hoodMotor = new TalonFX(Constants.ShooterConstants.HOOD_MOTOR_ID,
             Constants.GeneralConstants.SUPERSTRUCTURE_CANIVORE_BUS);
-    private final CANcoder hoodEncoder = new CANcoder(Constants.ShooterConstants.HOOD_ENCODER_ID,
-            Constants.GeneralConstants.SUPERSTRUCTURE_CANIVORE_BUS);
+    private final CANcoder hoodEncoder = BreakerCANCoderFactory.createCANCoder(
+            Constants.ShooterConstants.HOOD_ENCODER_ID,
+            Constants.GeneralConstants.SUPERSTRUCTURE_CANIVORE_BUS,
+            Constants.ShooterConstants.HOOD_ENCODER_DISCONTINUITY,
+            Rotations.of(Constants.ShooterConstants.HOOD_ENCODER_OFFSET_ROTATIONS),
+            SensorDirectionValue.CounterClockwise_Positive);
 
     public Shooter() {
         // Flywheels 2 and 3 follow flywheel 1 (same direction)
@@ -37,8 +44,9 @@ public class Shooter extends SubsystemBase {
         flywheelConfig.MotorOutput.NeutralMode = NeutralModeValue.Coast;
         Slot0Configs slot0 = flywheelConfig.Slot0;
         
-        slot0.kD = Constants.ShooterConstants.SHOOTER_kS;
+        slot0.kS = Constants.ShooterConstants.SHOOTER_kS;
         slot0.kV = Constants.ShooterConstants.SHOOTER_kV;
+        //slot0.kA = Constants.ShooterConstants.SHOOTER_kA;
         slot0.kP = Constants.ShooterConstants.SHOOTER_kP;
         slot0.kI = Constants.ShooterConstants.SHOOTER_kI;
         slot0.kD = Constants.ShooterConstants.SHOOTER_kD;
@@ -103,11 +111,6 @@ public class Shooter extends SubsystemBase {
     /** Current hood encoder position in rotations (cumulative). */
     public double getHoodEncoderRotations() {
         return hoodEncoder.getPosition().getValueAsDouble();
-    }
-
-    /** Zero the hood encoder (call when hood is at a known position). */
-    public void zeroHoodEncoder() {
-        hoodEncoder.setPosition(0.0);
     }
 
     public void runHoodUp() {
