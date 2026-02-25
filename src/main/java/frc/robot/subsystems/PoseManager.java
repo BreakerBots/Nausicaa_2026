@@ -111,7 +111,9 @@ public class PoseManager extends SubsystemBase {
      * Rotates the robot to face the hub center (alliance-aware). Uses odometry, no vision required.
      */
     public Command rotateToHubCenterCommand() {
-        return rotateToPointCommand(Constants.FieldConstants.getTargetHubCenter());
+        return Commands.sequence(
+                Commands.runOnce(() -> drivetrain.getLocalizer().resetPose(drivetrain.getLocalizer().getPose()), drivetrain),
+                rotateToPointCommand(Constants.FieldConstants.getTargetHubCenter()));
     }
 
     /**
