@@ -100,8 +100,9 @@ public final class Constants {
         //public static final double[] FRONT_CAMERA_POSE = {0.244983, 0.3155442, 0.2014728, 0.0, 23.0, 34.0};
         //public static final double[] BACK_CAMERA_POSE = {-0.244983, -0.3155442, 0.2014728, 0.0, 23.0, -146.0};
         public static final double[] FRONT_CAMERA_POSE = {0.1513179, 0.0, 0.128, 0.0, 26.0, 0};
-        public static final double[] BACK_LEFT_CAMERA_POSE = {-0.30145941, 0.29537006, 0.187641611, 0.0, 28.1, -145.0093};
-        public static final double[] BACK_RIGHT_CAMERA_POSE = {-0.30441567, -0.24862055, 0.1876415856, 0.0, 28.1, 144};
+        public static final double[] BACK_LEFT_CAMERA_POSE = {-0.30145941, -0.29537006, 0.187641611, 0.0, 28.1, -145.0093};
+         public static final double[] BACK_RIGHT_CAMERA_POSE = {-0.30441567, 0.24862055, 0.1876415856, 0.0, 28.1, 144};
+        
         
         // Minimum number of tags required to trust a vision measurement
         public static final int MIN_TAG_COUNT = 1;
@@ -176,7 +177,7 @@ public final class Constants {
         /** CANcoder: offset so position reads POSITION_STOWED when pivot is physically stowed. 
          * Determine the raw value via Phoenix Tuner.
          * offset = desiredValue - rawValue = 0 - 0.25 = -0.25. */
-        public static final double PIVOT_ENCODER_OFFSET_ROTATIONS = 0.0;
+        public static final double PIVOT_ENCODER_OFFSET_ROTATIONS = 0.295654296875;
         /** Choose a value safely beyond the mechanism's travel 
          * 0.5 is safe for an arm that rotates less than 180 degrees. */
         public static final double PIVOT_ENCODER_DISCONTINUITY = 0.5;
@@ -219,7 +220,7 @@ public final class Constants {
         public static final int HOOD_ENCODER_ID = 35;
 
         /** CANcoder: offset so position reads POSITION_HOOD_DOWN when hood is physically down. Calibrate via Phoenix Tuner. */
-        public static final double HOOD_ENCODER_OFFSET_ROTATIONS = 0.0;
+        public static final double HOOD_ENCODER_OFFSET_ROTATIONS = 0.000244140625;
         /** CANcoder: 0.5 = ±180° range. Set so discontinuity is outside mechanism travel. */
         public static final double HOOD_ENCODER_DISCONTINUITY = 0.5;
 
@@ -240,8 +241,9 @@ public final class Constants {
         /** Hood: external encoder; command takes target rotations. */
         public static final double SPEED_HOOD_UP = 0.08; // need to tune
         public static final double SPEED_HOOD_DOWN = -0.08; // need to tune
-        public static final double POSITION_HOOD_UP = -0.10; // need to tune
-        public static final double POSITION_HOOD_DOWN = 0.0; // need to tune
+        public static final double POSITION_HOOD_SETPOINT_HOME = 0.0; // need to tune
+        public static final double POSITION_HOOD_SETPOINT_2 = 0.0; // need to tune
+        public static final double POSITION_HOOD_SETPOINT_3 = 0.0; // need to tune
         
     }
 
@@ -295,16 +297,16 @@ public final class Constants {
         /** Homing: voltage to move climb toward stowed (negative = down toward limit). */
         public static final double HOMING_VOLTAGE = -0.3;
         /** Supply current threshold (A) to detect stall at mechanical limit. */
-        public static final Current HOMING_DETECT_CURRENT_THRESHOLD = Amps.of(0.3);
+        public static final Current HOMING_DETECT_CURRENT_THRESHOLD = Amps.of(0.1);
         /** Time (s) current must stay above threshold before accepting stall. */
         public static final double HOMING_STALL_TIME_SECONDS = 0.8;
         /** Homing timeout (s) – bail if stall not detected. */
         public static final double HOMING_TIMEOUT_SECONDS = 5.0;
 
         /** Stator current limit (A) during homing – loosened so motor can stall without tripping. */
-        public static final int HOMING_STATOR_CURRENT_LIMIT = 100; // idk
+        public static final int HOMING_STATOR_CURRENT_LIMIT = 20; // idk
         /** Stator current limit (A) for normal operation (restored after homing). */
-        public static final int NORMAL_STATOR_CURRENT_LIMIT = 100; // idk
+        public static final int NORMAL_STATOR_CURRENT_LIMIT = 40; // idk
         public static final CurrentLimitsConfigs HOMING_CURRENT_LIMITS = new CurrentLimitsConfigs()
                 .withStatorCurrentLimit(HOMING_STATOR_CURRENT_LIMIT)
                 .withStatorCurrentLimitEnable(true);

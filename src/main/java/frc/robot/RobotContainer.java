@@ -56,7 +56,7 @@ public class RobotContainer {
     private boolean slowMode;
     
     /** When true, drive controls and autonomous are disabled. */
-    private boolean safetyMode = false;
+    private boolean safetyMode = true;
     
     /** PathPlanner auto chooser; populated from GUI autos when AutoBuilder is configured. */
     private final SendableChooser<Command> autoChooser;
@@ -112,7 +112,7 @@ public class RobotContainer {
 
         controller.getButtonX().and(controller.getRightBumper()).onTrue(poseManager.navigateToPoseCommand(Constants.FieldConstants.POSE_BLUE_HUB_CENTER));
 
-        controller.getDPad().getLeft().and(controller.getRightBumper()).onTrue(climb.goHome());
+        controller.getDPad().getDown().and(controller.getRightBumper()).onTrue(climb.goHome());
 
 
         // ---------------- SWERVE DRIVE ----------------
@@ -193,10 +193,10 @@ public class RobotContainer {
         // RIGHT TRIGGER: SHOOTER FLYWHEELs
         controller.getRightTrigger().whileTrue(Commands.runOnce(() -> shooter.setState(Shooter.State.SHOOTING), shooter));
         controller.getRightTrigger().onFalse(Commands.runOnce(() -> shooter.setState(Shooter.State.INACTIVE), shooter));
-        // X -> Move to Pose and Move HoodToRotation
+        // GO TO SETPOINT FOR SHOOTING  ***  X -> Move to Pose and Move HoodToRotation
         controller.getButtonX().onTrue(Commands.runOnce(() -> {
             CommandScheduler.getInstance().schedule(
-                    shooter.hoodToRotationsCommand(Constants.ShooterConstants.POSITION_HOOD_UP).alongWith(
+                    shooter.hoodToRotationsCommand(Constants.ShooterConstants.POSITION_HOOD_SETPOINT_HOME).alongWith(
                     poseManager.navigateToPoseCommand(Constants.FieldConstants.POSE_BLUE_HUB_CENTER))
             );
         }, shooter));
@@ -278,10 +278,11 @@ public class RobotContainer {
         // }));
 
         // D-PAD UP --> Extend climb
+        
         controller.getDPad().getUp().onTrue(climb.extend());
 
         // D-PAD DOWN --> Retract climb
-        controller.getDPad().getDown().onTrue(climb.retract());
+        controller.getDPad().getDown().and(controller.getRightBumper().negate()).onTrue(climb.retract());
 
         // Right Bumper --> Climb UP
         // controller.getRightBumper().onTrue(climb.ascend());

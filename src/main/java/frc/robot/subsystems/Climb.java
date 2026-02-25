@@ -10,6 +10,7 @@ import com.ctre.phoenix6.signals.NeutralModeValue;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 
 import edu.wpi.first.math.controller.PIDController;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
@@ -85,14 +86,17 @@ public class Climb extends SubsystemBase {
      */
     public Command goHome() {
         return Commands.sequence(
+                Commands.runOnce(() -> setState(State.INACTIVE), this),
                 // Set current limits for homing
                 Commands.runOnce(() -> setHomingCurrents(true), this),
                 // Move climb toward DOWN limit until we detect a stall
-                Commands.runOnce(() -> climbMotor.setControl(
+                Commands.run(() -> climbMotor.setControl(
                     new VoltageOut(Constants.ClimbConstants.HOMING_VOLTAGE)), this),
-                new TimedWaitUntilCommand(this::detectHome,
+                Commands.runOnce(() -> {new TimedWaitUntilCommand(this::detectHome,
                     Constants.ClimbConstants.HOMING_STALL_TIME_SECONDS)
-                        .raceWith(Commands.waitSeconds(Constants.ClimbConstants.HOMING_TIMEOUT_SECONDS)),
+                        .raceWith(Commands.waitSeconds(Constants.ClimbConstants.HOMING_TIMEOUT_SECONDS))
+                        .execute();
+                    }),
                 // Stop the motor
                 Commands.runOnce(() -> climbMotor.setControl(new VoltageOut(0.0)), this),
                 Commands.waitSeconds(0.2),
@@ -279,5 +283,6 @@ public class Climb extends SubsystemBase {
         String line = String.format("state=%s pos=%.2f tgt=%.2f %.1fvel", state, position, targetSetpoint, velocity);
         BreakerLog.log("Climb/Status", line);
         BreakerLog.log("Electrical/Climb/climb", climbMotor);
+        BreakerLog.log("Climb/AtHomePosition", detectHome());
     }
 }
