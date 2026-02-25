@@ -132,9 +132,17 @@ public final class Constants {
     public static class FieldConstants {
 
         /** Target pose for tele-op "navigate to" command. PathPlanner pathfinds from current position to this pose. Tune x, y, rotation as needed. */
-        public static final Pose2d POSE_BLUE_HUB_CENTER = new Pose2d(2.6, 4.0, Rotation2d.fromDegrees(0));
-        public static final Pose2d POSE_BLUE_CLIMB_READY = new Pose2d(1.05, 4.75, Rotation2d.fromDegrees(180));
+        public static final Pose2d POSE_SHOOTING_BLUE_HUB_CENTER = new Pose2d(2.6, 4.0, Rotation2d.fromDegrees(0));
+        public static final Pose2d POSE_CLIMBING_BLUE_TOWER_LEFT = new Pose2d(1.05, 4.75, Rotation2d.fromDegrees(180));
 
+        public static final Translation2d TARGET_BLUE_HUB_CENTER = new Translation2d(4.618, 4.036);
+        public static final Translation2d TARGET_BLUE_AZ_LEFT = new Translation2d(1.5, 6.5);
+        public static final Translation2d TARGET_BLUE_AZ_RIGHT = new Translation2d(1.5, 1.5);
+
+        public static final Translation2d TARGET_RED_HUB_CENTER = new Translation2d(11.915, 4.036);
+        public static final Translation2d TARGET_RED_AZ_LEFT = new Translation2d(15.0, 1.5);
+        public static final Translation2d TARGET_RED_AZ_RIGHT = new Translation2d(15.0, 6.5);   
+        
         //public static final int HUB_TAG_ID_RED = 12;
         //public static final int HUB_TAG_ID_BLUE = 12;
         public static final int HUB_TAG_ID_RED = 10;
@@ -157,6 +165,15 @@ public final class Constants {
                 return TRENCH_TAG_ID_RED;
             } else {
                 return TRENCH_TAG_ID_BLUE;
+            }
+        }
+
+        /** Returns the hub center point (x, y) for the current alliance. */
+        public static Translation2d getTargetHubCenter() {
+            if (getAlliance().isPresent() && getAlliance().get() == Alliance.Red) {
+                return TARGET_RED_HUB_CENTER;
+            } else {
+                return TARGET_BLUE_HUB_CENTER;
             }
         }
 
@@ -350,10 +367,10 @@ public final class Constants {
             // .withHeadingCompensation(HEADING_COMPENSATION_CONFIG);
             // .withSetpointGeneration(SETPOINT_GENERATION_CONFIG);
 
-        public static final double RANGE_TO_TAG_TOLERANCE = 0.1; // Close enough to target distance, meters
-        public static final double RANGE_TO_TAG_MAX_DISTANCE = 5.0; // Maximum distance to target, meters
-        /** Proportional gain for range-to-tag: position error (m) → velocity (m/s). Matches PathPlanner translation for consistency. */
-        public static final double RANGE_TO_TAG_KP = 4.0;
+        public static final double RANGE_TO_TARGET_TOLERANCE = 0.1; // Close enough to target distance, meters
+        public static final double RANGE_TO_TARGET_MAX_DISTANCE = 5.0; // Maximum distance to target, meters
+        /** Proportional gain for range-to-target: position error (m) → velocity (m/s). Matches PathPlanner translation for consistency. */
+        public static final double RANGE_TO_TARGET_KP = 4.0;
         /** Only require the tag to be in camera view when within this distance (m). Beyond this, use fused pose + field layout; don't bail on "tag lost" since cameras often can't see tags at range. */
         public static final double RANGE_TO_TAG_REQUIRE_VISION_WITHIN_METERS = 2;
 

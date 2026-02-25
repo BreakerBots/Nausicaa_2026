@@ -10,11 +10,17 @@ import static frc.robot.Constants.DriveConstants.DRIVETRAIN_CONSTANTS;
 import static frc.robot.Constants.DriveConstants.FrontLeft;
 import static frc.robot.Constants.DriveConstants.FrontRight;
 
+import edu.wpi.first.math.geometry.Translation2d;
 import frc.robot.BreakerLib.swerve.BreakerSwerveDrivetrain;
 
 public class Drivetrain extends BreakerSwerveDrivetrain {
 
     public Drivetrain() {
         super(DRIVETRAIN_CONSTANTS, FrontLeft, FrontRight, BackLeft, BackRight);
+    }
+
+    /** Returns the vector from the robot's position to the given field point. */
+    public Translation2d getRobotToPointTranslation(Translation2d targetPoint) {
+        return targetPoint.minus(getLocalizer().getPose().getTranslation());
     }
 }

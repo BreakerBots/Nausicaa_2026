@@ -31,6 +31,7 @@ import frc.robot.subsystems.Vision;
 import frc.robot.subsystems.Climb;
 import frc.robot.subsystems.Hopper;
 import frc.robot.subsystems.PoseManager;
+import frc.robot.subsystems.TrajectoryManager;
 
 
 /**
@@ -46,6 +47,7 @@ public class RobotContainer {
     private final Drivetrain drivetrain = new Drivetrain();
     private final Vision vision = new Vision(drivetrain);
     private final PoseManager poseManager = new PoseManager(drivetrain, vision);
+    private final TrajectoryManager trajectoryManager = new TrajectoryManager(drivetrain);
     private final Intake intake = new Intake();
     private final Climb climb = new Climb();
     private final Shooter shooter = new Shooter();
@@ -108,9 +110,9 @@ public class RobotContainer {
         controller.getLeftBumper().onTrue(Commands.runOnce(() -> drivetrain.getLocalizer().resetPose(new Pose2d(0,0, Rotation2d.fromRotations(0.0)))));
 
         // RIGHT BUMPER --> Pathfind to pose (alternative: while held; current: X+RB = on press)
-        // controller.getRightBumper().whileTrue(navigateToPoseCommand(Constants.FieldConstants.POSE_BLUE_HUB_CENTER));
+        // controller.getRightBumper().whileTrue(navigateToPoseCommand(Constants.FieldConstants.POSE_SHOOTING_BLUE_HUB_CENTER));
 
-        controller.getButtonX().and(controller.getRightBumper()).onTrue(poseManager.navigateToPoseCommand(Constants.FieldConstants.POSE_BLUE_HUB_CENTER));
+        controller.getButtonX().and(controller.getRightBumper()).onTrue(poseManager.navigateToPoseCommand(Constants.FieldConstants.POSE_SHOOTING_BLUE_HUB_CENTER));
 
         controller.getDPad().getDown().and(controller.getRightBumper()).onTrue(climb.goHome());
 
@@ -197,7 +199,7 @@ public class RobotContainer {
         controller.getButtonX().onTrue(Commands.runOnce(() -> {
             CommandScheduler.getInstance().schedule(
                     shooter.hoodToRotationsCommand(Constants.ShooterConstants.POSITION_HOOD_SETPOINT_HOME).alongWith(
-                    poseManager.navigateToPoseCommand(Constants.FieldConstants.POSE_BLUE_HUB_CENTER))
+                    poseManager.navigateToPoseCommand(Constants.FieldConstants.POSE_SHOOTING_BLUE_HUB_CENTER))
             );
         }, shooter));
 

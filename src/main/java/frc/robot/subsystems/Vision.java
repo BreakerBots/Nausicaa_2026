@@ -428,14 +428,14 @@ public class Vision extends SubsystemBase {
     }
 
 
-public Translation2d getRobotToTagTranslation(int tagId) {
-    Translation2d tagPosition = this.getTagPosition(tagId);
-    if (tagPosition == null) {
-        return null;
+    /** Returns the vector from the robot to the AprilTag (uses field layout for tag position). */
+    public Translation2d getRobotToTagTranslation(int tagId) {
+        Translation2d tagPosition = getTagPosition(tagId);
+        if (tagPosition == null) {
+            return null;
+        }
+        return drivetrain.getRobotToPointTranslation(tagPosition);
     }
-    Translation2d robotPosition = drivetrain.getLocalizer().getPose().getTranslation();
-    return tagPosition.minus(robotPosition);
-}
 
     /**
      * Calculates dynamic standard deviations for vision measurements based on tag count and proximity.
