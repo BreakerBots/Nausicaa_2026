@@ -86,27 +86,33 @@ public class Climb extends SubsystemBase {
      */
     public Command goHome() {
         return Commands.sequence(
-                Commands.runOnce(() -> setState(State.INACTIVE), this),
-                // Set current limits for homing
-                Commands.runOnce(() -> setHomingCurrents(true), this),
-                // Move climb toward DOWN limit until we detect a stall
-                Commands.run(() -> climbMotor.setControl(
-                    new VoltageOut(Constants.ClimbConstants.HOMING_VOLTAGE)), this),
-                Commands.runOnce(() -> {new TimedWaitUntilCommand(this::detectHome,
-                    Constants.ClimbConstants.HOMING_STALL_TIME_SECONDS)
-                        .raceWith(Commands.waitSeconds(Constants.ClimbConstants.HOMING_TIMEOUT_SECONDS))
-                        .execute();
-                    }),
-                // Stop the motor
-                Commands.runOnce(() -> climbMotor.setControl(new VoltageOut(0.0)), this),
-                Commands.waitSeconds(0.2),
-                // Zero encoder to SETPOINT_DOWN and set state to INACTIVE
-                Commands.runOnce(() -> {
-                    climbEncoder.setPosition(Constants.ClimbConstants.SETPOINT_DOWN);
-                    BreakerLog.log("Climb/Encoder", "CANcoder zeroed to SETPOINT_DOWN");
-                    setState(State.INACTIVE);
-                }, this))
-                .finallyDo((interrupted) -> setHomingCurrents(false));
+            // Set INACTIVE so periodic() doesn't overwrite our motor control
+            Commands.runOnce(() -> {
+                setState(State.INACTIVE);
+                BreakerLog.log("Climb/Homing", "Starting");
+            }, this),
+            Commands.runOnce(() -> setHomingCurrents(true), this),
+            // Apply voltage until stall or timeout (run + race so voltage stops when done)
+            Commands.run(() -> climbMotor.setControl(
+                new VoltageOut(Constants.ClimbConstants.HOMING_VOLTAGE)), this)
+                    .raceWith(new TimedWaitUntilCommand(this::detectHome,
+                        Constants.ClimbConstants.HOMING_STALL_TIME_SECONDS)
+                            .raceWith(Commands.waitSeconds(Constants.ClimbConstants.HOMING_TIMEOUT_SECONDS))),
+            Commands.runOnce(() -> {
+                climbMotor.setControl(new VoltageOut(0.0));
+                BreakerLog.log("Climb/Homing", "Motor stopped");
+            }, this),
+            Commands.waitSeconds(0.2),
+            // Zero encoder to SETPOINT_DOWN and set state to INACTIVE
+            Commands.runOnce(() -> {
+                climbEncoder.setPosition(Constants.ClimbConstants.SETPOINT_DOWN);
+                BreakerLog.log("Climb/Encoder", "CANcoder zeroed to SETPOINT_DOWN");
+                setState(State.INACTIVE);
+            }, this))
+            .finallyDo((interrupted) -> {
+                BreakerLog.log("Climb/Homing", "Finished (interrupted=" + interrupted + ")");
+                setHomingCurrents(false);
+            });
     }
 
     /** Detect stall at DOWN limit. */
