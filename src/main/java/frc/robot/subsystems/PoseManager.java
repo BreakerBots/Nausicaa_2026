@@ -36,10 +36,18 @@ public class PoseManager extends SubsystemBase {
 
     /**
      * Pathfind from current pose to the given target pose, avoiding fixed obstacles.
+     * Refuses to run if robot is farther than NAVIGATE_TO_POSE_MAX_DISTANCE_METERS from target
+     * (intended for short finishing moves, not long-distance drives).
      */
     public Command navigateToPoseCommand(Pose2d target) {
         if (!AutoBuilder.isConfigured()) {
             System.out.println("navigateToPoseCommand: AutoBuilder not configured, skipping pathfind to " + target);
+            return Commands.none();
+        }
+        double distanceMeters = drivetrain.getLocalizer().getPose().getTranslation().getDistance(target.getTranslation());
+        if (distanceMeters > Constants.DriveConstants.NAVIGATE_TO_POSE_MAX_DISTANCE_METERS) {
+            System.out.println("navigateToPoseCommand: Robot " + String.format("%.1f", distanceMeters)
+                    + " m from target (max " + Constants.DriveConstants.NAVIGATE_TO_POSE_MAX_DISTANCE_METERS + " m), skipping");
             return Commands.none();
         }
         PathConstraints constraints = new PathConstraints(
