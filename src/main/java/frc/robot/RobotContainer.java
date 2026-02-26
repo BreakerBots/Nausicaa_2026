@@ -7,18 +7,19 @@ package frc.robot;
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.auto.NamedCommands;
 
-import java.lang.Thread.State;
 import java.util.Set;
 import java.util.function.DoubleSupplier;
 
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.units.Units;
+import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.Commands;
+import edu.wpi.first.wpilibj2.command.button.Trigger;
 
 import frc.robot.BreakerLib.driverstation.BreakerInputStream;
 import frc.robot.BreakerLib.driverstation.BreakerInputStream2d;
@@ -177,38 +178,6 @@ public class RobotContainer {
         //     }
         // }, intake));
 
-        // Y: PIVOT
-        // controller.getButtonY().onTrue(Commands.runOnce(() -> {
-        //     if (intake.state != Intake.State.STOWED) {
-        //         CommandScheduler.getInstance().schedule(intake.setStateCommand(Intake.State.STOWED));
-        //     } else {
-        //         // STOWED -> EXTENDED: move hood down first to clear intake path
-        //         CommandScheduler.getInstance().schedule(
-        //                 Commands.sequence(
-        //                         shooter.hoodToRotationsCommand(Constants.ShooterConstants.SPEED_HOOD_DOWN),
-        //                         intake.setStateCommand(Intake.State.EXTENDED_INTAKING)));
-        //     }
-        // }, intake, shooter));
-        // controller.getButtonY().whileTrue(
-        // Commands.sequence(
-        //     Commands.waitSeconds(1.0),
-        //     intake.setStateCommand(Intake.State.STOWED)
-        //     )
-        // );
-
-        // RIGHT TRIGGER: Shoot (shooter + hopper while held; both inactive on release)
-        controller.getRightTrigger().whileTrue(shootCommand());
-        
-
-        // D-PAD RIGHT --> Hood up (while held; stop when released)
-        controller.getDPad().getRight().whileTrue(
-            Commands.startEnd(shooter::runHoodUp, shooter::stopHood, shooter));
-        
-        // D-PAD LEFT --> Hood down (while held; stop when released)
-        controller.getDPad().getLeft().and(controller.getRightBumper().negate()).whileTrue(
-            Commands.startEnd(shooter::runHoodDown, shooter::stopHood, shooter));
-
-        controller.getDPad().getDown().onTrue(climb.goHome());
 
 
         // B: STOWED → EXTENDED_IDLE → EXTENDED_INTAKING → EXTENDED_IDLE → ... (saved for later)
@@ -221,14 +190,36 @@ public class RobotContainer {
         //     }
         // }, intake));
 
+        // ----------------- INTAKE -------------
 
+        // B: 
+        controller.getButtonB().onTrue(Commands.runOnce(() -> {
+            if (intake.state != Intake.State.STOWED) {
+                CommandScheduler.getInstance().schedule(intake.setStateCommand(Intake.State.STOWED));
+            } else {
+                // STOWED -> EXTENDED: move hood down first to clear intake path
+                CommandScheduler.getInstance().schedule(
+                        intake.setStateCommand(Intake.State.EXTENDED_INTAKING).alongWith(
+                            shooter.hoodToRotationsCommand(Constants.ShooterConstants.SPEED_HOOD_DOWN)));
+            }
+        }, intake, shooter));
+    
 
-        // ----------------- HOPPER/FEEDER -------------
+        // ----------------- SHOOTER + HOPPER/FEEDER -------------
 
-        // A: ?
+        // RIGHT TRIGGER: Shoot (shooter + hopper while held; both inactive on release)
+        controller.getRightTrigger().whileTrue(shootCommand());
 
+        // D-PAD RIGHT --> Hood up (while held; stop when released)
+        controller.getDPad().getRight().whileTrue(
+            Commands.run(shooter::runHoodUp, shooter).finallyDo(shooter::stopHood));
+        
+        // D-PAD LEFT --> Hood down (while held; stop when released)
+        controller.getDPad().getLeft().whileTrue(
+            Commands.run(shooter::runHoodDown, shooter).finallyDo(shooter::stopHood));
 
-        // ----------------- SHOOTER -------------
+        // A: Hood all the way down
+        controller.getButtonA().onTrue(shooter.hoodToRotationsCommand(Constants.ShooterConstants.POSITION_HOOD_SETPOINT_HOME));
 
         // X: Rotate then range to tag (alternative; conflicts with current X binding)
         // controller.getButtonX().and(controller.getRightBumper().negate()).onTrue(rotateAndRangeToTagCommand(Constants.FieldConstants.getHubTagID(), 1.0));
@@ -239,7 +230,14 @@ public class RobotContainer {
         //controller.getButtonY().onTrue(trackAndRangeToTagCommand(Constants.FieldConstants.getHubTagID(), 1.0)); // Was rotateAndRangeToTagCommand
 
         // Y: Toggle shooter state (INACTIVE ↔ SHOOTING)
-        
+        controller.getButtonY().onTrue(Commands.runOnce(() -> {
+            if (shooter.state != Shooter.State.INACTIVE) {
+                CommandScheduler.getInstance().schedule(shooter.setStateCommand(Shooter.State.INACTIVE));
+            } else {
+                CommandScheduler.getInstance().schedule(shooter.setStateCommand(Shooter.State.SPINNING_UP));
+            }
+        }, shooter));
+
         // //INACTIVE
         // controller.getDPad().getDown().onTrue(shooter.setStateCommand(Shooter.State.INACTIVE));
 
@@ -263,6 +261,7 @@ public class RobotContainer {
         controller.getDPad().getUp().onTrue(climb.extend());
 
         // D-PAD DOWN --> Retract climb
+        controller.getDPad().getDown().onTrue(climb.goHome());
         // controller.getDPad().getDown().and(controller.getRightBumper().negate()).onTrue(climb.retract());
 
         // Right Bumper --> Climb UP
@@ -273,15 +272,29 @@ public class RobotContainer {
         // ---------- CONTROLLER 2 - CO-PILOT ----------
         // ---------------------------------------------
 
-        // KEYPAD: Setpoints for Shooting
-        controller2.getButtonX().onTrue(prepareToShootFromSetpointCommand(Constants.FieldConstants.POSE_SHOOTING_L1));
-        controller2.getButtonA().onTrue(prepareToShootFromSetpointCommand(Constants.FieldConstants.POSE_SHOOTING_C1));
-        controller2.getButtonB().onTrue(prepareToShootFromSetpointCommand(Constants.FieldConstants.POSE_SHOOTING_R1));
-        controller2.getButtonX().onTrue(prepareToShootFromSetpointCommand(Constants.FieldConstants.POSE_SHOOTING_L2));
-        controller2.getButtonA().onTrue(prepareToShootFromSetpointCommand(Constants.FieldConstants.POSE_SHOOTING_C2));
-        controller2.getButtonB().onTrue(prepareToShootFromSetpointCommand(Constants.FieldConstants.POSE_SHOOTING_R2));
-        controller2.getButtonX().onTrue(prepareToShootFromSetpointCommand(Constants.FieldConstants.POSE_SHOOTING_L3));
-        controller2.getButtonX().onTrue(prepareToShootFromSetpointCommand(Constants.FieldConstants.POSE_SHOOTING_R3));
+        // Setpoints for Shooting
+
+        Trigger noDPad = new Trigger(() -> controller2.getBaseHID().getPOV() == -1);
+        if (Constants.FieldConstants.isRedAlliance()) {
+            controller2.getButtonX().and(controller2.getDPad().getUp()).onTrue(prepareToShootFromSetpointCommand(Constants.FieldConstants.POSE_SHOOTING_RED_L1));
+            controller2.getButtonA().and(controller2.getDPad().getUp()).onTrue(prepareToShootFromSetpointCommand(Constants.FieldConstants.POSE_SHOOTING_RED_C1));
+            controller2.getButtonB().and(controller2.getDPad().getUp()).onTrue(prepareToShootFromSetpointCommand(Constants.FieldConstants.POSE_SHOOTING_RED_R1));
+            controller2.getButtonX().and(noDPad).onTrue(prepareToShootFromSetpointCommand(Constants.FieldConstants.POSE_SHOOTING_RED_L2));
+            controller2.getButtonA().and(noDPad).onTrue(prepareToShootFromSetpointCommand(Constants.FieldConstants.POSE_SHOOTING_RED_C2));
+            controller2.getButtonB().and(noDPad).onTrue(prepareToShootFromSetpointCommand(Constants.FieldConstants.POSE_SHOOTING_RED_R2));
+            controller2.getButtonX().and(controller2.getDPad().getLeft()).onTrue(prepareToShootFromSetpointCommand(Constants.FieldConstants.POSE_SHOOTING_RED_L3));
+            controller2.getButtonB().and(controller2.getDPad().getRight()).onTrue(prepareToShootFromSetpointCommand(Constants.FieldConstants.POSE_SHOOTING_RED_R3));
+        } else {
+            controller2.getButtonX().and(controller2.getDPad().getUp()).onTrue(prepareToShootFromSetpointCommand(Constants.FieldConstants.POSE_SHOOTING_BLUE_L1));
+            controller2.getButtonA().and(controller2.getDPad().getUp()).onTrue(prepareToShootFromSetpointCommand(Constants.FieldConstants.POSE_SHOOTING_BLUE_C1));
+            controller2.getButtonB().and(controller2.getDPad().getUp()).onTrue(prepareToShootFromSetpointCommand(Constants.FieldConstants.POSE_SHOOTING_BLUE_R1));
+            controller2.getButtonX().and(noDPad).onTrue(prepareToShootFromSetpointCommand(Constants.FieldConstants.POSE_SHOOTING_BLUE_L2));
+            controller2.getButtonA().and(noDPad).onTrue(prepareToShootFromSetpointCommand(Constants.FieldConstants.POSE_SHOOTING_BLUE_C2));
+            controller2.getButtonB().and(noDPad).onTrue(prepareToShootFromSetpointCommand(Constants.FieldConstants.POSE_SHOOTING_BLUE_R2));
+            controller2.getButtonX().and(controller2.getDPad().getLeft()).onTrue(prepareToShootFromSetpointCommand(Constants.FieldConstants.POSE_SHOOTING_BLUE_L3));
+            controller2.getButtonB().and(controller2.getDPad().getRight()).onTrue(prepareToShootFromSetpointCommand(Constants.FieldConstants.POSE_SHOOTING_BLUE_R3));
+        }
+
     }
 
     
@@ -290,36 +303,44 @@ public class RobotContainer {
         return poseManager.navigateToPoseCommand(targetPose).alongWith(shooter.setStateCommand(Shooter.State.SPINNING_UP));
     }
 
-    /** Shooter + hopper + intake jiggle while held; shooter and hopper inactive when released. */
+   /** While held: shooter SHOOTING, hopper FEEDING; 
+    * after 1s, intake jiggles LOW/HIGH every 0.5s. 
+    * On release: stop feeder, shooter INACTIVE, intake EXTENDED_INTAKING. 
+    */
     private Command shootCommand() {
-        return Commands.startEnd(
-                () -> {
-                    shooter.setState(Shooter.State.SHOOTING);
-                    hopper.setState(Hopper.State.FEEDING);
-                    Command firstStep = intake.state == Intake.State.STOWED
-                            ? Commands.sequence(
-                                    shooter.hoodToRotationsCommand(Constants.ShooterConstants.POSITION_HOOD_SETPOINT_HOME),
-                                    intake.setStateCommand(Intake.State.FEED_JIGGLE_HIGH))
-                            : intake.setStateCommand(Intake.State.FEED_JIGGLE_HIGH);
-                    CommandScheduler.getInstance().schedule(
-                            Commands.sequence(
-                                    firstStep,
-                                    Commands.waitSeconds(0.5),
-                                    intake.setStateCommand(Intake.State.FEED_JIGGLE_LOW),
-                                    Commands.waitSeconds(0.5))
-                                    .repeatedly()
-                                    .until(() -> hopper.state != Hopper.State.FEEDING));
-                },
-                () -> {
-                    shooter.setState(Shooter.State.INACTIVE);
-                    hopper.setState(Hopper.State.INACTIVE);
-                    intake.setState(Intake.State.EXTENDED_INTAKING);
-                },
-                shooter, hopper, intake);
+        Command jiggleSequence = Commands.sequence(
+                Commands.waitSeconds(1.0),
+                Commands.sequence(
+                        Commands.runOnce(() -> intake.setState(Intake.State.FEED_JIGGLE_LOW)),
+                        Commands.waitSeconds(0.5),
+                        Commands.runOnce(() -> intake.setState(Intake.State.FEED_JIGGLE_HIGH)),
+                        Commands.waitSeconds(0.5))
+                        .repeatedly()
+                        .until(() -> hopper.state != Hopper.State.FEEDING));
+        return Commands.parallel(
+                Commands.startEnd(
+                        () -> {
+                            shooter.setState(Shooter.State.SHOOTING);
+                            hopper.setState(Hopper.State.FEEDING);
+                        },
+                        () -> {
+                            hopper.setState(Hopper.State.INACTIVE);
+                            shooter.setState(Shooter.State.INACTIVE);
+                            intake.setState(Intake.State.EXTENDED_INTAKING);
+                        },
+                        shooter, hopper, intake),
+                jiggleSequence);
     }
+
 
     public Drivetrain getDrivetrain() {
         return drivetrain;
+    }
+
+
+    public void logPeriodic() {
+        BreakerLog.log("SwerveDrivetrain/SafetyMode", safetyMode);
+        BreakerLog.log("SwerveDrivetrain/SlowMode", slowMode);
     }
 
 

@@ -148,7 +148,7 @@ public class Vision extends SubsystemBase {
             // Get Pigeon IMU data
             var pigeon = drivetrain.getPigeon2();
             // Rotate the yaw by 180 degrees to fix MegaTag2 inversion: https://www.chiefdelphi.com/t/megatag-2-problem/465022
-            double yawOffset = DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Blue ? 0.0 : Math.PI;
+            double yawOffset = Constants.FieldConstants.isRedAlliance() ? Math.PI : 0.0;
             Rotation3d rotation = pigeon.getRotation3d().rotateBy(new Rotation3d(0.0, 0.0, yawOffset));
 
 
