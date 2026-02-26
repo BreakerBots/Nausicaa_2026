@@ -378,7 +378,7 @@ public final class Constants {
             // .withSetpointGeneration(SETPOINT_GENERATION_CONFIG);
 
         /** Max distance (m) for navigateToPose – refuse to pathfind if robot is farther. Prevents accidental long drives. */
-        public static final double NAVIGATE_TO_POSE_MAX_DISTANCE_METERS = 2.5;
+        public static final double NAVIGATE_TO_POSE_MAX_DISTANCE_METERS = 5.0;
 
         public static final double RANGE_TO_TARGET_TOLERANCE = 0.1; // Close enough to target distance, meters
         public static final double RANGE_TO_TARGET_MAX_DISTANCE = 5.0; // Maximum distance to target, meters

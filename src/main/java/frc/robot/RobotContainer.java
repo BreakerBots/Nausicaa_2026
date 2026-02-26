@@ -112,7 +112,7 @@ public class RobotContainer {
         controller.getLeftBumper().onTrue(Commands.runOnce(() -> drivetrain.getLocalizer().resetPose(new Pose2d(0,0, Rotation2d.fromRotations(0.0)))));
 
         // RIGHT BUMPER --> Pathfind to pose (alternative: while held; current: X+RB = on press)
-        // controller.getRightBumper().whileTrue(navigateToPoseCommand(Constants.FieldConstants.POSE_SHOOTING_BLUE_HUB_CENTER));
+         controller.getRightBumper().whileTrue(poseManager.navigateToPoseCommand(Constants.FieldConstants.POSE_SHOOTING_BLUE_HUB_CENTER));
 
         controller.getButtonX().and(controller.getRightBumper()).onTrue(poseManager.navigateToPoseCommand(Constants.FieldConstants.POSE_SHOOTING_BLUE_HUB_CENTER));
 
@@ -301,10 +301,7 @@ public class RobotContainer {
     
 
     public Command prepareToShootFromSetpointCommand(Pose2d targetPose) {
-        return Commands.sequence(
-                poseManager.navigateToPoseCommand(targetPose),
-                shooter.setStateCommand(Shooter.State.SPINNING_UP)
-        );
+        return poseManager.navigateToPoseCommand(targetPose).alongWith(shooter.setStateCommand(Shooter.State.SPINNING_UP));
     }
 
     public Drivetrain getDrivetrain() {

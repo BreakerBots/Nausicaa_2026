@@ -17,6 +17,7 @@ import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
 import frc.robot.Constants;
+import frc.robot.BreakerLib.util.logging.BreakerLog;
 
 /**
  * Manages commands for changing the robot's pose on the field: pathfinding, aligning to tags,
@@ -42,13 +43,13 @@ public class PoseManager extends SubsystemBase {
     public Command navigateToPoseCommand(Pose2d target) {
         System.out.println("navigateToPoseCommand is called");
         if (!AutoBuilder.isConfigured()) {
-            System.out.println("navigateToPoseCommand: AutoBuilder not configured, skipping pathfind to " + target);
+            BreakerLog.log("PoseManager/Status","navigateToPoseCommand: AutoBuilder not configured, skipping pathfind to " + target);
             return Commands.none();
         }
         double distanceMeters = drivetrain.getLocalizer().getPose().getTranslation().getDistance(target.getTranslation());
         if (distanceMeters > Constants.DriveConstants.NAVIGATE_TO_POSE_MAX_DISTANCE_METERS) {
-            System.out.println("navigateToPoseCommand: Robot " + String.format("%.1f", distanceMeters)
-                    + " m from target (max " + Constants.DriveConstants.NAVIGATE_TO_POSE_MAX_DISTANCE_METERS + " m), skipping");
+            BreakerLog.log("PoseManager/Status", "navigateToPoseCommand: Robot \" + String.format(\"%.1f\", distanceMeters)\r\n" + //
+                                "                    + \" m from target (max \" + Constants.DriveConstants.NAVIGATE_TO_POSE_MAX_DISTANCE_METERS + \" m), skipping");
             return Commands.none();
         }
         PathConstraints constraints = new PathConstraints(
