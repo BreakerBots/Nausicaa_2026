@@ -95,7 +95,7 @@ public class Shooter extends SubsystemBase {
 
         BreakerLog.log("Shooter/State/Previous", previousState.toString());
         BreakerLog.log("Shooter/State/Current", state.toString());
-        BreakerLog.log("Shooter/State/Flywheel1", state.getFlywheelSpeed());
+        BreakerLog.log("Shooter/State/FlywheelSpeed", state.getFlywheelSpeed());
     }
 
     public Command setStateCommand(State newState) {
@@ -164,6 +164,8 @@ public class Shooter extends SubsystemBase {
         String line = String.format("state=%s f1=%.1f f2=%.1f f3=%.1fvel hood=%.2frot %.1fvel",
                 state, v1, v2, v3, hoodPos, hoodVel);
         BreakerLog.log("Shooter/Status", line);
+        BreakerLog.log("Shooter/Hood/Status", String.format("pos=%.3frot vel=%.1f", hoodPos, hoodVel));
+        BreakerLog.log("Shooter/Hood/Position", hoodPos);
         BreakerLog.log("Electrical/Shooter/flywheel1", shooterFlywheel1Motor);
         BreakerLog.log("Electrical/Shooter/flywheel2", shooterFlywheel2Motor);
         BreakerLog.log("Electrical/Shooter/flywheel3", shooterFlywheel3Motor);

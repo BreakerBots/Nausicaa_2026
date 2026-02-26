@@ -14,6 +14,7 @@ import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import frc.robot.BreakerLib.util.logging.BreakerLog;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
@@ -128,12 +129,12 @@ public class Vision extends SubsystemBase {
             lastLogTime = currentTime;
         }
 
-        // TESTING: dashboard angle/distance to hub (alliance-aware)
+        // TESTING: angle/distance to hub (alliance-aware)
         int hubTagId = Constants.FieldConstants.getHubTagID();
         if (this.getDetectedTagId() == hubTagId) {
             double angle = Math.toDegrees(getAngleToTag(hubTagId));
-            SmartDashboard.putString("Aim/AngleToHub", String.format("%.2f", angle));
-            SmartDashboard.putString("Aim/DistanceToHub", String.format("%.2f", this.getDistanceToTag(hubTagId)) + "m");
+            BreakerLog.log("Vision/Aim/AngleToHub", String.format("%.2f", angle));
+            BreakerLog.log("Vision/Aim/DistanceToHub", String.format("%.2f", this.getDistanceToTag(hubTagId)) + "m");
         }
     }
 
@@ -493,14 +494,14 @@ public class Vision extends SubsystemBase {
 
         // Fused pose (odometry + vision): X, Y, yaw
         if (fusedPose != null) {
-            SmartDashboard.putNumber("Vision/FusedPose/X", fusedPose.getX());
-            SmartDashboard.putNumber("Vision/FusedPose/Y", fusedPose.getY());
-            SmartDashboard.putNumber("Vision/FusedPose/YawDeg", fusedPose.getRotation().getDegrees());
+            BreakerLog.log("Vision/FusedPose/X", fusedPose.getX());
+            BreakerLog.log("Vision/FusedPose/Y", fusedPose.getY());
+            BreakerLog.log("Vision/FusedPose/YawDeg", fusedPose.getRotation().getDegrees());
         }
         // IMU yaw (Pigeon); IMU does not provide X/Y position
         try {
             double imuYawDeg = drivetrain.getPigeon2().getRotation2d().getDegrees();
-            SmartDashboard.putNumber("Vision/IMU/YawDeg", imuYawDeg);
+            BreakerLog.log("Vision/IMU/YawDeg", imuYawDeg);
         } catch (Exception ignored) {
             // Pigeon not available
         }
@@ -525,28 +526,28 @@ public class Vision extends SubsystemBase {
                 ? backRightCameraPose.getTranslation().getDistance(fusedPose.getTranslation())
                 : Double.NaN;
 
-        SmartDashboard.putString("Vision/FrontCamera/Tags", frontTagsStr);
-        SmartDashboard.putString("Vision/FrontCamera/Pose", frontPoseStr);
-        SmartDashboard.putNumber("Vision/FrontCamera/TrustScore", frontTrustScore);
-        SmartDashboard.putNumber("Vision/FrontCamera/DistToFusedM", frontDistToFused);
-        SmartDashboard.putString("Vision/FrontCamera/Status", frontCameraStatus);
-        SmartDashboard.putString("Vision/FrontCamera/LastRejection", frontCameraLastRejection);
+        BreakerLog.log("Vision/FrontCamera/Tags", frontTagsStr);
+        BreakerLog.log("Vision/FrontCamera/Pose", frontPoseStr);
+        BreakerLog.log("Vision/FrontCamera/TrustScore", frontTrustScore);
+        BreakerLog.log("Vision/FrontCamera/DistToFusedM", frontDistToFused);
+        BreakerLog.log("Vision/FrontCamera/Status", frontCameraStatus);
+        BreakerLog.log("Vision/FrontCamera/LastRejection", frontCameraLastRejection);
 
-        SmartDashboard.putString("Vision/BackLeftCamera/Tags", backLeftTagsStr);
-        SmartDashboard.putString("Vision/BackLeftCamera/Pose", backLeftPoseStr);
-        SmartDashboard.putNumber("Vision/BackLeftCamera/TrustScore", backLeftTrustScore);
-        SmartDashboard.putNumber("Vision/BackLeftCamera/DistToFusedM", backLeftDistToFused);
-        SmartDashboard.putString("Vision/BackLeftCamera/Status", backLeftCameraStatus);
-        SmartDashboard.putString("Vision/BackLeftCamera/LastRejection", backLeftCameraLastRejection);
+        BreakerLog.log("Vision/BackLeftCamera/Tags", backLeftTagsStr);
+        BreakerLog.log("Vision/BackLeftCamera/Pose", backLeftPoseStr);
+        BreakerLog.log("Vision/BackLeftCamera/TrustScore", backLeftTrustScore);
+        BreakerLog.log("Vision/BackLeftCamera/DistToFusedM", backLeftDistToFused);
+        BreakerLog.log("Vision/BackLeftCamera/Status", backLeftCameraStatus);
+        BreakerLog.log("Vision/BackLeftCamera/LastRejection", backLeftCameraLastRejection);
 
-        SmartDashboard.putString("Vision/BackRightCamera/Tags", backRightTagsStr);
-        SmartDashboard.putString("Vision/BackRightCamera/Pose", backRightPoseStr);
-        SmartDashboard.putNumber("Vision/BackRightCamera/TrustScore", backRightTrustScore);
-        SmartDashboard.putNumber("Vision/BackRightCamera/DistToFusedM", backRightDistToFused);
-        SmartDashboard.putString("Vision/BackRightCamera/Status", backRightCameraStatus);
-        SmartDashboard.putString("Vision/BackRightCamera/LastRejection", backRightCameraLastRejection);
+        BreakerLog.log("Vision/BackRightCamera/Tags", backRightTagsStr);
+        BreakerLog.log("Vision/BackRightCamera/Pose", backRightPoseStr);
+        BreakerLog.log("Vision/BackRightCamera/TrustScore", backRightTrustScore);
+        BreakerLog.log("Vision/BackRightCamera/DistToFusedM", backRightDistToFused);
+        BreakerLog.log("Vision/BackRightCamera/Status", backRightCameraStatus);
+        BreakerLog.log("Vision/BackRightCamera/LastRejection", backRightCameraLastRejection);
 
-        SmartDashboard.putString("Vision/FusedPose/Pose", fusedPoseStr);
+        BreakerLog.log("Vision/FusedPose/Pose", fusedPoseStr);
 
         double imuYawForLog = Double.NaN;
         try {
@@ -576,8 +577,7 @@ public class Vision extends SubsystemBase {
                 imuYawForLog);
         //System.out.println(logMessage);
 
-        // Log to NetworkTables
-        SmartDashboard.putString("Vision/Log", logMessage);        
+        BreakerLog.log("Vision/Log", logMessage);
     }
 
     /**
