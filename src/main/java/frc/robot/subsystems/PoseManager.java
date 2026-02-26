@@ -173,6 +173,13 @@ public class PoseManager extends SubsystemBase {
         return trackPointCommand(tagPosition, vx, vy);
     }
 
+    /**
+     * While run: driver keeps X/Y; rotation is overridden to face the hub center (alliance-aware).
+     */
+    public Command trackHubCenterCommand(DoubleSupplier vx, DoubleSupplier vy) {
+        return trackPointCommand(Constants.FieldConstants.getTargetHubCenter(), vx, vy);
+    }
+
     // --------------- RANGE TO ---------------
 
     /**

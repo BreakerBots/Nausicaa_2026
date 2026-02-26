@@ -110,7 +110,7 @@ public class RobotContainer {
         // ---------------------------------------------
 
         // BACK BUTTON --> SLOW MODE
-        controller.getBackButton().onTrue(Commands.runOnce(() -> slowMode = !slowMode));
+        controller.getRightBumper().onTrue(Commands.runOnce(() -> slowMode = !slowMode));
 
         // LEFT BUMPER --> RESET LOCALIZER'S POSE
         controller.getLeftBumper().onTrue(Commands.runOnce(() -> drivetrain.getLocalizer().resetPose(new Pose2d(0,0, Rotation2d.fromRotations(0.0)))));
@@ -159,6 +159,9 @@ public class RobotContainer {
         
             drivetrain.setDefaultCommand(drivetrain.getTeleopControlCommand(driverX, driverY, driverOmega, Constants.DriveConstants.TELEOP_CONTROL_CONFIG));
         
+            // LEFT TRIGGER --> Track hub center; driver keeps X/Y, rotation follows hub
+            controller.getLeftTrigger().whileTrue(poseManager.trackHubCenterCommand(driverX, driverY));
+
             // Range to tag (A button)
             // controller.getButtonA().onTrue(rangeToTagCommand(Constants.FieldConstants.getTrenchTagID(), 1.0));        
         }
@@ -166,69 +169,36 @@ public class RobotContainer {
         // ----------------- TEST CONTROLS -------------
         
         // B: ROLLER
-        controller.getButtonB().onTrue(Commands.runOnce(() -> {
-            if (intake.state == Intake.State.EXTENDED_INTAKING) {
-                CommandScheduler.getInstance().schedule(intake.setStateCommand(Intake.State.EXTENDED_IDLE));
-            } else {
-                CommandScheduler.getInstance().schedule(intake.setStateCommand(Intake.State.STOWED));
-            }
-        }, intake));
+        // controller.getButtonB().onTrue(Commands.runOnce(() -> {
+        //     if (intake.state == Intake.State.EXTENDED_INTAKING) {
+        //         CommandScheduler.getInstance().schedule(intake.setStateCommand(Intake.State.EXTENDED_IDLE));
+        //     } else {
+        //         CommandScheduler.getInstance().schedule(intake.setStateCommand(Intake.State.STOWED));
+        //     }
+        // }, intake));
 
         // Y: PIVOT
-        controller.getButtonY().onTrue(Commands.runOnce(() -> {
-            if (intake.state != Intake.State.STOWED) {
-                CommandScheduler.getInstance().schedule(intake.setStateCommand(Intake.State.STOWED));
-            } else {
-                // STOWED -> EXTENDED: move hood down first to clear intake path
-                CommandScheduler.getInstance().schedule(
-                        Commands.sequence(
-                                shooter.hoodToRotationsCommand(Constants.ShooterConstants.SPEED_HOOD_DOWN),
-                                intake.setStateCommand(Intake.State.EXTENDED_INTAKING)));
-            }
-        }, intake, shooter));
-        controller.getButtonY().whileTrue(
-        Commands.sequence(
-            Commands.waitSeconds(1.0),
-            intake.setStateCommand(Intake.State.STOWED)
-            )
-        );
+        // controller.getButtonY().onTrue(Commands.runOnce(() -> {
+        //     if (intake.state != Intake.State.STOWED) {
+        //         CommandScheduler.getInstance().schedule(intake.setStateCommand(Intake.State.STOWED));
+        //     } else {
+        //         // STOWED -> EXTENDED: move hood down first to clear intake path
+        //         CommandScheduler.getInstance().schedule(
+        //                 Commands.sequence(
+        //                         shooter.hoodToRotationsCommand(Constants.ShooterConstants.SPEED_HOOD_DOWN),
+        //                         intake.setStateCommand(Intake.State.EXTENDED_INTAKING)));
+        //     }
+        // }, intake, shooter));
+        // controller.getButtonY().whileTrue(
+        // Commands.sequence(
+        //     Commands.waitSeconds(1.0),
+        //     intake.setStateCommand(Intake.State.STOWED)
+        //     )
+        // );
 
-
-        // RIGHT TRIGGER (held) --> TRACK TAG; driver keeps X/Y control, rotation follows tag
-        if (!safetyMode) {
-            //controller.getRightTrigger().whileTrue(poseManager.trackTagCommand(Constants.FieldConstants.getHubTagID(), driverX, driverY));
-        }
-
-        // RIGHT TRIGGER: SHOOTER FLYWHEELs
-        controller.getRightTrigger().whileTrue(Commands.runOnce(() -> shooter.setState(Shooter.State.SHOOTING), shooter));
-        controller.getRightTrigger().onFalse(Commands.runOnce(() -> shooter.setState(Shooter.State.INACTIVE), shooter));
+        // RIGHT TRIGGER: Shoot (shooter + hopper while held; both inactive on release)
+        controller.getRightTrigger().whileTrue(shootCommand());
         
-        // GO TO SETPOINT FOR SHOOTING  ***  X -> Move to Pose and Move HoodToRotation
-        // controller.getButtonX().onTrue(Commands.runOnce(() -> {
-        //     CommandScheduler.getInstance().schedule(
-        //             shooter.hoodToRotationsCommand(Constants.ShooterConstants.POSITION_HOOD_SETPOINT_HOME).alongWith(
-        //             poseManager.navigateToPoseCommand(Constants.FieldConstants.POSE_SHOOTING_BLUE_HUB_CENTER))
-        //     );
-        // }, shooter));
-        
-        
-        // A: FEEDER and INDEXER and INTAKE JIGGLE
-        controller.getButtonA().onFalse(Commands.runOnce(() -> {
-            if (hopper.state == Hopper.State.FEEDING) {
-                hopper.setState(Hopper.State.INACTIVE);
-            } else {
-                hopper.setState(Hopper.State.FEEDING);
-                CommandScheduler.getInstance().schedule(
-                    Commands.sequence(
-                        intake.setStateCommand(Intake.State.FEED_JIGGLE_HIGH),
-                        Commands.waitSeconds(0.5),
-                        intake.setStateCommand(Intake.State.FEED_JIGGLE_LOW),
-                        Commands.waitSeconds(0.5)
-                    ).repeatedly().until(()-> hopper.state != Hopper.State.FEEDING)
-                );
-            }
-        }, hopper, intake));
-
 
         // D-PAD RIGHT --> Hood up (while held; stop when released)
         controller.getDPad().getRight().whileTrue(
@@ -239,7 +209,6 @@ public class RobotContainer {
             Commands.startEnd(shooter::runHoodDown, shooter::stopHood, shooter));
 
         controller.getDPad().getDown().onTrue(climb.goHome());
-
 
 
         // B: STOWED → EXTENDED_IDLE → EXTENDED_INTAKING → EXTENDED_IDLE → ... (saved for later)
@@ -319,6 +288,34 @@ public class RobotContainer {
 
     public Command prepareToShootFromSetpointCommand(Pose2d targetPose) {
         return poseManager.navigateToPoseCommand(targetPose).alongWith(shooter.setStateCommand(Shooter.State.SPINNING_UP));
+    }
+
+    /** Shooter + hopper + intake jiggle while held; shooter and hopper inactive when released. */
+    private Command shootCommand() {
+        return Commands.startEnd(
+                () -> {
+                    shooter.setState(Shooter.State.SHOOTING);
+                    hopper.setState(Hopper.State.FEEDING);
+                    Command firstStep = intake.state == Intake.State.STOWED
+                            ? Commands.sequence(
+                                    shooter.hoodToRotationsCommand(Constants.ShooterConstants.POSITION_HOOD_SETPOINT_HOME),
+                                    intake.setStateCommand(Intake.State.FEED_JIGGLE_HIGH))
+                            : intake.setStateCommand(Intake.State.FEED_JIGGLE_HIGH);
+                    CommandScheduler.getInstance().schedule(
+                            Commands.sequence(
+                                    firstStep,
+                                    Commands.waitSeconds(0.5),
+                                    intake.setStateCommand(Intake.State.FEED_JIGGLE_LOW),
+                                    Commands.waitSeconds(0.5))
+                                    .repeatedly()
+                                    .until(() -> hopper.state != Hopper.State.FEEDING));
+                },
+                () -> {
+                    shooter.setState(Shooter.State.INACTIVE);
+                    hopper.setState(Hopper.State.INACTIVE);
+                    intake.setState(Intake.State.EXTENDED_INTAKING);
+                },
+                shooter, hopper, intake);
     }
 
     public Drivetrain getDrivetrain() {
