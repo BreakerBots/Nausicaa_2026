@@ -274,14 +274,14 @@ public class RobotContainer {
         // ---------------------------------------------
 
         // KEYPAD: Setpoints for Shooting
-        controller.getButtonX().onTrue(prepareToShootFromSetpointCommand(Constants.FieldConstants.POSE_SHOOTING_L1));
-        controller.getButtonA().onTrue(prepareToShootFromSetpointCommand(Constants.FieldConstants.POSE_SHOOTING_C1));
-        controller.getButtonB().onTrue(prepareToShootFromSetpointCommand(Constants.FieldConstants.POSE_SHOOTING_R1));
-        //controller2.getButtonX().onTrue(prepareToShootFromSetpointCommand(Constants.FieldConstants.POSE_SHOOTING_L2));
-        //controller2.getButtonA().onTrue(prepareToShootFromSetpointCommand(Constants.FieldConstants.POSE_SHOOTING_C2));
-        //controller2.getButtonB().onTrue(prepareToShootFromSetpointCommand(Constants.FieldConstants.POSE_SHOOTING_R2));
-        //controller2.getButtonX().onTrue(prepareToShootFromSetpointCommand(Constants.FieldConstants.POSE_SHOOTING_L3));
-        //controller2.getButtonX().onTrue(prepareToShootFromSetpointCommand(Constants.FieldConstants.POSE_SHOOTING_R3));
+        controller2.getButtonX().onTrue(prepareToShootFromSetpointCommand(Constants.FieldConstants.POSE_SHOOTING_L1));
+        controller2.getButtonA().onTrue(prepareToShootFromSetpointCommand(Constants.FieldConstants.POSE_SHOOTING_C1));
+        controller2.getButtonB().onTrue(prepareToShootFromSetpointCommand(Constants.FieldConstants.POSE_SHOOTING_R1));
+        controller2.getButtonX().onTrue(prepareToShootFromSetpointCommand(Constants.FieldConstants.POSE_SHOOTING_L2));
+        controller2.getButtonA().onTrue(prepareToShootFromSetpointCommand(Constants.FieldConstants.POSE_SHOOTING_C2));
+        controller2.getButtonB().onTrue(prepareToShootFromSetpointCommand(Constants.FieldConstants.POSE_SHOOTING_R2));
+        controller2.getButtonX().onTrue(prepareToShootFromSetpointCommand(Constants.FieldConstants.POSE_SHOOTING_L3));
+        controller2.getButtonX().onTrue(prepareToShootFromSetpointCommand(Constants.FieldConstants.POSE_SHOOTING_R3));
     }
 
     

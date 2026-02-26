@@ -65,7 +65,16 @@ public class PoseManager extends SubsystemBase {
                 1000000000.0,
                 12.0,
                 false);
-            return AutoBuilder.pathfindToPose(target, constraints, 0.0);
+            Command pathfind = AutoBuilder.pathfindToPose(target, constraints, 0.0);
+
+            // At close distance, PathPlanner won't get us all the way there
+            // So we use this rto refine our pose
+            Command refinePosition = rangeToPointCommand(target.getTranslation(), 0.0);
+            Translation2d pointAhead = target.getTranslation().plus(
+               new Translation2d(target.getRotation().getCos(), target.getRotation().getSin()));
+            Command refineRotation = rotateToPointCommand(pointAhead);
+            
+            return pathfind.andThen(refinePosition).andThen(refineRotation);
         }, Set.of(drivetrain));
     }
 
