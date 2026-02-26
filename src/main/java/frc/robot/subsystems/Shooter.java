@@ -74,6 +74,8 @@ public class Shooter extends SubsystemBase {
         SPINNING_UP(Constants.ShooterConstants.SPEED_FLYWHEEL_ACTIVE),
         SHOOTING(Constants.ShooterConstants.SPEED_FLYWHEEL_ACTIVE);
 
+
+
         private double flywheelSpeed;
 
         private State(double flywheelSpeed) {
@@ -144,6 +146,8 @@ public class Shooter extends SubsystemBase {
             return Commands.runOnce(this::stopHood, this);
         }
     }
+
+    
 
     @Override
     public void periodic() {

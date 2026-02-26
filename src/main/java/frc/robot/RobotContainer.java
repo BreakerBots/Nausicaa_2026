@@ -7,6 +7,7 @@ package frc.robot;
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.auto.NamedCommands;
 
+import java.lang.Thread.State;
 import java.util.Set;
 import java.util.function.DoubleSupplier;
 
@@ -44,6 +45,7 @@ public class RobotContainer {
 
     // The robot's subsystems and commands are defined here...
     private final BreakerXboxController controller = new BreakerXboxController(Constants.OperatorConstants.kDriverControllerPort);
+    private final BreakerXboxController controller2 = new BreakerXboxController(Constants.OperatorConstants.kDriverControllerPort2);
     private final Drivetrain drivetrain = new Drivetrain();
     private final Vision vision = new Vision(drivetrain);
     private final PoseManager poseManager = new PoseManager(drivetrain, vision);
@@ -58,7 +60,7 @@ public class RobotContainer {
     private boolean slowMode;
     
     /** When true, drive controls and autonomous are disabled. */
-    private boolean safetyMode = true;
+    private boolean safetyMode = false;
     
     /** PathPlanner auto chooser; populated from GUI autos when AutoBuilder is configured. */
     private final SendableChooser<Command> autoChooser;
@@ -114,7 +116,7 @@ public class RobotContainer {
 
         controller.getButtonX().and(controller.getRightBumper()).onTrue(poseManager.navigateToPoseCommand(Constants.FieldConstants.POSE_SHOOTING_BLUE_HUB_CENTER));
 
-        controller.getDPad().getDown().and(controller.getRightBumper()).onTrue(climb.goHome());
+        controller.getDPad().getDown().onTrue(climb.goHome());
 
 
         // ---------------- SWERVE DRIVE ----------------
@@ -202,7 +204,8 @@ public class RobotContainer {
                     poseManager.navigateToPoseCommand(Constants.FieldConstants.POSE_SHOOTING_BLUE_HUB_CENTER))
             );
         }, shooter));
-
+        
+        
         // A: FEEDER and INDEXER and INTAKE JIGGLE
         controller.getButtonA().onFalse(Commands.runOnce(() -> {
             if (hopper.state == Hopper.State.FEEDING) {
@@ -284,13 +287,25 @@ public class RobotContainer {
         controller.getDPad().getUp().onTrue(climb.extend());
 
         // D-PAD DOWN --> Retract climb
-        controller.getDPad().getDown().and(controller.getRightBumper().negate()).onTrue(climb.retract());
+        // controller.getDPad().getDown().and(controller.getRightBumper().negate()).onTrue(climb.retract());
 
         // Right Bumper --> Climb UP
         // controller.getRightBumper().onTrue(climb.ascend());
+
+        // Setpoints for autoalign
+        controller2.getButtonX().onTrue(prepareToShootFromSetpointCommand(Constants.FieldConstants.POSE_SHOOTING_L1));
+        controller2.getButtonA().onTrue(prepareToShootFromSetpointCommand(Constants.FieldConstants.POSE_SHOOTING_C1));
+        controller2.getButtonB().onTrue(prepareToShootFromSetpointCommand(Constants.FieldConstants.POSE_SHOOTING_R1));
     }
 
+    
 
+    public Command prepareToShootFromSetpointCommand(Pose2d targetPose) {
+        return Commands.sequence(
+                poseManager.navigateToPoseCommand(targetPose),
+                shooter.setStateCommand(Shooter.State.SPINNING_UP)
+        );
+    }
 
     public Drivetrain getDrivetrain() {
         return drivetrain;

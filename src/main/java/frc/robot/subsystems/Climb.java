@@ -44,7 +44,8 @@ public class Climb extends SubsystemBase {
         EXTENDING(Constants.ClimbConstants.SPEED_EXTENDING),
         ASCENDING(Constants.ClimbConstants.SPEED_ASCENDING),
         DESCENDING(Constants.ClimbConstants.SPEED_DESCENDING),
-        RETRACTING(Constants.ClimbConstants.SPEED_RETRACTING);
+        RETRACTING(Constants.ClimbConstants.SPEED_RETRACTING),
+        HOMING(0.0);
 
         private final double speed;
 
@@ -88,7 +89,7 @@ public class Climb extends SubsystemBase {
         return Commands.sequence(
             // Set INACTIVE so periodic() doesn't overwrite our motor control
             Commands.runOnce(() -> {
-                setState(State.INACTIVE);
+                setState(State.HOMING);
                 BreakerLog.log("Climb/Homing", "Starting");
             }, this),
             Commands.runOnce(() -> setHomingCurrents(true), this),
@@ -270,7 +271,7 @@ public class Climb extends SubsystemBase {
     @Override
     public void periodic() {
         // Continue moving toward setpoint if in a moving state
-        if (state != State.INACTIVE) {
+        if (state != State.INACTIVE && state != State.HOMING) {
             moveToSetpoint(targetSetpoint);
             
             // Check if we've reached the setpoint and stop if so

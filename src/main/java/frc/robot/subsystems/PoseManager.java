@@ -40,6 +40,7 @@ public class PoseManager extends SubsystemBase {
      * (intended for short finishing moves, not long-distance drives).
      */
     public Command navigateToPoseCommand(Pose2d target) {
+        System.out.println("navigateToPoseCommand is called");
         if (!AutoBuilder.isConfigured()) {
             System.out.println("navigateToPoseCommand: AutoBuilder not configured, skipping pathfind to " + target);
             return Commands.none();
