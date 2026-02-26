@@ -187,6 +187,20 @@ public final class Constants {
             }
         }
 
+        /** Returns the tracking target for the left trigger based on robot pose and alliance.
+        * In alliance zone: hub center. Outside AZ: left/right AZ target based on Y. */
+        public static Translation2d getLeftTriggerTarget(Pose2d pose) {
+            double x = pose.getX();
+            double y = pose.getY();
+            if (getAlliance().isPresent() && getAlliance().get() == Alliance.Red) {
+                if (x >= 12.0) return getTargetHubCenter();
+                return y > 4.0 ? TARGET_RED_AZ_RIGHT : TARGET_RED_AZ_LEFT;
+            } else {
+                if (x <= 4.5) return getTargetHubCenter();
+                return y > 4.0 ? TARGET_BLUE_AZ_LEFT : TARGET_BLUE_AZ_RIGHT;
+            }
+        }
+
         public static Optional<Alliance> getAlliance() {
             Optional<Alliance> alliance = DriverStation.getAlliance();
             return alliance;

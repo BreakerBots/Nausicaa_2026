@@ -574,7 +574,7 @@ public class Vision extends SubsystemBase {
                 fusedPose != null ? fusedPose.getY() : Double.NaN,
                 fusedPose != null ? fusedPose.getRotation().getDegrees() : Double.NaN,
                 imuYawForLog);
-        System.out.println(logMessage);
+        //System.out.println(logMessage);
 
         // Log to NetworkTables
         SmartDashboard.putString("Vision/Log", logMessage);        

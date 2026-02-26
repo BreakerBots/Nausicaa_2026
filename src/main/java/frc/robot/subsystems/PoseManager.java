@@ -1,5 +1,7 @@
 package frc.robot.subsystems;
 
+import java.util.Set;
+import java.util.function.Supplier;
 import java.util.function.DoubleSupplier;
 
 import com.ctre.phoenix6.swerve.SwerveModule.DriveRequestType;
@@ -41,25 +43,30 @@ public class PoseManager extends SubsystemBase {
      * (intended for short finishing moves, not long-distance drives).
      */
     public Command navigateToPoseCommand(Pose2d target) {
-        System.out.println("navigateToPoseCommand is called");
-        if (!AutoBuilder.isConfigured()) {
-            BreakerLog.log("PoseManager/Status","navigateToPoseCommand: AutoBuilder not configured, skipping pathfind to " + target);
-            return Commands.none();
-        }
-        double distanceMeters = drivetrain.getLocalizer().getPose().getTranslation().getDistance(target.getTranslation());
-        if (distanceMeters > Constants.DriveConstants.NAVIGATE_TO_POSE_MAX_DISTANCE_METERS) {
-            BreakerLog.log("PoseManager/Status", "navigateToPoseCommand: Robot \" + String.format(\"%.1f\", distanceMeters)\r\n" + //
-                                "                    + \" m from target (max \" + Constants.DriveConstants.NAVIGATE_TO_POSE_MAX_DISTANCE_METERS + \" m), skipping");
-            return Commands.none();
-        }
-        PathConstraints constraints = new PathConstraints(
-            Constants.DriveConstants.MAXIMUM_TRANSLATIONAL_VELOCITY.magnitude(),
-            1000000000.0,
-            Constants.DriveConstants.MAXIMUM_ROTATIONAL_VELOCITY.magnitude(),
-            1000000000.0,
-            12.0,
-            false);
-        return AutoBuilder.pathfindToPose(target, constraints, 0.0);
+        return Commands.defer(() -> {
+            if (!AutoBuilder.isConfigured()) {
+                return Commands.none();
+            }
+            double distanceMeters = drivetrain.getLocalizer().getPose().getTranslation().getDistance(target.getTranslation());
+            String statusMessage = "navigateToPoseCommand: Robot " + String.format("%.1f", distanceMeters) + 
+                " m from target: " + target.toString();
+            if (distanceMeters > Constants.DriveConstants.NAVIGATE_TO_POSE_MAX_DISTANCE_METERS) {
+                statusMessage = statusMessage + " - ABORT (we're too far away)";
+                BreakerLog.log("PoseManager/Status", statusMessage);
+                System.out.println(statusMessage);   
+                return Commands.none();
+            }
+            BreakerLog.log("PoseManager/Status", statusMessage);
+            System.out.println(statusMessage);            
+            PathConstraints constraints = new PathConstraints(
+                Constants.DriveConstants.MAXIMUM_TRANSLATIONAL_VELOCITY.magnitude(),
+                1000000000.0,
+                Constants.DriveConstants.MAXIMUM_ROTATIONAL_VELOCITY.magnitude(),
+                1000000000.0,
+                12.0,
+                false);
+            return AutoBuilder.pathfindToPose(target, constraints, 0.0);
+        }, Set.of(drivetrain));
     }
 
     // --------------- ROTATE TO ---------------
@@ -137,17 +144,24 @@ public class PoseManager extends SubsystemBase {
      * While run: driver keeps X/Y; rotation is overridden to face the target point (odometry-based).
      */
     public Command trackPointCommand(Translation2d targetPoint, DoubleSupplier vx, DoubleSupplier vy) {
+        return trackPointCommand(() -> targetPoint, vx, vy);
+    }
+
+   /**
+    * Adjust rotation to always face target AprilTag. The supplier allows us to continually reevaluate this each cycle.
+    */
+    public Command trackPointCommand(Supplier<Translation2d> targetSupplier, DoubleSupplier vx, DoubleSupplier vy) {
         final var request = new SwerveRequest.FieldCentric().withDriveRequestType(DriveRequestType.Velocity);
         PIDController rotationPID = new PIDController(9, 0.0, 0.1);
         rotationPID.enableContinuousInput(-Math.PI, Math.PI);
         double maxRotRate = Constants.DriveConstants.MAXIMUM_ROTATIONAL_VELOCITY.in(Units.RadiansPerSecond);
 
         return Commands.run(() -> {
+            Translation2d targetPoint = targetSupplier.get();
             Translation2d toTarget = drivetrain.getRobotToPointTranslation(targetPoint);
             double desiredHeading = Math.atan2(toTarget.getY(), toTarget.getX());
             double currentHeading = drivetrain.getLocalizer().getPose().getRotation().getRadians();
             double angleError = Math.IEEEremainder(desiredHeading - currentHeading, 2.0 * Math.PI);
-
             double omega = rotationPID.calculate(0.0, angleError);
             omega = Math.max(-maxRotRate, Math.min(maxRotRate, omega));
             drivetrain.setControl(request
@@ -162,8 +176,20 @@ public class PoseManager extends SubsystemBase {
     }
 
     /**
-     * While run: driver keeps X/Y; rotation is overridden to face the target AprilTag.
-     * Uses field layout for tag position, delegates to trackPointCommand.
+      * When in our AZ, track the hub. When outside, track one of two passing targets.
+      */
+    public Command trackLeftTriggerTargetCommand(DoubleSupplier vx, DoubleSupplier vy) {
+        return trackPointCommand(() -> {
+            Pose2d pose = drivetrain.getLocalizer().getPose();
+               Translation2d target = Constants.FieldConstants.getLeftTriggerTarget(pose);
+               BreakerLog.log("PoseManager/LeftTriggerTarget", target);
+               return target;
+        },
+        vx, vy);
+    }
+
+    /**
+     * Adjust rotation to always face target AprilTag.
      */
     public Command trackTagCommand(int targetTagId, DoubleSupplier vx, DoubleSupplier vy) {
         Translation2d tagPosition = vision.getTagPosition(targetTagId);
@@ -174,7 +200,7 @@ public class PoseManager extends SubsystemBase {
     }
 
     /**
-     * While run: driver keeps X/Y; rotation is overridden to face the hub center (alliance-aware).
+     * Adjust rotation to always face our Hub.
      */
     public Command trackHubCenterCommand(DoubleSupplier vx, DoubleSupplier vy) {
         return trackPointCommand(Constants.FieldConstants.getTargetHubCenter(), vx, vy);
