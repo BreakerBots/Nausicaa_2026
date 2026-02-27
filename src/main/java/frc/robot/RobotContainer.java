@@ -13,7 +13,6 @@ import java.util.function.DoubleSupplier;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.units.Units;
-import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -300,7 +299,11 @@ public class RobotContainer {
     
 
     public Command prepareToShootFromSetpointCommand(Pose2d targetPose) {
-        return poseManager.navigateToPoseCommand(targetPose).alongWith(shooter.setStateCommand(Shooter.State.SPINNING_UP));
+        double distanceToHub = targetPose.getTranslation().getDistance(Constants.FieldConstants.getTargetHubCenter());
+        double hoodTarget = trajectoryManager.getHoodPositionForDistance(distanceToHub);
+        return poseManager.navigateToPoseCommand(targetPose)
+                .alongWith(shooter.setStateCommand(Shooter.State.SPINNING_UP))
+                .alongWith(shooter.hoodToRotationsCommand(hoodTarget));
     }
 
    /** While held: shooter SHOOTING, hopper FEEDING; 

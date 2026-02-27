@@ -304,7 +304,12 @@ public final class Constants {
         public static final double POSITION_HOOD_SETPOINT_HOME = 0.0; // need to tune
         public static final double POSITION_HOOD_SETPOINT_2 = 0.0; // need to tune
         public static final double POSITION_HOOD_SETPOINT_3 = 0.0; // need to tune
-        
+
+        /** Hood angle vs distance to hub: interpolate between min and max. Tune through testing. */
+        public static final double DISTANCE_AT_MIN_HOOD_METERS = 1.5;     // distance (m) from pose to hub at closest
+        public static final double HOOD_POSITION_AT_MIN_DISTANCE = 0.0;   // rotations at closest shooting position
+        public static final double DISTANCE_AT_MAX_HOOD_METERS = 4.0;     // distance (m) from pose to hub at furthest
+        public static final double HOOD_POSITION_AT_MAX_DISTANCE = 0.3;    // rotations at furthest shooting position        
     }
 
     // --------------- HOPPER --------------
