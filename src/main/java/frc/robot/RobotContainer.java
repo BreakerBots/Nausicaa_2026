@@ -299,11 +299,9 @@ public class RobotContainer {
     
 
     public Command prepareToShootFromSetpointCommand(Pose2d targetPose) {
-        double distanceToHub = targetPose.getTranslation().getDistance(Constants.FieldConstants.getTargetHubCenter());
-        double hoodTarget = trajectoryManager.getHoodPositionForDistance(distanceToHub);
         return poseManager.navigateToPoseCommand(targetPose)
                 .alongWith(shooter.setStateCommand(Shooter.State.SPINNING_UP))
-                .alongWith(shooter.hoodToRotationsCommand(hoodTarget));
+                .alongWith(shooter.hoodToRotationsCommand(trajectoryManager.getHoodPositionForPose(targetPose)));
     }
 
    /** While held: shooter SHOOTING, hopper FEEDING; 
