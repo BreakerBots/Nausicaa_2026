@@ -33,6 +33,7 @@ import frc.robot.subsystems.Drivetrain;
 import frc.robot.subsystems.Intake;
 import frc.robot.subsystems.Shooter;
 import frc.robot.subsystems.Vision;
+import frc.robot.subsystems.Intake.State;
 import frc.robot.subsystems.Climb;
 import frc.robot.subsystems.Hopper;
 import frc.robot.subsystems.PoseManager;
@@ -207,17 +208,9 @@ public class RobotContainer {
         // ----------------- INTAKE -------------
 
         // B: 
-        controller.getButtonB().onTrue(Commands.runOnce(() -> {
-            if (intake.state == Intake.State.EXTENDED_INTAKING) {
-                CommandScheduler.getInstance().schedule(intake.setStateCommand(Intake.State.EXTENDED_IDLE));
-            } else {
-                // STOWED -> EXTENDED: move hood down first to clear intake path
-                CommandScheduler.getInstance().schedule(
-                        intake.setStateCommand(Intake.State.EXTENDED_INTAKING).alongWith(
-                            shooter.hoodToRotationsCommand(Constants.ShooterConstants.POSITION_HOOD_SETPOINT_HOME)));
-            }
-        }, intake, shooter));
-    
+        controller.getButtonB().whileTrue(Commands.run(() -> intake.setState(Intake.State.EXTENDED_INTAKING), intake)
+            .finallyDo(() -> intake.setState(Intake.State.EXTENDED_IDLE)));
+            
 
         // ----------------- SHOOTER + HOPPER/FEEDER -------------
 
@@ -239,8 +232,8 @@ public class RobotContainer {
         controller.getButtonX().onTrue(Commands.runOnce(() -> {
             if (shooter.state == Shooter.State.INACTIVE) {
                 CommandScheduler.getInstance().schedule(
-                    shooter.setStateCommand(Shooter.State.SPINNING_UP)
-                        .andThen(shooter.hoodToRotationsCommand(Constants.ShooterConstants.POSITION_HOOD_SETPOINT_1)));
+                    shooter.setStateCommand(Shooter.State.SPINNING_UP));
+                        //.andThen(shooter.hoodToRotationsCommand(Constants.ShooterConstants.POSITION_HOOD_SETPOINT_1)));
             } else {
                 CommandScheduler.getInstance().schedule(
                     shooter.setStateCommand(Shooter.State.INACTIVE)
