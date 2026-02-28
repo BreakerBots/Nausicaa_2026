@@ -269,8 +269,8 @@ public final class Constants {
 
         public static final double SPEED_INTAKE = -0.7;
 
-        /** Stator current limit (A) for pivot and roller – protects against jams. Matches other robot (pivot 50A). */
-        public static final int STATOR_CURRENT_LIMIT = 50;
+        /** Stator current limit (A) for pivot and roller – protects against jams. Lowered for brownout mitigation. */
+        public static final int STATOR_CURRENT_LIMIT = 40;
     }
 
     // --------------- SHOOTER --------------
@@ -311,10 +311,10 @@ public final class Constants {
         public static final double POSITION_HOOD_SETPOINT_3 = -0.15; // need to tune
 
         
-        /** Stator current limit (A) for flywheels – protects during spin-up. Matches other robot end effector. */
-        public static final int FLYWHEEL_STATOR_CURRENT_LIMIT = 60;
-        /** Stator current limit (A) for hood – protects against mechanical limits. Matches other robot wrist. */
-        public static final int HOOD_STATOR_CURRENT_LIMIT = 60;
+        /** Stator current limit (A) for flywheels – protects during spin-up. Lowered for brownout mitigation. */
+        public static final int FLYWHEEL_STATOR_CURRENT_LIMIT = 50;
+        /** Stator current limit (A) for hood – protects against mechanical limits. Lowered for brownout mitigation. */
+        public static final int HOOD_STATOR_CURRENT_LIMIT = 50;
 
         /** Hood angle vs distance to hub: interpolate between min and max. Tune through testing. */
         // public static final double DISTANCE_AT_MIN_HOOD_METERS = 1.5;
@@ -383,8 +383,8 @@ public final class Constants {
 
         /** Stator current limit (A) during homing – loosened so motor can stall without tripping. */
         public static final int HOMING_STATOR_CURRENT_LIMIT = 20; // idk
-        /** Stator current limit (A) for normal operation (restored after homing). Other robot: 30A; we use 40A. */
-        public static final int NORMAL_STATOR_CURRENT_LIMIT = 40;
+        /** Stator current limit (A) for normal operation (restored after homing). Lowered for brownout mitigation. */
+        public static final int NORMAL_STATOR_CURRENT_LIMIT = 30;
         public static final CurrentLimitsConfigs HOMING_CURRENT_LIMITS = new CurrentLimitsConfigs()
                 .withStatorCurrentLimit(HOMING_STATOR_CURRENT_LIMIT)
                 .withStatorCurrentLimitEnable(true);
@@ -470,8 +470,8 @@ public final class Constants {
         // al configs for the drive and steer motors and the CANcoder; these cannot be null.
         // Some configs will be overwritten; check the `with*InitialConfigs()` API documentation.
         // Neutral mode = what happens when motor receives 0% power (Brake = stops, Coast = free-spins)
-        /** Stator current limit (A) for drive motors. Matches other robot (PathPlanner 80A). */
-        private static final int DRIVE_STATOR_CURRENT_LIMIT = 80;
+        /** Stator current limit (A) for drive motors. Lowered for brownout mitigation. */
+        private static final int DRIVE_STATOR_CURRENT_LIMIT = 50;
         // TUNING: Current limits = adjust if motors brown out (lower) or need more power (higher, but watch for brownouts)
         private static final TalonFXConfiguration driveInitialConfigs = new TalonFXConfiguration()
             .withMotorOutput(new MotorOutputConfigs().withNeutralMode(NeutralModeValue.Brake))
@@ -482,8 +482,8 @@ public final class Constants {
         private static final TalonFXConfiguration steerInitialConfigs = new TalonFXConfiguration()
             .withCurrentLimits(
                 new CurrentLimitsConfigs()
-                    // Matches other robot steer motors (80A).
-                    .withStatorCurrentLimit(80)
+                    // Lowered for brownout mitigation.
+                    .withStatorCurrentLimit(60)
                     .withStatorCurrentLimitEnable(true));
         // CANcoder = absolute encoder that tells us the exact rotation angle of each swerve module
         private static final CANcoderConfiguration cancoderInitialConfigs = new CANcoderConfiguration();
