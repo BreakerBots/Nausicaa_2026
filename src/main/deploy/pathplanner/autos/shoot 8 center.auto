@@ -1,0 +1,49 @@
+{
+  "version": "2025.0",
+  "command": {
+    "type": "sequential",
+    "data": {
+      "commands": [
+        {
+          "type": "path",
+          "data": {
+            "pathName": "shoot 8 center"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "rotateToHub"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "rangeToHub"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "spinUp"
+          }
+        },
+        {
+          "type": "wait",
+          "data": {
+            "waitTime": 2.0
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "shoot"
+          }
+        }
+      ]
+    }
+  },
+  "resetOdom": true,
+  "folder": null,
+  "choreoAuto": false
+}

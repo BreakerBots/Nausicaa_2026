@@ -83,7 +83,7 @@ public class RobotContainer {
         NamedCommands.registerCommand("consolidatePose", Commands.defer(() -> Commands.runOnce(() -> drivetrain.getLocalizer().resetPose(new Pose2d(0,0, Rotation2d.fromRotations(0.0)))), Set.of(drivetrain)));
         NamedCommands.registerCommand("rangeToHub", Commands.defer(() -> poseManager.rangeToPointCommand(Constants.FieldConstants.TARGET_BLUE_HUB_CENTER, 3.0), Set.of(drivetrain)));
         NamedCommands.registerCommand("spinUp", Commands.defer(() -> shooter.setStateCommand(Shooter.State.SPINNING_UP), Set.of(shooter)));
-        NamedCommands.registerCommand("shoot", Commands.defer(() -> shooter.setStateCommand(Shooter.State.SHOOTING), Set.of(shooter)));
+        NamedCommands.registerCommand("shoot", Commands.defer(() -> shootCommand().withTimeout(6.0), Set.of(shooter, hopper, intake)));
         NamedCommands.registerCommand("stopShoot", Commands.defer(() -> shooter.setStateCommand(Shooter.State.INACTIVE), Set.of(shooter)));
         NamedCommands.registerCommand("intake", Commands.defer(() -> intake.setStateCommand(Intake.State.EXTENDED_INTAKING), Set.of(intake)));
         NamedCommands.registerCommand("stopIntake", Commands.defer(() -> intake.setStateCommand(Intake.State.EXTENDED_IDLE), Set.of(intake)));
@@ -271,7 +271,7 @@ public class RobotContainer {
         controller.getDPad().getUp().onTrue(climb.extend());
 
         // D-PAD DOWN --> Retract climb
-        controller.getDPad().getDown().onTrue(climb.goHome());
+        controller.getDPad().getDown().onTrue(climb.retract());
         // controller.getDPad().getDown().and(controller.getRightBumper().negate()).onTrue(climb.retract());
 
         // Right Bumper --> Climb UP
@@ -331,15 +331,18 @@ public class RobotContainer {
     * On release: stop feeder, shooter INACTIVE, intake EXTENDED_INTAKING. 
     */
     private Command shootCommand() {
+        System.out.println("starting Shoot Command");
         Command jiggleSequence = Commands.sequence(
                 Commands.waitSeconds(1.0),
                 Commands.sequence(
                         Commands.runOnce(() -> intake.setState(Intake.State.FEED_JIGGLE_LOW)),
-                        Commands.waitSeconds(0.5),
+                        Commands.waitSeconds(0.3),
                         Commands.runOnce(() -> intake.setState(Intake.State.FEED_JIGGLE_HIGH)),
-                        Commands.waitSeconds(0.5))
+                        Commands.waitSeconds(0.3))
                         .repeatedly()
                         .until(() -> hopper.state != Hopper.State.FEEDING));
+                        
+                        
         return Commands.parallel(
                 Commands.startEnd(
                         () -> {
