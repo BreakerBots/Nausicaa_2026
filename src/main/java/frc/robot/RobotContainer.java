@@ -4,6 +4,8 @@
 
 package frc.robot;
 
+import com.ctre.phoenix6.swerve.SwerveModule.DriveRequestType;
+import com.ctre.phoenix6.swerve.SwerveRequest;
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.auto.NamedCommands;
 
@@ -302,7 +304,11 @@ public class RobotContainer {
         double hoodTarget = trajectoryManager.getHoodPositionForPose(targetPose);
         Command shooterPrep = shooter.setStateCommand(Shooter.State.SPINNING_UP)
                 .andThen(shooter.hoodToRotationsCommand(hoodTarget));
-        return poseManager.navigateToPoseCommand(targetPose).alongWith(shooterPrep);
+        Command fullCommand = poseManager.navigateToPoseCommand(targetPose).alongWith(shooterPrep);
+        return fullCommand.withTimeout(5.0)
+                .finallyDo((interrupted) -> drivetrain.setControl(
+                    new SwerveRequest.FieldCentric().withDriveRequestType(DriveRequestType.Velocity)
+                        .withVelocityX(0).withVelocityY(0).withRotationalRate(0)));
     }
 
    /** While held: shooter SHOOTING, hopper FEEDING; 

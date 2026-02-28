@@ -78,7 +78,7 @@ public class PoseManager extends SubsystemBase {
                new Translation2d(target.getRotation().getCos(), target.getRotation().getSin()));
             Command refineRotation = rotateToPointCommand(pointAhead);
             
-            return pathfind.andThen(refinePosition).andThen(refineRotation);
+            return pathfind.andThen(refineRotation).andThen(refinePosition);
         }, Set.of(drivetrain));
     }
 
