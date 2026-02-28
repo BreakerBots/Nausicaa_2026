@@ -173,7 +173,9 @@ public class RobotContainer {
             drivetrain.setDefaultCommand(drivetrain.getTeleopControlCommand(driverX, driverY, driverOmega, Constants.DriveConstants.TELEOP_CONTROL_CONFIG));
         
             // LEFT TRIGGER --> Track hub center; driver keeps X/Y, rotation follows hub
-            controller.getLeftTrigger().whileTrue(poseManager.trackLeftTriggerTargetCommand(driverX, driverY));
+            controller.getLeftTrigger().whileTrue(Commands.runOnce(() -> 
+                    drivetrain.getLocalizer().resetPose(new Pose2d(0,0, Rotation2d.fromRotations(0.0))))
+                    .andThen(poseManager.trackLeftTriggerTargetCommand(driverX, driverY)));
 
             // Y --> Range to 1 m from hub center (defer so alliance is evaluated when pressed, not at startup)
             controller.getButtonY().onTrue(Commands.defer(() -> poseManager.rangeToPointCommand(Constants.FieldConstants.getTargetHubCenter(), 1.0), Set.of(drivetrain)));
@@ -236,8 +238,8 @@ public class RobotContainer {
                         //.andThen(shooter.hoodToRotationsCommand(Constants.ShooterConstants.POSITION_HOOD_SETPOINT_1)));
             } else {
                 CommandScheduler.getInstance().schedule(
-                    shooter.setStateCommand(Shooter.State.INACTIVE)
-                        .andThen(shooter.hoodToRotationsCommand(Constants.ShooterConstants.POSITION_HOOD_SETPOINT_HOME)));
+                    shooter.setStateCommand(Shooter.State.INACTIVE));
+                        //.andThen(shooter.hoodToRotationsCommand(Constants.ShooterConstants.POSITION_HOOD_SETPOINT_HOME)));
             }
         }, shooter));
 
@@ -382,7 +384,7 @@ public class RobotContainer {
     /** Called once when the robot enters teleop. */
     public void teleopInit() {
         intake.setState(Intake.State.STOWED);
-        //climb.setState(Climb.State.INACTIVE);
+        climb.setState(Climb.State.INACTIVE);
         shooter.setState(Shooter.State.INACTIVE);
         hopper.setState(Hopper.State.INACTIVE);
         CommandScheduler.getInstance().schedule(
