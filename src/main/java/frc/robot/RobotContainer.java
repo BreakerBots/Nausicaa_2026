@@ -174,8 +174,8 @@ public class RobotContainer {
             // LEFT TRIGGER --> Track hub center; driver keeps X/Y, rotation follows hub
             controller.getLeftTrigger().whileTrue(poseManager.trackLeftTriggerTargetCommand(driverX, driverY));
 
-            // Y --> Range to 2 m from hub center
-            controller.getButtonY().onTrue(poseManager.rangeToPointCommand(Constants.FieldConstants.getTargetHubCenter(), 1.0));
+            // Y --> Range to 1 m from hub center (defer so alliance is evaluated when pressed, not at startup)
+            controller.getButtonY().onTrue(Commands.defer(() -> poseManager.rangeToPointCommand(Constants.FieldConstants.getTargetHubCenter(), 1.0), Set.of(drivetrain)));
 
             // Range to tag (A button)
             // controller.getButtonA().onTrue(rangeToTagCommand(Constants.FieldConstants.getTrenchTagID(), 1.0));        
