@@ -296,7 +296,7 @@ public final class Constants {
         // public static final double VELOCITY_TOLERANCE = 2.0;
         
         public static final double SPEED_IDLE = 0;
-        public static final double SPEED_FLYWHEEL_ACTIVE = 52; // need to tune - TOGGLE ME
+        public static final double SPEED_FLYWHEEL_ACTIVE = 0.0; // 52 - TOGGLE ME
 
         /** Hood: external encoder; command takes target rotations. */
         public static final double SPEED_HOOD_UP = 0.08; // need to tune
@@ -423,7 +423,7 @@ public final class Constants {
         public static final double RANGE_TO_TARGET_TOLERANCE = 0.1; // Close enough to target distance, meters
         public static final double RANGE_TO_TARGET_MAX_DISTANCE = 5.0; // Maximum distance to target, meters
         /** Proportional gain for range-to-target: position error (m) → velocity (m/s). Matches PathPlanner translation for consistency. */
-        public static final double RANGE_TO_TARGET_KP = 4.0;
+        public static final double RANGE_TO_TARGET_KP = 2.0;
         /** Only require the tag to be in camera view when within this distance (m). Beyond this, use fused pose + field layout; don't bail on "tag lost" since cameras often can't see tags at range. */
         public static final double RANGE_TO_TAG_REQUIRE_VISION_WITHIN_METERS = 2;
 

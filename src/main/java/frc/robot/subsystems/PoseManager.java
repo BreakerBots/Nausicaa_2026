@@ -12,6 +12,7 @@ import com.pathplanner.lib.path.PathConstraints;
 
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.units.Units;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -57,7 +58,10 @@ public class PoseManager extends SubsystemBase {
                 return Commands.none();
             }
             BreakerLog.log("PoseManager/Status", statusMessage);
-            System.out.println(statusMessage);            
+            System.out.println(statusMessage);      
+            
+            drivetrain.getLocalizer().resetPose(new Pose2d(0,0, Rotation2d.fromRotations(0.0)));
+
             PathConstraints constraints = new PathConstraints(
                 Constants.DriveConstants.MAXIMUM_TRANSLATIONAL_VELOCITY.magnitude(),
                 2.0,
@@ -74,9 +78,7 @@ public class PoseManager extends SubsystemBase {
                new Translation2d(target.getRotation().getCos(), target.getRotation().getSin()));
             Command refineRotation = rotateToPointCommand(pointAhead);
             
-            Command resetPose = Commands.runOnce(() -> drivetrain.getLocalizer().resetPose(drivetrain.getLocalizer().getPose()), drivetrain);
-
-            return resetPose.andThen(pathfind.andThen(refinePosition).andThen(refineRotation));
+            return pathfind.andThen(refinePosition).andThen(refineRotation);
         }, Set.of(drivetrain));
     }
 
