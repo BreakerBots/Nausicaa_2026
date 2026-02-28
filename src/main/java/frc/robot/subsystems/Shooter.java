@@ -9,6 +9,7 @@ import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.MotorAlignmentValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 import com.ctre.phoenix6.signals.SensorDirectionValue;
+import com.ctre.phoenix6.configs.CurrentLimitsConfigs;
 import com.ctre.phoenix6.configs.Slot0Configs;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.VelocityVoltage;
@@ -42,6 +43,9 @@ public class Shooter extends SubsystemBase {
         // Flywheels 2 and 3 follow flywheel 1 (same direction)
         TalonFXConfiguration flywheelConfig = new TalonFXConfiguration();
         flywheelConfig.MotorOutput.NeutralMode = NeutralModeValue.Coast;
+        flywheelConfig.CurrentLimits = new CurrentLimitsConfigs()
+                .withStatorCurrentLimit(Constants.ShooterConstants.FLYWHEEL_STATOR_CURRENT_LIMIT)
+                .withStatorCurrentLimitEnable(true);
         Slot0Configs slot0 = flywheelConfig.Slot0;
         
         slot0.kS = Constants.ShooterConstants.SHOOTER_kS;
@@ -61,6 +65,9 @@ public class Shooter extends SubsystemBase {
 
         TalonFXConfiguration hoodConfig = new TalonFXConfiguration();
         hoodConfig.MotorOutput.NeutralMode = NeutralModeValue.Brake;
+        hoodConfig.CurrentLimits = new CurrentLimitsConfigs()
+                .withStatorCurrentLimit(Constants.ShooterConstants.HOOD_STATOR_CURRENT_LIMIT)
+                .withStatorCurrentLimitEnable(true);
         hoodMotor.getConfigurator().apply(hoodConfig);
     }
 

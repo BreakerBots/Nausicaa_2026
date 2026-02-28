@@ -268,6 +268,9 @@ public final class Constants {
         public static final double SPEED_EXTAKE = 0.5;
 
         public static final double SPEED_INTAKE = -0.7;
+
+        /** Stator current limit (A) for pivot and roller – protects against jams. */
+        public static final int STATOR_CURRENT_LIMIT = 40;
     }
 
     // --------------- SHOOTER --------------
@@ -308,6 +311,11 @@ public final class Constants {
         public static final double POSITION_HOOD_SETPOINT_3 = -0.15; // need to tune
 
         
+        /** Stator current limit (A) for flywheels – protects during spin-up. */
+        public static final int FLYWHEEL_STATOR_CURRENT_LIMIT = 50;
+        /** Stator current limit (A) for hood – protects against mechanical limits. */
+        public static final int HOOD_STATOR_CURRENT_LIMIT = 40;
+
         /** Hood angle vs distance to hub: interpolate between min and max. Tune through testing. */
         // public static final double DISTANCE_AT_MIN_HOOD_METERS = 1.5;
         // public static final double HOOD_POSITION_AT_MIN_DISTANCE = 0.0;
@@ -320,6 +328,8 @@ public final class Constants {
     public static class HopperConstants {
         public static final int HOPPER_MOTOR_ID = 40;
         public static final int FEEDER_MOTOR_ID = 41;
+        /** Stator current limit (A) for indexer and feeder – protects against jams. */
+        public static final int STATOR_CURRENT_LIMIT = 40;
         public static final double SPEED_INACTIVE = 0;
         public static final double SPEED_INDEXING = 0.5; // need to tune
         public static final double SPEED_FEEDING = 0.6; // need to tune
@@ -459,9 +469,15 @@ public final class Constants {
         // al configs for the drive and steer motors and the CANcoder; these cannot be null.
         // Some configs will be overwritten; check the `with*InitialConfigs()` API documentation.
         // Neutral mode = what happens when motor receives 0% power (Brake = stops, Coast = free-spins)
+        /** Stator current limit (A) for drive motors – helps avoid brownouts. Matches PathPlanner driveCurrentLimit. */
+        private static final int DRIVE_STATOR_CURRENT_LIMIT = 40;
         // TUNING: Current limits = adjust if motors brown out (lower) or need more power (higher, but watch for brownouts)
         private static final TalonFXConfiguration driveInitialConfigs = new TalonFXConfiguration()
-            .withMotorOutput(new MotorOutputConfigs().withNeutralMode(NeutralModeValue.Brake));
+            .withMotorOutput(new MotorOutputConfigs().withNeutralMode(NeutralModeValue.Brake))
+            .withCurrentLimits(
+                new CurrentLimitsConfigs()
+                    .withStatorCurrentLimit(DRIVE_STATOR_CURRENT_LIMIT)
+                    .withStatorCurrentLimitEnable(true));
         private static final TalonFXConfiguration steerInitialConfigs = new TalonFXConfiguration()
             .withCurrentLimits(
                 new CurrentLimitsConfigs()

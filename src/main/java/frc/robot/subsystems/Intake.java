@@ -2,6 +2,7 @@ package frc.robot.subsystems;
 
 import static edu.wpi.first.units.Units.Rotations;
 
+import com.ctre.phoenix6.configs.CurrentLimitsConfigs;
 import com.ctre.phoenix6.configs.Slot0Configs;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.DutyCycleOut;
@@ -40,6 +41,9 @@ public class Intake extends SubsystemBase {
     public Intake() {
         TalonFXConfiguration config = new TalonFXConfiguration();
         config.MotorOutput.NeutralMode = NeutralModeValue.Brake;
+        config.CurrentLimits = new CurrentLimitsConfigs()
+                .withStatorCurrentLimit(Constants.IntakeConstants.STATOR_CURRENT_LIMIT)
+                .withStatorCurrentLimitEnable(true);
         config.Feedback.withRemoteCANcoder(pivotEncoder);
 
         Slot0Configs slot0 = config.Slot0;
@@ -61,6 +65,13 @@ public class Intake extends SubsystemBase {
         slot0.kD = Constants.IntakeConstants.PIVOT_kD;
 
         pivotMotor.getConfigurator().apply(config);
+
+        TalonFXConfiguration rollerConfig = new TalonFXConfiguration();
+        rollerConfig.MotorOutput.NeutralMode = NeutralModeValue.Brake;
+        rollerConfig.CurrentLimits = new CurrentLimitsConfigs()
+                .withStatorCurrentLimit(Constants.IntakeConstants.STATOR_CURRENT_LIMIT)
+                .withStatorCurrentLimitEnable(true);
+        rollerMotor.getConfigurator().apply(rollerConfig);
         
         targetPivotRotations = getPivotPositionRotations();
         pivotMotor.setControl(new MotionMagicDutyCycle(targetPivotRotations));
