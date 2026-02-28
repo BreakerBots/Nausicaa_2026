@@ -405,10 +405,10 @@ public final class Constants {
         /** ROBOT-LEVEL MAXIMUM SPEEDS - How fast can the robot drive and rotate (currently reduced for testing)
          * Translational = forward/backward and left/right movement (X and Y on the field)
          * Rotational = spinning in place (turning) */
-        public static final LinearVelocity MAXIMUM_TRANSLATIONAL_VELOCITY = Units.MetersPerSecond.of(3);
-        public static final LinearVelocity ALIGN_MODE_MAXIMUM_TRANSLATIONAL_VELOCITY = Units.MetersPerSecond.of(0.3);
-        public static final AngularVelocity MAXIMUM_ROTATIONAL_VELOCITY = Units.RadiansPerSecond.of(6);
-        public static final AngularVelocity ALIGN_MODE_MAXIMUM_ROTATIONAL_VELOCITY = Units.RadiansPerSecond.of(0.6);
+        public static final LinearVelocity MAXIMUM_TRANSLATIONAL_VELOCITY = Units.MetersPerSecond.of(2);
+        public static final LinearVelocity ALIGN_MODE_MAXIMUM_TRANSLATIONAL_VELOCITY = Units.MetersPerSecond.of(0.4);
+        public static final AngularVelocity MAXIMUM_ROTATIONAL_VELOCITY = Units.RadiansPerSecond.of(4);
+        public static final AngularVelocity ALIGN_MODE_MAXIMUM_ROTATIONAL_VELOCITY = Units.RadiansPerSecond.of(0.8);
         //public static final LinearVelocity MAXIMUM_TRANSLATIONAL_VELOCITY = Units.MetersPerSecond.of(4.5);
         //public static final AngularVelocity MAXIMUM_ROTATIONAL_VELOCITY = Units.RadiansPerSecond.of(9.5);
 

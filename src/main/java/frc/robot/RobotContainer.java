@@ -81,7 +81,7 @@ public class RobotContainer {
         NamedCommands.registerCommand("rotateToHub", Commands.defer(() -> poseManager.rotateToTagCommand(Constants.FieldConstants.getHubTagID()), Set.of(drivetrain)));
         NamedCommands.registerCommand("enterSlowMode", Commands.defer(() -> Commands.runOnce(() -> slowMode = !slowMode), Set.of(drivetrain)));
         NamedCommands.registerCommand("consolidatePose", Commands.defer(() -> Commands.runOnce(() -> drivetrain.getLocalizer().resetPose(new Pose2d(0,0, Rotation2d.fromRotations(0.0)))), Set.of(drivetrain)));
-        NamedCommands.registerCommand("rangeToHub", Commands.defer(() -> poseManager.rangeToPointCommand(Constants.FieldConstants.TARGET_BLUE_HUB_CENTER, 3.0), Set.of(drivetrain)));
+        NamedCommands.registerCommand("rangeToHub", Commands.defer(() -> poseManager.rangeToPointCommand(Constants.FieldConstants.getTargetHubCenter(), 2.0), Set.of(drivetrain)));
         NamedCommands.registerCommand("spinUp", Commands.defer(() -> shooter.setStateCommand(Shooter.State.SPINNING_UP), Set.of(shooter)));
         NamedCommands.registerCommand("shoot", Commands.defer(() -> shootCommand().withTimeout(6.0), Set.of(shooter, hopper, intake)));
         NamedCommands.registerCommand("stopShoot", Commands.defer(() -> shooter.setStateCommand(Shooter.State.INACTIVE), Set.of(shooter)));
