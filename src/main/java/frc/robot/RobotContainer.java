@@ -9,6 +9,8 @@ import com.ctre.phoenix6.swerve.SwerveRequest;
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.auto.NamedCommands;
 
+import static edu.wpi.first.units.Units.Meters;
+
 import java.util.Set;
 import java.util.function.DoubleSupplier;
 
@@ -79,7 +81,14 @@ public class RobotContainer {
         NamedCommands.registerCommand("rotateToHub", Commands.defer(() -> poseManager.rotateToTagCommand(Constants.FieldConstants.getHubTagID()), Set.of(drivetrain)));
         NamedCommands.registerCommand("enterSlowMode", Commands.defer(() -> Commands.runOnce(() -> slowMode = !slowMode), Set.of(drivetrain)));
         NamedCommands.registerCommand("consolidatePose", Commands.defer(() -> Commands.runOnce(() -> drivetrain.getLocalizer().resetPose(new Pose2d(0,0, Rotation2d.fromRotations(0.0)))), Set.of(drivetrain)));
-
+        NamedCommands.registerCommand("rangeToHub", Commands.defer(() -> poseManager.rangeToPointCommand(Constants.FieldConstants.TARGET_BLUE_HUB_CENTER, 3.0), Set.of(drivetrain)));
+        NamedCommands.registerCommand("spinUp", Commands.defer(() -> shooter.setStateCommand(Shooter.State.SPINNING_UP), Set.of(shooter)));
+        NamedCommands.registerCommand("shoot", Commands.defer(() -> shooter.setStateCommand(Shooter.State.SHOOTING), Set.of(shooter)));
+        NamedCommands.registerCommand("stopShoot", Commands.defer(() -> shooter.setStateCommand(Shooter.State.INACTIVE), Set.of(shooter)));
+        NamedCommands.registerCommand("intake", Commands.defer(() -> intake.setStateCommand(Intake.State.EXTENDED_INTAKING), Set.of(intake)));
+        NamedCommands.registerCommand("stopIntake", Commands.defer(() -> intake.setStateCommand(Intake.State.EXTENDED_IDLE), Set.of(intake)));
+        
+        
         // Set up our auto-chooser    
         if (AutoBuilder.isConfigured()) {
             // Looks for autos in /src/main/deploy/pathplanner/autos/
@@ -198,13 +207,13 @@ public class RobotContainer {
 
         // B: 
         controller.getButtonB().onTrue(Commands.runOnce(() -> {
-            if (intake.state != Intake.State.STOWED) {
-                CommandScheduler.getInstance().schedule(intake.setStateCommand(Intake.State.STOWED));
+            if (intake.state == Intake.State.EXTENDED_INTAKING) {
+                CommandScheduler.getInstance().schedule(intake.setStateCommand(Intake.State.EXTENDED_IDLE));
             } else {
                 // STOWED -> EXTENDED: move hood down first to clear intake path
                 CommandScheduler.getInstance().schedule(
                         intake.setStateCommand(Intake.State.EXTENDED_INTAKING).alongWith(
-                            shooter.hoodToRotationsCommand(Constants.ShooterConstants.SPEED_HOOD_DOWN)));
+                            shooter.hoodToRotationsCommand(Constants.ShooterConstants.POSITION_HOOD_SETPOINT_HOME)));
             }
         }, intake, shooter));
     
@@ -379,6 +388,8 @@ public class RobotContainer {
         climb.setState(Climb.State.INACTIVE);
         shooter.setState(Shooter.State.INACTIVE);
         hopper.setState(Hopper.State.INACTIVE);
+        CommandScheduler.getInstance().schedule(
+                shooter.hoodToRotationsCommand(Constants.ShooterConstants.POSITION_HOOD_SETPOINT_HOME));
     }
 
 }

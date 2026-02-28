@@ -280,7 +280,7 @@ public final class Constants {
         public static final int HOOD_ENCODER_ID = 35;
 
         /** CANcoder: offset so position reads POSITION_HOOD_DOWN when hood is physically down. Calibrate via Phoenix Tuner. */
-        public static final double HOOD_ENCODER_OFFSET_ROTATIONS = 0.000244140625;
+        public static final double HOOD_ENCODER_OFFSET_ROTATIONS = 0.005240234375;
         /** CANcoder: 0.5 = ±180° range. Set so discontinuity is outside mechanism travel. */
         public static final double HOOD_ENCODER_DISCONTINUITY = 0.5;
 
@@ -289,7 +289,7 @@ public final class Constants {
         public static final double SHOOTER_kV = 0.12;
 
         /**PID */
-        public static final double SHOOTER_kP = 0.2;
+        public static final double SHOOTER_kP = 0.25;
         public static final double SHOOTER_kI = 0.0;
         public static final double SHOOTER_kD = 0.0;
 
@@ -299,12 +299,13 @@ public final class Constants {
         public static final double SPEED_FLYWHEEL_ACTIVE = 52.0; // 52 - TOGGLE ME
 
         /** Hood: external encoder; command takes target rotations. */
-        public static final double SPEED_HOOD_UP = 0.08; // need to tune
-        public static final double SPEED_HOOD_DOWN = -0.08; // need to tune
-        public static final double POSITION_HOOD_SETPOINT_HOME = 0.0; // need to tune
-        public static final double POSITION_HOOD_SETPOINT_1 = 0.05; // need to tune
-        public static final double POSITION_HOOD_SETPOINT_2 = 0.10; // need to tune
-        public static final double POSITION_HOOD_SETPOINT_3 = 0.15; // need to tune
+        public static final double SPEED_HOOD_UP = 0.2; // need to tune
+        public static final double SPEED_HOOD_DOWN = -0.3; // need to tune
+        public static final double AUTO_SPEED_HOOD_DOWN = -0.3;
+        public static final double POSITION_HOOD_SETPOINT_HOME = 0.02; // need to tune
+        public static final double POSITION_HOOD_SETPOINT_1 = -0.07; // need to tune
+        public static final double POSITION_HOOD_SETPOINT_2 = -0.10; // need to tune
+        public static final double POSITION_HOOD_SETPOINT_3 = -0.15; // need to tune
 
         
         /** Hood angle vs distance to hub: interpolate between min and max. Tune through testing. */
@@ -394,9 +395,9 @@ public final class Constants {
         /** ROBOT-LEVEL MAXIMUM SPEEDS - How fast can the robot drive and rotate (currently reduced for testing)
          * Translational = forward/backward and left/right movement (X and Y on the field)
          * Rotational = spinning in place (turning) */
-        public static final LinearVelocity MAXIMUM_TRANSLATIONAL_VELOCITY = Units.MetersPerSecond.of(1);
+        public static final LinearVelocity MAXIMUM_TRANSLATIONAL_VELOCITY = Units.MetersPerSecond.of(3);
         public static final LinearVelocity ALIGN_MODE_MAXIMUM_TRANSLATIONAL_VELOCITY = Units.MetersPerSecond.of(0.3);
-        public static final AngularVelocity MAXIMUM_ROTATIONAL_VELOCITY = Units.RadiansPerSecond.of(2);
+        public static final AngularVelocity MAXIMUM_ROTATIONAL_VELOCITY = Units.RadiansPerSecond.of(6);
         public static final AngularVelocity ALIGN_MODE_MAXIMUM_ROTATIONAL_VELOCITY = Units.RadiansPerSecond.of(0.6);
         //public static final LinearVelocity MAXIMUM_TRANSLATIONAL_VELOCITY = Units.MetersPerSecond.of(4.5);
         //public static final AngularVelocity MAXIMUM_ROTATIONAL_VELOCITY = Units.RadiansPerSecond.of(9.5);
@@ -455,7 +456,7 @@ public final class Constants {
         // Feedback source = where we get the module's rotation angle from (CANcoder = absolute encoder on module)
         private static final SteerFeedbackType kSteerFeedbackType = SteerFeedbackType.FusedCANcoder;
 
-        // Initial configs for the drive and steer motors and the CANcoder; these cannot be null.
+        // al configs for the drive and steer motors and the CANcoder; these cannot be null.
         // Some configs will be overwritten; check the `with*InitialConfigs()` API documentation.
         // Neutral mode = what happens when motor receives 0% power (Brake = stops, Coast = free-spins)
         // TUNING: Current limits = adjust if motors brown out (lower) or need more power (higher, but watch for brownouts)

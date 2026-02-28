@@ -123,6 +123,10 @@ public class Shooter extends SubsystemBase {
         hoodMotor.setControl(new DutyCycleOut(Constants.ShooterConstants.SPEED_HOOD_DOWN));
     }
 
+    public void autoRunHoodDown() {
+        hoodMotor.setControl(new DutyCycleOut(Constants.ShooterConstants.AUTO_SPEED_HOOD_DOWN));
+    }
+
     /** Stop the hood motor. */
     public void stopHood() {
         hoodMotor.setControl(new DutyCycleOut(0.0));
@@ -179,7 +183,7 @@ public class Shooter extends SubsystemBase {
             // This makes sure the flywheel is coasting to a stop, not braking to a stop
             shooterFlywheel1Motor.setControl(new DutyCycleOut(0).withOverrideBrakeDurNeutral(false));
         } else {
-            shooterFlywheel1Motor.setControl(new VelocityVoltage(speed).withAcceleration(20));
+            shooterFlywheel1Motor.setControl(new VelocityVoltage(speed).withAcceleration(15));
         }
         
     }

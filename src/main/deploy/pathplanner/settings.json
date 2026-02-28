@@ -1,6 +1,6 @@
 {
-  "robotWidth": 0.69,
-  "robotLength": 0.69,
+  "robotWidth": 0.88,
+  "robotLength": 0.88,
   "holonomicMode": true,
   "pathFolders": [
     "2026 - Rebuilt"
@@ -22,7 +22,7 @@
   "driveMotorType": "krakenX60",
   "driveCurrentLimit": 41.0,
   "wheelCOF": 1.2,
-  "flModuleX": 0.276,
+  "flModuleX": 0.276225,
   "flModuleY": 0.276,
   "frModuleX": 0.276,
   "frModuleY": -0.276,

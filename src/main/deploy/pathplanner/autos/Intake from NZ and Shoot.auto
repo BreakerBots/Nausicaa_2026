@@ -9,6 +9,30 @@
           "data": {
             "pathName": "Intake from NZ and Shoot"
           }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "rotateToHub"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "rangeToHub"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "spinUp"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "shoot"
+          }
         }
       ]
     }
