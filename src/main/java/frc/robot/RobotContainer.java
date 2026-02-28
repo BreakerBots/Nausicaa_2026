@@ -267,11 +267,11 @@ public class RobotContainer {
         //     }
         // }));
 
-        // D-PAD UP --> Extend climb
-        controller.getDPad().getUp().onTrue(climb.extend());
+        // D-PAD UP --> Run climb up (while held)
+        controller.getDPad().getUp().whileTrue(climb.runUp());
 
-        // D-PAD DOWN --> Retract climb
-        controller.getDPad().getDown().onTrue(climb.retract());
+        // D-PAD DOWN --> Run climb down (while held)
+        controller.getDPad().getDown().whileTrue(climb.runDown());
         // controller.getDPad().getDown().and(controller.getRightBumper().negate()).onTrue(climb.retract());
 
         // Right Bumper --> Climb UP

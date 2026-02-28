@@ -251,6 +251,18 @@ public class Climb extends SubsystemBase {
                 .andThen(Commands.runOnce(() -> setState(State.INACTIVE), this));
     }
 
+    /** Command: run motor up while held. Raw duty cycle, no setpoint. */
+    public Command runUp() {
+        return Commands.run(() -> climbMotor.setControl(new DutyCycleOut(Constants.ClimbConstants.SPEED_EXTENDING)), this)
+                .finallyDo(this::stop);
+    }
+
+    /** Command: run motor down while held. Raw duty cycle, no setpoint. */
+    public Command runDown() {
+        return Commands.run(() -> climbMotor.setControl(new DutyCycleOut(Constants.ClimbConstants.SPEED_RETRACTING)), this)
+                .finallyDo(this::stop);
+    }
+
     /** Command: hold to extend toward UP; release to stop. For manual adjustment. */
     public Command extendWhileHeld() {
         return Commands.run(() -> {
