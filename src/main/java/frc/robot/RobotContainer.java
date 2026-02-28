@@ -87,7 +87,8 @@ public class RobotContainer {
         NamedCommands.registerCommand("stopShoot", Commands.defer(() -> shooter.setStateCommand(Shooter.State.INACTIVE), Set.of(shooter)));
         NamedCommands.registerCommand("intake", Commands.defer(() -> intake.setStateCommand(Intake.State.EXTENDED_INTAKING), Set.of(intake)));
         NamedCommands.registerCommand("stopIntake", Commands.defer(() -> intake.setStateCommand(Intake.State.EXTENDED_IDLE), Set.of(intake)));
-        
+        NamedCommands.registerCommand("halt", Commands.waitSeconds(2.0));
+        NamedCommands.registerCommand("hooddown", Commands.defer(() -> shooter.hoodToRotationsCommand(Constants.ShooterConstants.POSITION_HOOD_SETPOINT_HOME), Set.of(shooter)));
         
         // Set up our auto-chooser    
         if (AutoBuilder.isConfigured()) {

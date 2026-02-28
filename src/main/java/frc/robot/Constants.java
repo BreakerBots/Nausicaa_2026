@@ -280,7 +280,7 @@ public final class Constants {
         public static final int HOOD_ENCODER_ID = 35;
 
         /** CANcoder: offset so position reads POSITION_HOOD_DOWN when hood is physically down. Calibrate via Phoenix Tuner. */
-        public static final double HOOD_ENCODER_OFFSET_ROTATIONS = 0.005240234375;
+        public static final double HOOD_ENCODER_OFFSET_ROTATIONS = -0.263427734375;
         /** CANcoder: 0.5 = ±180° range. Set so discontinuity is outside mechanism travel. */
         public static final double HOOD_ENCODER_DISCONTINUITY = 0.5;
 
@@ -302,7 +302,7 @@ public final class Constants {
         public static final double SPEED_HOOD_UP = 0.2; // need to tune
         public static final double SPEED_HOOD_DOWN = -0.3; // need to tune
         public static final double AUTO_SPEED_HOOD_DOWN = -0.3;
-        public static final double POSITION_HOOD_SETPOINT_HOME = 0.02; // need to tune
+        public static final double POSITION_HOOD_SETPOINT_HOME = 0.01; // need to tune
         public static final double POSITION_HOOD_SETPOINT_1 = -0.07; // need to tune
         public static final double POSITION_HOOD_SETPOINT_2 = -0.10; // need to tune
         public static final double POSITION_HOOD_SETPOINT_3 = -0.15; // need to tune
