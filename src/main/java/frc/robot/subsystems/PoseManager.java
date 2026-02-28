@@ -229,8 +229,19 @@ public class PoseManager extends SubsystemBase {
         final double kP = Constants.DriveConstants.RANGE_TO_TARGET_KP;
         final double maxVelocity = Constants.DriveConstants.MAXIMUM_TRANSLATIONAL_VELOCITY.in(Units.MetersPerSecond);
         final var request = new SwerveRequest.FieldCentric().withDriveRequestType(DriveRequestType.Velocity);
+        final boolean[] hasLogged = {false};
 
         return Commands.run(() -> {
+            if (!hasLogged[0]) {
+                var allianceOpt = edu.wpi.first.wpilibj.DriverStation.getAlliance();
+                String allianceRaw = allianceOpt.isPresent() ? allianceOpt.get().toString() : "EMPTY";
+                BreakerLog.log("RangeToPoint/alliance", Constants.FieldConstants.isRedAlliance() ? "RED" : "BLUE");
+                BreakerLog.log("RangeToPoint/allianceRaw", allianceRaw);
+                BreakerLog.log("RangeToPoint/targetPoint", targetPoint.toString());
+                BreakerLog.log("RangeToPoint/targetDistanceMeters", targetDistanceMeters);
+                BreakerLog.log("RangeToPoint/robotPose", drivetrain.getLocalizer().getPose().toString());
+                hasLogged[0] = true;
+            }
             Translation2d toTarget = drivetrain.getRobotToPointTranslation(targetPoint);
             double currentDistanceMeters = toTarget.getNorm();
             double remainingMeters = currentDistanceMeters - targetDistanceMeters;
