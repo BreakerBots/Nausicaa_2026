@@ -175,7 +175,7 @@ public class RobotContainer {
             controller.getLeftTrigger().whileTrue(poseManager.trackLeftTriggerTargetCommand(driverX, driverY));
 
             // Y --> Range to 2 m from hub center
-            controller.getButtonY().onTrue(poseManager.rangeToPointCommand(Constants.FieldConstants.getTargetHubCenter(), 2.0));
+            controller.getButtonY().onTrue(poseManager.rangeToPointCommand(Constants.FieldConstants.getTargetHubCenter(), 1.0));
 
             // Range to tag (A button)
             // controller.getButtonA().onTrue(rangeToTagCommand(Constants.FieldConstants.getTrenchTagID(), 1.0));        
@@ -378,7 +378,7 @@ public class RobotContainer {
     /** Called once when the robot enters autonomous. */
     public void autonomousInit() {
         intake.setState(Intake.State.STOWED);
-        climb.setState(Climb.State.INACTIVE);
+        //climb.setState(Climb.State.INACTIVE);
         shooter.setState(Shooter.State.INACTIVE);
         hopper.setState(Hopper.State.INACTIVE);
         // Make sure we drop the hood immediately so that the hopper extends
@@ -389,7 +389,7 @@ public class RobotContainer {
     /** Called once when the robot enters teleop. */
     public void teleopInit() {
         intake.setState(Intake.State.STOWED);
-        climb.setState(Climb.State.INACTIVE);
+        //climb.setState(Climb.State.INACTIVE);
         shooter.setState(Shooter.State.INACTIVE);
         hopper.setState(Hopper.State.INACTIVE);
         CommandScheduler.getInstance().schedule(
