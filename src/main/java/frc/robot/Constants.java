@@ -269,8 +269,8 @@ public final class Constants {
 
         public static final double SPEED_INTAKE = -0.7;
 
-        /** Stator current limit (A) for pivot and roller – protects against jams. */
-        public static final int STATOR_CURRENT_LIMIT = 40;
+        /** Stator current limit (A) for pivot and roller – protects against jams. Matches other robot (pivot 50A). */
+        public static final int STATOR_CURRENT_LIMIT = 50;
     }
 
     // --------------- SHOOTER --------------
@@ -311,10 +311,10 @@ public final class Constants {
         public static final double POSITION_HOOD_SETPOINT_3 = -0.15; // need to tune
 
         
-        /** Stator current limit (A) for flywheels – protects during spin-up. */
-        public static final int FLYWHEEL_STATOR_CURRENT_LIMIT = 50;
-        /** Stator current limit (A) for hood – protects against mechanical limits. */
-        public static final int HOOD_STATOR_CURRENT_LIMIT = 40;
+        /** Stator current limit (A) for flywheels – protects during spin-up. Matches other robot end effector. */
+        public static final int FLYWHEEL_STATOR_CURRENT_LIMIT = 60;
+        /** Stator current limit (A) for hood – protects against mechanical limits. Matches other robot wrist. */
+        public static final int HOOD_STATOR_CURRENT_LIMIT = 60;
 
         /** Hood angle vs distance to hub: interpolate between min and max. Tune through testing. */
         // public static final double DISTANCE_AT_MIN_HOOD_METERS = 1.5;
@@ -328,8 +328,8 @@ public final class Constants {
     public static class HopperConstants {
         public static final int HOPPER_MOTOR_ID = 40;
         public static final int FEEDER_MOTOR_ID = 41;
-        /** Stator current limit (A) for indexer and feeder – protects against jams. */
-        public static final int STATOR_CURRENT_LIMIT = 40;
+        /** Stator current limit (A) for indexer and feeder – protects against jams. Matches other robot end effector rollers. */
+        public static final int STATOR_CURRENT_LIMIT = 60;
         public static final double SPEED_INACTIVE = 0;
         public static final double SPEED_INDEXING = 0.5; // need to tune
         public static final double SPEED_FEEDING = 0.6; // need to tune
@@ -383,8 +383,8 @@ public final class Constants {
 
         /** Stator current limit (A) during homing – loosened so motor can stall without tripping. */
         public static final int HOMING_STATOR_CURRENT_LIMIT = 20; // idk
-        /** Stator current limit (A) for normal operation (restored after homing). */
-        public static final int NORMAL_STATOR_CURRENT_LIMIT = 40; // idk
+        /** Stator current limit (A) for normal operation (restored after homing). Other robot: 30A; we use 40A. */
+        public static final int NORMAL_STATOR_CURRENT_LIMIT = 40;
         public static final CurrentLimitsConfigs HOMING_CURRENT_LIMITS = new CurrentLimitsConfigs()
                 .withStatorCurrentLimit(HOMING_STATOR_CURRENT_LIMIT)
                 .withStatorCurrentLimitEnable(true);
@@ -469,8 +469,8 @@ public final class Constants {
         // al configs for the drive and steer motors and the CANcoder; these cannot be null.
         // Some configs will be overwritten; check the `with*InitialConfigs()` API documentation.
         // Neutral mode = what happens when motor receives 0% power (Brake = stops, Coast = free-spins)
-        /** Stator current limit (A) for drive motors – helps avoid brownouts. Matches PathPlanner driveCurrentLimit. */
-        private static final int DRIVE_STATOR_CURRENT_LIMIT = 40;
+        /** Stator current limit (A) for drive motors. Matches other robot (PathPlanner 80A). */
+        private static final int DRIVE_STATOR_CURRENT_LIMIT = 80;
         // TUNING: Current limits = adjust if motors brown out (lower) or need more power (higher, but watch for brownouts)
         private static final TalonFXConfiguration driveInitialConfigs = new TalonFXConfiguration()
             .withMotorOutput(new MotorOutputConfigs().withNeutralMode(NeutralModeValue.Brake))
@@ -481,10 +481,8 @@ public final class Constants {
         private static final TalonFXConfiguration steerInitialConfigs = new TalonFXConfiguration()
             .withCurrentLimits(
                 new CurrentLimitsConfigs()
-                    // Swerve azimuth does not require much torque output, so we can set a relatively low
-                    // stator current limit to help avoid brownouts without impacting performance.
-                    // Stator current = current through the motor windings (lower limit = less power draw, prevents brownouts)
-                    .withStatorCurrentLimit(60)
+                    // Matches other robot steer motors (80A).
+                    .withStatorCurrentLimit(80)
                     .withStatorCurrentLimitEnable(true));
         // CANcoder = absolute encoder that tells us the exact rotation angle of each swerve module
         private static final CANcoderConfiguration cancoderInitialConfigs = new CANcoderConfiguration();
