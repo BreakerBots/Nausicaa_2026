@@ -164,6 +164,9 @@ public class RobotContainer {
             // LEFT TRIGGER --> Track hub center; driver keeps X/Y, rotation follows hub
             controller.getLeftTrigger().whileTrue(poseManager.trackLeftTriggerTargetCommand(driverX, driverY));
 
+            // Y --> Range to 2 m from hub center
+            controller.getButtonY().onTrue(poseManager.rangeToPointCommand(Constants.FieldConstants.getTargetHubCenter(), 2.0));
+
             // Range to tag (A button)
             // controller.getButtonA().onTrue(rangeToTagCommand(Constants.FieldConstants.getTrenchTagID(), 1.0));        
         }
@@ -222,20 +225,16 @@ public class RobotContainer {
         // A: Hood all the way down
         controller.getButtonA().onTrue(shooter.hoodToRotationsCommand(Constants.ShooterConstants.POSITION_HOOD_SETPOINT_HOME));
 
-        // X: Rotate then range to tag (alternative; conflicts with current X binding)
-        // controller.getButtonX().and(controller.getRightBumper().negate()).onTrue(rotateAndRangeToTagCommand(Constants.FieldConstants.getHubTagID(), 1.0));
-
-        // X button (without Right Bumper) --> Rotate to tag
-        //controller.getButtonX().and(controller.getRightBumper().negate()).onTrue(rotateToTagCommand(Constants.FieldConstants.getHubTagID()));
-
-        //controller.getButtonY().onTrue(trackAndRangeToTagCommand(Constants.FieldConstants.getHubTagID(), 1.0)); // Was rotateAndRangeToTagCommand
-
-        // Y: Toggle shooter state (INACTIVE ↔ SHOOTING)
-        controller.getButtonY().onTrue(Commands.runOnce(() -> {
-            if (shooter.state != Shooter.State.INACTIVE) {
-                CommandScheduler.getInstance().schedule(shooter.setStateCommand(Shooter.State.INACTIVE));
+        // X: Toggle SPINNING_UP + hood setpoint 1 ↔ INACTIVE + hood down
+        controller.getButtonX().onTrue(Commands.runOnce(() -> {
+            if (shooter.state == Shooter.State.INACTIVE) {
+                CommandScheduler.getInstance().schedule(
+                    shooter.setStateCommand(Shooter.State.SPINNING_UP)
+                        .andThen(shooter.hoodToRotationsCommand(Constants.ShooterConstants.POSITION_HOOD_SETPOINT_1)));
             } else {
-                CommandScheduler.getInstance().schedule(shooter.setStateCommand(Shooter.State.SPINNING_UP));
+                CommandScheduler.getInstance().schedule(
+                    shooter.setStateCommand(Shooter.State.INACTIVE)
+                        .andThen(shooter.hoodToRotationsCommand(Constants.ShooterConstants.POSITION_HOOD_SETPOINT_HOME)));
             }
         }, shooter));
 
@@ -305,10 +304,16 @@ public class RobotContainer {
         Command shooterPrep = shooter.setStateCommand(Shooter.State.SPINNING_UP)
                 .andThen(shooter.hoodToRotationsCommand(hoodTarget));
         Command fullCommand = poseManager.navigateToPoseCommand(targetPose).alongWith(shooterPrep);
-        return fullCommand.withTimeout(5.0)
-                .finallyDo((interrupted) -> drivetrain.setControl(
-                    new SwerveRequest.FieldCentric().withDriveRequestType(DriveRequestType.Velocity)
-                        .withVelocityX(0).withVelocityY(0).withRotationalRate(0)));
+        return fullCommand.withTimeout(30.0)
+                .finallyDo((interrupted) -> {
+                    drivetrain.setControl(
+                        new SwerveRequest.FieldCentric().withDriveRequestType(DriveRequestType.Velocity)
+                            .withVelocityX(0).withVelocityY(0).withRotationalRate(0));
+                    Command defaultDrive = drivetrain.getDefaultCommand();
+                    if (defaultDrive != null) {
+                        CommandScheduler.getInstance().schedule(defaultDrive);
+                    }
+                });
     }
 
    /** While held: shooter SHOOTING, hopper FEEDING; 
