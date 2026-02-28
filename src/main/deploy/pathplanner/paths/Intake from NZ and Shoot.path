@@ -72,20 +72,20 @@
         "y": 0.5221540656205423
       },
       "nextControl": {
-        "x": 2.3670070420146985,
-        "y": 0.6157492018224036
+        "x": 4.436061161761434,
+        "y": 0.5668739076551575
       },
       "isLocked": false,
       "linkedName": null
     },
     {
       "anchor": {
-        "x": 2.719315263908701,
-        "y": 3.2780884450784593
+        "x": 3.0,
+        "y": 0.666
       },
       "prevControl": {
-        "x": 2.0465049928673325,
-        "y": 1.2596576319543513
+        "x": 3.114390840954549,
+        "y": 0.4437057456754424
       },
       "nextControl": null,
       "isLocked": false,
@@ -102,8 +102,8 @@
       "rotationDegrees": 89.10109986820923
     },
     {
-      "waypointRelativePos": 4.019189765458366,
-      "rotationDegrees": 90.0
+      "waypointRelativePos": 4.200426439232412,
+      "rotationDegrees": 0.0
     }
   ],
   "constraintZones": [
@@ -146,7 +146,7 @@
   },
   "goalEndState": {
     "velocity": 0,
-    "rotation": 23.4985656759521
+    "rotation": 63.565000000000005
   },
   "reversed": false,
   "folder": "2026 - Rebuilt",

@@ -60,9 +60,9 @@ public class PoseManager extends SubsystemBase {
             System.out.println(statusMessage);            
             PathConstraints constraints = new PathConstraints(
                 Constants.DriveConstants.MAXIMUM_TRANSLATIONAL_VELOCITY.magnitude(),
-                1000000000.0,
+                2.0,
                 Constants.DriveConstants.MAXIMUM_ROTATIONAL_VELOCITY.magnitude(),
-                1000000000.0,
+                4.0,
                 12.0,
                 false);
             Command pathfind = AutoBuilder.pathfindToPose(target, constraints, 0.0);
@@ -74,7 +74,9 @@ public class PoseManager extends SubsystemBase {
                new Translation2d(target.getRotation().getCos(), target.getRotation().getSin()));
             Command refineRotation = rotateToPointCommand(pointAhead);
             
-            return pathfind.andThen(refinePosition).andThen(refineRotation);
+            Command resetPose = Commands.runOnce(() -> drivetrain.getLocalizer().resetPose(drivetrain.getLocalizer().getPose()), drivetrain);
+
+            return resetPose.andThen(pathfind.andThen(refinePosition).andThen(refineRotation));
         }, Set.of(drivetrain));
     }
 
