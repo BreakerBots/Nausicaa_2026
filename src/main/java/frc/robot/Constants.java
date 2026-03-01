@@ -269,8 +269,8 @@ public final class Constants {
 
         public static final double SPEED_INTAKE = -0.7;
 
-        /** Stator current limit (A) for pivot and roller – protects against jams. Lowered for brownout mitigation. */
-        public static final int STATOR_CURRENT_LIMIT = 40;
+        /** Stator current limit (A) for pivot and roller – protects against jams. */
+        public static final int STATOR_CURRENT_LIMIT = 50;
     }
 
     // --------------- SHOOTER --------------
@@ -311,8 +311,10 @@ public final class Constants {
         public static final double POSITION_HOOD_SETPOINT_3 = -0.15; // need to tune
 
         
-        /** Stator current limit (A) for flywheels – protects during spin-up. Lowered for brownout mitigation. */
+        /** Stator current limit (A) for flywheels – protects during spin-up. */
         public static final int FLYWHEEL_STATOR_CURRENT_LIMIT = 50;
+        /** Supply current limit (A) per flywheel – 3 motors draw heavily during spin-up; helps prevent brownouts. */
+        public static final int FLYWHEEL_SUPPLY_CURRENT_LIMIT = 40;
         /** Stator current limit (A) for hood – protects against mechanical limits. Lowered for brownout mitigation. */
         public static final int HOOD_STATOR_CURRENT_LIMIT = 50;
 

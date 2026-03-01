@@ -45,7 +45,9 @@ public class Shooter extends SubsystemBase {
         flywheelConfig.MotorOutput.NeutralMode = NeutralModeValue.Coast;
         flywheelConfig.CurrentLimits = new CurrentLimitsConfigs()
                 .withStatorCurrentLimit(Constants.ShooterConstants.FLYWHEEL_STATOR_CURRENT_LIMIT)
-                .withStatorCurrentLimitEnable(true);
+                .withStatorCurrentLimitEnable(true)
+                .withSupplyCurrentLimit(Constants.ShooterConstants.FLYWHEEL_SUPPLY_CURRENT_LIMIT)
+                .withSupplyCurrentLimitEnable(true);
         Slot0Configs slot0 = flywheelConfig.Slot0;
         
         slot0.kS = Constants.ShooterConstants.SHOOTER_kS;
