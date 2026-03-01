@@ -315,8 +315,17 @@ public final class Constants {
         public static final int FLYWHEEL_STATOR_CURRENT_LIMIT = 50;
         /** Supply current limit (A) per flywheel – 3 motors draw heavily during spin-up; helps prevent brownouts. */
         public static final int FLYWHEEL_SUPPLY_CURRENT_LIMIT = 40;
-        /** Stator current limit (A) for hood – protects against mechanical limits. Lowered for brownout mitigation. */
+        /** Stator current limit (A) for hood – protects against mechanical limits. */
         public static final int HOOD_STATOR_CURRENT_LIMIT = 50;
+
+        /** Hood homing: voltage to move toward physical bottom (negative = down). */
+        public static final double HOOD_HOMING_VOLTAGE = -0.3;
+        /** Supply current threshold (A) to detect stall at mechanical limit. Tune: must be above running current. */
+        public static final double HOOD_HOMING_DETECT_CURRENT_THRESHOLD = 8.0;
+        /** Time (s) current must stay above threshold before accepting stall. */
+        public static final double HOOD_HOMING_STALL_TIME_SECONDS = 0.5;
+        /** Homing timeout (s) – bail if stall not detected. */
+        public static final double HOOD_HOMING_TIMEOUT_SECONDS = 3.0;
 
         /** Hood angle vs distance to hub: interpolate between min and max. Tune through testing. */
         // public static final double DISTANCE_AT_MIN_HOOD_METERS = 1.5;

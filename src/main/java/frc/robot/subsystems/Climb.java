@@ -19,7 +19,7 @@ import frc.robot.BreakerLib.util.logging.BreakerLog;
 
 /**
  * Climb subsystem: setpoint-based control using external encoder.
- * Run goHome() to establish the DOWN reference.
+ * Run home() to establish the DOWN reference.
  */
 public class Climb extends SubsystemBase {
 
@@ -84,15 +84,14 @@ public class Climb extends SubsystemBase {
      * Instead, this command moves the climb toward the DOWN limit until we detect a stall,
      * then zeros the encoder to SETPOINT_DOWN and sets the state to INACTIVE.
      */
-    public Command goHome() {
+    public Command home() {
         return Commands.sequence(
-            // Set INACTIVE so periodic() doesn't overwrite our motor control
             Commands.runOnce(() -> {
-                setState(State.HOMING);
+            // Set to HOMING so periodic() doesn't overwrite our motor control
+            setState(State.HOMING);
                 BreakerLog.log("Climb/Homing", "Starting");
             }, this),
             Commands.runOnce(() -> setHomingCurrents(true), this),
-            // Apply voltage until stall or timeout (run + race so voltage stops when done)
             Commands.run(() -> climbMotor.setControl(
                 new VoltageOut(Constants.ClimbConstants.HOMING_VOLTAGE)), this)
                     .raceWith(new TimedWaitUntilCommand(this::detectHome,
@@ -100,13 +99,11 @@ public class Climb extends SubsystemBase {
                             .raceWith(Commands.waitSeconds(Constants.ClimbConstants.HOMING_TIMEOUT_SECONDS))),
             Commands.runOnce(() -> {
                 climbMotor.setControl(new VoltageOut(0.0));
-                BreakerLog.log("Climb/Homing", "Motor stopped");
             }, this),
             Commands.waitSeconds(0.2),
-            // Zero encoder to SETPOINT_DOWN and set state to INACTIVE
             Commands.runOnce(() -> {
                 climbEncoder.setPosition(Constants.ClimbConstants.SETPOINT_DOWN);
-                BreakerLog.log("Climb/Encoder", "CANcoder zeroed to SETPOINT_DOWN");
+                BreakerLog.log("Climb/Homing", "CANcoder zeroed to SETPOINT_DOWN");
                 setState(State.INACTIVE);
             }, this))
             .finallyDo((interrupted) -> {
@@ -301,6 +298,6 @@ public class Climb extends SubsystemBase {
         String line = String.format("state=%s pos=%.2f tgt=%.2f %.1fvel", state, position, targetSetpoint, velocity);
         BreakerLog.log("Climb/Status", line);
         BreakerLog.log("Electrical/Climb/climb", climbMotor);
-        BreakerLog.log("Climb/AtHomePosition", detectHome());
+        BreakerLog.log("Climb/Homing", detectHome());
     }
 }
