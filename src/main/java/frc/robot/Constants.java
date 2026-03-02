@@ -327,11 +327,19 @@ public final class Constants {
         /** Homing timeout (s) – bail if stall not detected. */
         public static final double HOOD_HOMING_TIMEOUT_SECONDS = 3.0;
 
-        /** Hood angle vs distance to hub: interpolate between min and max. Tune through testing. */
-        // public static final double DISTANCE_AT_MIN_HOOD_METERS = 1.5;
-        // public static final double HOOD_POSITION_AT_MIN_DISTANCE = 0.0;
-        // public static final double DISTANCE_AT_MAX_HOOD_METERS = 4.0;
-        // public static final double HOOD_POSITION_AT_MAX_DISTANCE = 0.3;
+        /**
+         * Hood angle vs distance from hub: (distance m, hood position rotations).
+         * Lagrange interpolation gives a smooth curve through these points.
+         * Tune through testing – add/remove/adjust pairs as needed.
+         */
+        public static final Translation2d[] HOOD_DISTANCE_ANGLE_TABLE = {
+            new Translation2d(1.5, -0.07),   // close
+            new Translation2d(2.0, -0.08),
+            new Translation2d(2.5, -0.09),
+            new Translation2d(3.0, -0.10),
+            new Translation2d(3.5, -0.12),
+            new Translation2d(4.0, -0.15),   // far
+        };
     }
 
     // --------------- HOPPER --------------

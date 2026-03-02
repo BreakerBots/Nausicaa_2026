@@ -1,9 +1,11 @@
 package frc.robot.subsystems;
 
+import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
+import frc.robot.BreakerLib.util.math.BreakerMath;
 
 /**
  * Manages trajectory calculations for shooting: distance to target, hood angle from pose or distance.
@@ -44,15 +46,19 @@ public class TrajectoryManager extends SubsystemBase {
         }
     }
 
-    // Uncomment when experimenting with distance-based hood. Also uncomment DISTANCE_AT_MIN_HOOD_METERS etc. in ShooterConstants, and add: import edu.wpi.first.math.MathUtil;
-    // public double getHoodPositionForDistance(double distanceToHubMeters) {
-    //     double dMin = Constants.ShooterConstants.DISTANCE_AT_MIN_HOOD_METERS;
-    //     double dMax = Constants.ShooterConstants.DISTANCE_AT_MAX_HOOD_METERS;
-    //     // Normalize distance to [0, 1]: t=0 at dMin (closest), t=1 at dMax (furthest). Clamp for distances outside range.
-    //     double t = (dMax > dMin) ? MathUtil.clamp((distanceToHubMeters - dMin) / (dMax - dMin), 0, 1) : 0;
-    //     return MathUtil.interpolate(
-    //             Constants.ShooterConstants.HOOD_POSITION_AT_MIN_DISTANCE,
-    //             Constants.ShooterConstants.HOOD_POSITION_AT_MAX_DISTANCE,
-    //             t);
-    // }
+    /**
+     * Returns hood position (encoder rotations) for the given distance from target.
+     * Uses Lagrange interpolation through HOOD_DISTANCE_ANGLE_TABLE for a smooth curve.
+     * Distance is clamped to the table range to avoid extrapolation.
+     */
+    public double getHoodPositionForDistance(double distanceToTargetMeters) {
+        Translation2d[] table = Constants.ShooterConstants.HOOD_DISTANCE_ANGLE_TABLE;
+        if (table == null || table.length == 0) {
+            return Constants.ShooterConstants.POSITION_HOOD_SETPOINT_2;
+        }
+        double dMin = table[0].getX();
+        double dMax = table[table.length - 1].getX();
+        double clampedDist = MathUtil.clamp(distanceToTargetMeters, dMin, dMax);
+        return BreakerMath.interpolateLagrange(clampedDist, table);
+    }
 }
