@@ -6,7 +6,14 @@ package frc.robot.BreakerLib.util.math.interpolation;
 
 import edu.wpi.first.math.Pair;
 
-/** Add your docs here. */
+/**
+ * A pair of two BreakerInterpolable values, both of which are interpolated together.
+ *
+ * Extends WPILib's Pair. Use when you need to interpolate compound values where
+ * both the key and value components participate in interpolation (e.g., for
+ * Lagrange interpolation over key-value pairs). For simple X-to-Y lookups, prefer
+ * BreakerInterpolatingTreeMap with BreakerInterpolableDouble values.
+ */
 public class BreakerInterpolablePair<K extends BreakerInterpolable<K>, V extends BreakerInterpolable<V>> extends Pair<K, V> implements BreakerInterpolable<BreakerInterpolablePair<K,V>> {
     public BreakerInterpolablePair(K first, V second) {
         super(first, second);

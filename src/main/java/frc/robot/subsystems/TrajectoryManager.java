@@ -1,21 +1,51 @@
 package frc.robot.subsystems;
 
+import java.util.Collections;
+
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
-import frc.robot.BreakerLib.util.math.BreakerMath;
+import frc.robot.BreakerLib.util.math.interpolation.BreakerInterpolableDouble;
+import frc.robot.BreakerLib.util.math.interpolation.maps.BreakerInterpolatingTreeMap;
 
 /**
  * Manages trajectory calculations for shooting: distance to target, hood angle from pose or distance.
  */
 public class TrajectoryManager extends SubsystemBase {
 
+    /**
+     * Hood position vs distance from hub: (distance m, hood position rotations).
+     * Tune through testing – add/remove/adjust pairs as needed.
+     */
+    private static final Translation2d[] HOOD_DISTANCE_ANGLE_TABLE = {
+        new Translation2d(1.5, -0.07),   // close
+        new Translation2d(2.0, -0.08),
+        new Translation2d(2.5, -0.09),
+        new Translation2d(3.0, -0.10),
+        new Translation2d(3.5, -0.12),
+        new Translation2d(4.0, -0.15),   // far
+    };
+
     private final Drivetrain drivetrain;
+    private final BreakerInterpolatingTreeMap<Double, BreakerInterpolableDouble> hoodLookup;
 
     public TrajectoryManager(Drivetrain drivetrain) {
         this.drivetrain = drivetrain;
+        this.hoodLookup = buildHoodLookup();
+    }
+
+    private static BreakerInterpolatingTreeMap<Double, BreakerInterpolableDouble> buildHoodLookup() {
+        BreakerInterpolatingTreeMap<Double, BreakerInterpolableDouble> map =
+            new BreakerInterpolatingTreeMap<>();
+        Translation2d[] table = HOOD_DISTANCE_ANGLE_TABLE;
+        if (table != null) {
+            for (Translation2d pt : table) {
+                map.put(pt.getX(), new BreakerInterpolableDouble(pt.getY()));
+            }
+        }
+        return map;
     }
 
     /** Returns the distance in meters from the robot to the given field point. */
@@ -47,18 +77,18 @@ public class TrajectoryManager extends SubsystemBase {
     }
 
     /**
-     * Returns hood position (encoder rotations) for the given distance from target.
-     * Uses Lagrange interpolation through HOOD_DISTANCE_ANGLE_TABLE for a smooth curve.
-     * Distance is clamped to the table range to avoid extrapolation.
+     * Returns hood position in encoder rotations for the given distance to target in meters.
+     * Uses linear interpolation through HOOD_DISTANCE_ANGLE_TABLE. Distance is clamped to the
+     * table range to avoid extrapolation.
      */
     public double getHoodPositionForDistance(double distanceToTargetMeters) {
-        Translation2d[] table = Constants.ShooterConstants.HOOD_DISTANCE_ANGLE_TABLE;
-        if (table == null || table.length == 0) {
+        if (hoodLookup.isEmpty()) {
             return Constants.ShooterConstants.POSITION_HOOD_SETPOINT_2;
         }
-        double dMin = table[0].getX();
-        double dMax = table[table.length - 1].getX();
+        double dMin = Collections.min(hoodLookup.keySet());
+        double dMax = Collections.max(hoodLookup.keySet());
         double clampedDist = MathUtil.clamp(distanceToTargetMeters, dMin, dMax);
-        return BreakerMath.interpolateLagrange(clampedDist, table);
+        BreakerInterpolableDouble result = hoodLookup.getInterpolatedValue(clampedDist);
+        return result != null ? result.getValue() : Constants.ShooterConstants.POSITION_HOOD_SETPOINT_2;
     }
 }

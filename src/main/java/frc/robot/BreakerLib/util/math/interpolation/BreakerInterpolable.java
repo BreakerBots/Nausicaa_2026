@@ -7,7 +7,18 @@ package frc.robot.BreakerLib.util.math.interpolation;
 import edu.wpi.first.math.interpolation.Interpolatable;
 import frc.robot.BreakerLib.util.math.BreakerMath;
 
-/** Wrapper around WPILib's {@link Interpolatable} interface that supports non-linear interpolation */
+/**
+ * Extends WPILib's Interpolatable interface to support non-linear interpolation.
+ *
+ * WPILib's Interpolatable only provides linear interpolation between two values
+ * given a blend factor t. BreakerInterpolable adds the ability to interpolate
+ * using a query key and bounding keys, which enables map-based lookups where
+ * the system computes t from the key position.
+ *
+ * Implementations must provide:
+ * - getInterpolatableData: expose raw numeric components for polynomial-style interpolation
+ * - fromInterpolatableData: reconstruct an instance from those components
+ */
 public interface BreakerInterpolable<V> extends Interpolatable<V> {
 
     public abstract double[] getInterpolatableData();

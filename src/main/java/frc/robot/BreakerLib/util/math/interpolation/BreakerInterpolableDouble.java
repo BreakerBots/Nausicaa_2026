@@ -7,8 +7,11 @@ package frc.robot.BreakerLib.util.math.interpolation;
 import edu.wpi.first.math.MathUtil;
 
 /**
- * Wraps around the double primitive type for use with BreakerLib's
- * interpolation classes
+ * Wraps a single double for use with BreakerLib's interpolating maps.
+ *
+ * Use this when your Y values are simple scalars (e.g., hood angle in degrees,
+ * flywheel RPM). The interpolating map will interpolate between neighboring
+ * doubles when you query for a key that falls between known data points.
  */
 public class BreakerInterpolableDouble implements BreakerInterpolable<BreakerInterpolableDouble> {
     private double value;
