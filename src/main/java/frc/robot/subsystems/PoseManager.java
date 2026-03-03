@@ -246,6 +246,9 @@ public class PoseManager extends SubsystemBase {
             double currentDistanceMeters = toTarget.getNorm();
             double remainingMeters = currentDistanceMeters - targetDistanceMeters;
             double velocityMagnitude = Math.max(-maxVelocity, Math.min(maxVelocity, kP * remainingMeters));
+            // Counteract operator perspective (180° for red): 
+            // drivetrain rotates field-centric velocities by operator perspective, 
+            // which would invert our direction on red alliance.
             double allianceSignFlip = Constants.FieldConstants.isRedAlliance() ? -1 : 1;
             double velocityX;
             double velocityY;

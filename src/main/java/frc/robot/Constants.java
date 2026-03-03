@@ -309,6 +309,8 @@ public final class Constants {
         public static final double POSITION_HOOD_SETPOINT_1 = -0.07; // need to tune
         public static final double POSITION_HOOD_SETPOINT_2 = -0.10; // need to tune
         public static final double POSITION_HOOD_SETPOINT_3 = -0.15; // need to tune
+        /** Deadband (rotations) for hood tracking; prevents oscillation when near target. */
+        public static final double HOOD_TRACKING_TOLERANCE_ROTATIONS = 0.01;
 
         
         /** Stator current limit (A) for flywheels – protects during spin-up. */

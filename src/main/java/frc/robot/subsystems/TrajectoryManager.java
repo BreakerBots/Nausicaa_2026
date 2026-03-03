@@ -28,12 +28,12 @@ public class TrajectoryManager extends SubsystemBase {
         new Translation2d(4.0, -0.15),   // far
     };
 
+    private static final BreakerInterpolatingTreeMap<Double, BreakerInterpolableDouble> hoodLookup = buildHoodLookup();
+
     private final Drivetrain drivetrain;
-    private final BreakerInterpolatingTreeMap<Double, BreakerInterpolableDouble> hoodLookup;
 
     public TrajectoryManager(Drivetrain drivetrain) {
         this.drivetrain = drivetrain;
-        this.hoodLookup = buildHoodLookup();
     }
 
     private static BreakerInterpolatingTreeMap<Double, BreakerInterpolableDouble> buildHoodLookup() {
@@ -81,7 +81,7 @@ public class TrajectoryManager extends SubsystemBase {
      * Uses linear interpolation through HOOD_DISTANCE_ANGLE_TABLE. Distance is clamped to the
      * table range to avoid extrapolation.
      */
-    public double getHoodPositionForDistance(double distanceToTargetMeters) {
+    public static double getHoodPositionForDistance(double distanceToTargetMeters) {
         if (hoodLookup.isEmpty()) {
             return Constants.ShooterConstants.POSITION_HOOD_SETPOINT_2;
         }

@@ -9,8 +9,6 @@ import com.ctre.phoenix6.swerve.SwerveRequest;
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.auto.NamedCommands;
 
-import static edu.wpi.first.units.Units.Meters;
-
 import java.util.Set;
 import java.util.function.DoubleSupplier;
 
@@ -33,7 +31,6 @@ import frc.robot.subsystems.Drivetrain;
 import frc.robot.subsystems.Intake;
 import frc.robot.subsystems.Shooter;
 import frc.robot.subsystems.Vision;
-import frc.robot.subsystems.Intake.State;
 import frc.robot.subsystems.Climb;
 import frc.robot.subsystems.Hopper;
 import frc.robot.subsystems.PoseManager;
@@ -172,10 +169,13 @@ public class RobotContainer {
         
             drivetrain.setDefaultCommand(drivetrain.getTeleopControlCommand(driverX, driverY, driverOmega, Constants.DriveConstants.TELEOP_CONTROL_CONFIG));
         
-            // LEFT TRIGGER --> Track hub center; driver keeps X/Y, rotation follows hub
+            // LEFT TRIGGER --> Track hub center; driver keeps X/Y, rotation follows hub; hood tracks distance
+            DoubleSupplier leftTriggerDistance = () -> drivetrain.getRobotToPointTranslation(
+                    Constants.FieldConstants.getLeftTriggerTarget(drivetrain.getLocalizer().getPose())).getNorm();
             controller.getLeftTrigger().whileTrue(Commands.runOnce(() -> 
                     drivetrain.getLocalizer().resetPose(new Pose2d(0,0, Rotation2d.fromRotations(0.0))))
-                    .andThen(poseManager.trackLeftTriggerTargetCommand(driverX, driverY)));
+                    .andThen(poseManager.trackLeftTriggerTargetCommand(driverX, driverY)
+                            .alongWith(shooter.positionHoodForTargetCommand(leftTriggerDistance))));
 
             // Y --> Range to 1 m from hub center (defer so alliance is evaluated when pressed, not at startup)
             controller.getButtonY().onTrue(Commands.defer(() -> poseManager.rangeToPointCommand(Constants.FieldConstants.getTargetHubCenter(), 1.0), Set.of(drivetrain)));

@@ -15,6 +15,8 @@ import com.ctre.phoenix6.configs.Slot0Configs;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.VelocityVoltage;
 
+import java.util.function.DoubleSupplier;
+
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
@@ -172,10 +174,33 @@ public class Shooter extends SubsystemBase {
                 >= Constants.ShooterConstants.HOOD_HOMING_DETECT_CURRENT_THRESHOLD;
     }
 
+    
     /**
-     * Command: run hood until encoder reaches targetRotations, then stop.
-     * Runs up if target is greater than current position, down if less.
+     * Positions hood based on distance to target (meters). Continually updates while running.
      */
+    public Command positionHoodForTargetCommand(double distanceMeters) {
+        return positionHoodForTargetCommand(() -> distanceMeters);
+    }
+
+    /**
+     * Positions hood based on distance to target. Distance is re-evaluated each cycle (e.g. for dynamic targets).
+     */
+    public Command positionHoodForTargetCommand(DoubleSupplier distanceSupplier) {
+        final double tolerance = Constants.ShooterConstants.HOOD_TRACKING_TOLERANCE_ROTATIONS;
+        return Commands.run(() -> {
+            double distance = distanceSupplier.getAsDouble();
+            double hoodTarget = TrajectoryManager.getHoodPositionForDistance(distance);
+            double current = getHoodEncoderRotations();
+            if (hoodTarget > current + tolerance) {
+                runHoodUp();
+            } else if (hoodTarget < current - tolerance) {
+                runHoodDown();
+            } else {
+                stopHood();
+            }
+        }, this).finallyDo(this::stopHood);
+    }
+
     public Command hoodToRotationsCommand(double targetRotations) {
         double current = getHoodEncoderRotations();
         if (targetRotations > current) {
