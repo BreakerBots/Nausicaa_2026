@@ -174,7 +174,7 @@ public class Shooter extends SubsystemBase {
                 >= Constants.ShooterConstants.HOOD_HOMING_DETECT_CURRENT_THRESHOLD;
     }
 
-    
+
     /**
      * Positions hood based on distance to target (meters). Continually updates while running.
      */
