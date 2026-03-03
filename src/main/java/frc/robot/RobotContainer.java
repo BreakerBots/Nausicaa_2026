@@ -177,8 +177,9 @@ public class RobotContainer {
                     .andThen(poseManager.trackLeftTriggerTargetCommand(driverX, driverY)
                             .alongWith(shooter.positionHoodForTargetCommand(leftTriggerDistance))));
 
-            // Y --> Range to 1 m from hub center (defer so alliance is evaluated when pressed, not at startup)
-            controller.getButtonY().onTrue(Commands.defer(() -> poseManager.rangeToPointCommand(Constants.FieldConstants.getTargetHubCenter(), 1.0), Set.of(drivetrain)));
+            // Y --> Home hood (for testing; encoder zero when position unknown)
+            controller.getButtonY().onTrue(shooter.homeHood());
+            // controller.getButtonY().onTrue(Commands.defer(() -> poseManager.rangeToPointCommand(Constants.FieldConstants.getTargetHubCenter(), 1.0), Set.of(drivetrain)));
 
             // Range to tag (A button)
             // controller.getButtonA().onTrue(rangeToTagCommand(Constants.FieldConstants.getTrenchTagID(), 1.0));        
