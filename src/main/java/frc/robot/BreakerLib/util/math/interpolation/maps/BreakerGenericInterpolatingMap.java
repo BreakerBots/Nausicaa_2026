@@ -4,15 +4,23 @@
 
 package frc.robot.BreakerLib.util.math.interpolation.maps;
 
-/**  */
+/**
+ * Abstract base for maps that interpolate Y values from X keys.
+ *
+ * Keys must be Numbers (e.g., Double, Integer). Values are interpolated when
+ * you query for a key that falls between known data points. Subclasses choose
+ * the interpolation strategy (linear vs Lagrange polynomial).
+ */
 public abstract class BreakerGenericInterpolatingMap<K extends Number, V> extends java.util.AbstractMap<K, V> {
 
     /**
-     * interpolates the Map to return the aproxamate value(Y) that would corespond
-     * to a given Key(X) based on the data points provided
-     * 
-     * @param interpolendValue the Key(X) value to base the estimation on
-     * @return the predected Value(Y) that would corespond to the given Key(X) based on the given set of points
+     * Returns the interpolated Y value for the given X key.
+     *
+     * If the key exactly matches a stored point, returns that point's value.
+     * Otherwise, estimates the value using the map's interpolation strategy.
+     *
+     * @param interpolendValue the X value to look up (e.g., target distance in meters)
+     * @return the estimated Y value (e.g., hood angle in degrees)
      */
     public abstract V getInterpolatedValue(K interpolendValue);
 

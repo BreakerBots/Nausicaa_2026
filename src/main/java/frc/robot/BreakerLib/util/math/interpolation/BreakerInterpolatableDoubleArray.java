@@ -10,8 +10,11 @@ import edu.wpi.first.math.MathUtil;
 import frc.robot.BreakerLib.util.math.BreakerMath;
 
 /**
- * Wraps around the double primitive type for use with BreakerLib's
- * interpolation classes
+ * Wraps a double array for use with BreakerLib's interpolating maps.
+ *
+ * Use this when your Y values have multiple components (e.g., hood angle and
+ * flywheel speed). Each component is interpolated independently. All entries
+ * in the map must use arrays of the same length.
  */
 public class BreakerInterpolatableDoubleArray implements BreakerInterpolable<BreakerInterpolatableDoubleArray> {
     private double[] values;

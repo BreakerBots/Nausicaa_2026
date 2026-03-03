@@ -269,8 +269,8 @@ public final class Constants {
 
         public static final double SPEED_INTAKE = -0.7;
 
-        /** Stator current limit (A) for pivot and roller – protects against jams. Lowered for brownout mitigation. */
-        public static final int STATOR_CURRENT_LIMIT = 40;
+        /** Stator current limit (A) for pivot and roller – protects against jams. */
+        public static final int STATOR_CURRENT_LIMIT = 50;
     }
 
     // --------------- SHOOTER --------------
@@ -311,16 +311,21 @@ public final class Constants {
         public static final double POSITION_HOOD_SETPOINT_3 = -0.15; // need to tune
 
         
-        /** Stator current limit (A) for flywheels – protects during spin-up. Lowered for brownout mitigation. */
+        /** Stator current limit (A) for flywheels – protects during spin-up. */
         public static final int FLYWHEEL_STATOR_CURRENT_LIMIT = 50;
-        /** Stator current limit (A) for hood – protects against mechanical limits. Lowered for brownout mitigation. */
+        /** Supply current limit (A) per flywheel – 3 motors draw heavily during spin-up; helps prevent brownouts. */
+        public static final int FLYWHEEL_SUPPLY_CURRENT_LIMIT = 40;
+        /** Stator current limit (A) for hood – protects against mechanical limits. */
         public static final int HOOD_STATOR_CURRENT_LIMIT = 50;
 
-        /** Hood angle vs distance to hub: interpolate between min and max. Tune through testing. */
-        // public static final double DISTANCE_AT_MIN_HOOD_METERS = 1.5;
-        // public static final double HOOD_POSITION_AT_MIN_DISTANCE = 0.0;
-        // public static final double DISTANCE_AT_MAX_HOOD_METERS = 4.0;
-        // public static final double HOOD_POSITION_AT_MAX_DISTANCE = 0.3;
+        /** Hood homing: voltage to move toward physical bottom (negative = down). */
+        public static final double HOOD_HOMING_VOLTAGE = -0.3;
+        /** Supply current threshold (A) to detect stall at mechanical limit. Tune: must be above running current. */
+        public static final double HOOD_HOMING_DETECT_CURRENT_THRESHOLD = 8.0;
+        /** Time (s) current must stay above threshold before accepting stall. */
+        public static final double HOOD_HOMING_STALL_TIME_SECONDS = 0.5;
+        /** Homing timeout (s) – bail if stall not detected. */
+        public static final double HOOD_HOMING_TIMEOUT_SECONDS = 3.0;
     }
 
     // --------------- HOPPER --------------

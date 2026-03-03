@@ -15,7 +15,14 @@ import java.util.TreeMap;
 import frc.robot.BreakerLib.util.math.BreakerMath;
 import frc.robot.BreakerLib.util.math.interpolation.BreakerInterpolable;
 
-/** Add your docs here. */
+/**
+ * Interpolating map that uses linear interpolation between the two nearest neighbors.
+ *
+ * For a given query key X, finds the floor and ceiling entries and linearly
+ * interpolates the value between them. Best when your data is roughly linear
+ * or you want simple, predictable behavior. Values must implement WPILib's
+ * Interpolatable (e.g., BreakerInterpolableDouble).
+ */
 public class BreakerInterpolatingTreeMap<K extends Number, V extends Interpolatable<V>> extends BreakerGenericInterpolatingMap<K, V> {
     private TreeMap<K, V> indexesAndValues;
 
