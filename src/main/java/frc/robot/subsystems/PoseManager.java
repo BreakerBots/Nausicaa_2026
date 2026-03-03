@@ -246,12 +246,12 @@ public class PoseManager extends SubsystemBase {
             double currentDistanceMeters = toTarget.getNorm();
             double remainingMeters = currentDistanceMeters - targetDistanceMeters;
             double velocityMagnitude = Math.max(-maxVelocity, Math.min(maxVelocity, kP * remainingMeters));
-
+            double allianceSignFlip = Constants.FieldConstants.isRedAlliance() ? -1 : 1;
             double velocityX;
             double velocityY;
             if (currentDistanceMeters > 1e-6) {
-                velocityX = (toTarget.getX() / currentDistanceMeters) * velocityMagnitude;
-                velocityY = (toTarget.getY() / currentDistanceMeters) * velocityMagnitude;
+                velocityX = (toTarget.getX() / currentDistanceMeters) * velocityMagnitude * allianceSignFlip;
+                velocityY = (toTarget.getY() / currentDistanceMeters) * velocityMagnitude * allianceSignFlip;
             } else {
                 // At target: drive in robot's heading to escape (direction doesn't matter when distance is 0)
                 double heading = drivetrain.getLocalizer().getPose().getRotation().getRadians();
