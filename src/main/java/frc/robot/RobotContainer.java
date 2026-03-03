@@ -173,9 +173,10 @@ public class RobotContainer {
             DoubleSupplier leftTriggerDistance = () -> drivetrain.getRobotToPointTranslation(
                     Constants.FieldConstants.getLeftTriggerTarget(drivetrain.getLocalizer().getPose())).getNorm();
             controller.getLeftTrigger().whileTrue(Commands.runOnce(() -> 
-                    drivetrain.getLocalizer().resetPose(new Pose2d(0,0, Rotation2d.fromRotations(0.0))))
-                    .andThen(poseManager.trackLeftTriggerTargetCommand(driverX, driverY)
-                            .alongWith(shooter.positionHoodForTargetCommand(leftTriggerDistance))));
+                    //drivetrain.getLocalizer().resetPose(new Pose2d(0,0, Rotation2d.fromRotations(0.0))))
+                    //  .andThen(poseManager.trackLeftTriggerTargetCommand(driverX, driverY)
+                    poseManager.trackLeftTriggerTargetCommand(driverX, driverY)
+                        .alongWith(shooter.positionHoodForTargetCommand(leftTriggerDistance))));
 
             // Y --> Home hood (for testing; encoder zero when position unknown)
             controller.getButtonY().onTrue(shooter.homeHood());

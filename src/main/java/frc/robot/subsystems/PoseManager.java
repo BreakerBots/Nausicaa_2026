@@ -60,7 +60,7 @@ public class PoseManager extends SubsystemBase {
             BreakerLog.log("PoseManager/Status", statusMessage);
             System.out.println(statusMessage);      
             
-            drivetrain.getLocalizer().resetPose(new Pose2d(0,0, Rotation2d.fromRotations(0.0)));
+            //drivetrain.getLocalizer().resetPose(new Pose2d(0,0, Rotation2d.fromRotations(0.0)));
 
             PathConstraints constraints = new PathConstraints(
                 Constants.DriveConstants.MAXIMUM_TRANSLATIONAL_VELOCITY.magnitude(),
