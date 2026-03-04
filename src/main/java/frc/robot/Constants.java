@@ -270,7 +270,7 @@ public final class Constants {
         public static final double SPEED_INTAKE = -0.7;
 
         /** Stator current limit (A) for pivot and roller – protects against jams. */
-        public static final int STATOR_CURRENT_LIMIT = 50;
+        public static final int STATOR_CURRENT_LIMIT = 20;
     }
 
     // --------------- SHOOTER --------------
@@ -314,9 +314,9 @@ public final class Constants {
 
         
         /** Stator current limit (A) for flywheels – protects during spin-up. */
-        public static final int FLYWHEEL_STATOR_CURRENT_LIMIT = 50;
+        public static final int FLYWHEEL_STATOR_CURRENT_LIMIT = 40;
         /** Supply current limit (A) per flywheel – 3 motors draw heavily during spin-up; helps prevent brownouts. */
-        public static final int FLYWHEEL_SUPPLY_CURRENT_LIMIT = 40;
+        public static final int FLYWHEEL_SUPPLY_CURRENT_LIMIT = 25;
         /** Stator current limit (A) for hood – protects against mechanical limits. */
         public static final int HOOD_STATOR_CURRENT_LIMIT = 50;
 
@@ -336,7 +336,8 @@ public final class Constants {
         public static final int HOPPER_MOTOR_ID = 40;
         public static final int FEEDER_MOTOR_ID = 41;
         /** Stator current limit (A) for indexer and feeder – protects against jams. Matches other robot end effector rollers. */
-        public static final int STATOR_CURRENT_LIMIT = 60;
+        public static final int INDEXER_STATOR_CURRENT_LIMIT = 90;
+        public static final int FEEDER_STATOR_CURRENT_LIMIT = 90;
         public static final double SPEED_INACTIVE = 0;
         public static final double SPEED_INDEXING = 0.5; // need to tune
         public static final double SPEED_FEEDING = 0.6; // need to tune

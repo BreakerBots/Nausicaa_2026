@@ -389,8 +389,8 @@ public class RobotContainer {
         climb.setState(Climb.State.INACTIVE);
         shooter.setState(Shooter.State.INACTIVE);
         hopper.setState(Hopper.State.INACTIVE);
-        CommandScheduler.getInstance().schedule(
-                shooter.hoodToRotationsCommand(Constants.ShooterConstants.POSITION_HOOD_SETPOINT_HOME));
+        // CommandScheduler.getInstance().schedule(
+        //         shooter.hoodToRotationsCommand(Constants.ShooterConstants.POSITION_HOOD_SETPOINT_HOME));
     }
 
 }

@@ -20,14 +20,22 @@ public class Hopper extends SubsystemBase {
             Constants.GeneralConstants.SUPERSTRUCTURE_CANIVORE_BUS);
 
     public Hopper() {
-        TalonFXConfiguration config = new TalonFXConfiguration();
-        config.MotorOutput.NeutralMode = NeutralModeValue.Brake;
-        config.CurrentLimits = new CurrentLimitsConfigs()
-                .withStatorCurrentLimit(Constants.HopperConstants.STATOR_CURRENT_LIMIT)
+        TalonFXConfiguration indexerConfig = new TalonFXConfiguration();
+        indexerConfig.MotorOutput.NeutralMode = NeutralModeValue.Brake;
+        indexerConfig.CurrentLimits = new CurrentLimitsConfigs()
+                .withStatorCurrentLimit(Constants.HopperConstants.INDEXER_STATOR_CURRENT_LIMIT)
                 .withStatorCurrentLimitEnable(true);
-        indexerMotor.getConfigurator().apply(config);
-        feederMotor.getConfigurator().apply(config);
+        indexerMotor.getConfigurator().apply(indexerConfig);
+
+        TalonFXConfiguration feederConfig = new TalonFXConfiguration();
+        feederConfig.MotorOutput.NeutralMode = NeutralModeValue.Brake;
+        feederConfig.CurrentLimits = new CurrentLimitsConfigs()
+                .withStatorCurrentLimit(Constants.HopperConstants.FEEDER_STATOR_CURRENT_LIMIT)
+                .withStatorCurrentLimitEnable(true);
+        feederMotor.getConfigurator().apply(feederConfig);
     }
+
+    
 
     public State state = State.INACTIVE;
 
