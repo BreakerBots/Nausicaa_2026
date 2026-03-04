@@ -19,6 +19,7 @@ import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
 import frc.robot.Constants.VisionConstants;
+import com.ctre.phoenix6.Utils;
 import frc.robot.LimelightHelpers;
 import frc.robot.LimelightHelpers.PoseEstimate;
 import java.util.Optional;
@@ -189,7 +190,6 @@ public class Vision extends SubsystemBase {
         }
 
         Pose2d visionPose = estimate.pose;
-        double timestampSeconds = estimate.timestampSeconds;
         int tagCount = estimate.tagCount;     
         
         if (cameraName.equals(VisionConstants.FRONT_CAMERA)) {
@@ -248,9 +248,16 @@ public class Vision extends SubsystemBase {
         // Calculate dynamic standard deviations based on tag count and proximity
         // More tags and closer tags = lower std dev = more trust in vision
         Matrix<N3, N1> dynamicStdDevs = calculateDynamicStdDevs(tagCount, estimate.avgTagDist);
-        
+
+        // Recompute timestamp in CTRE Phoenix time base instead of using estimate.timestampSeconds.
+        // LimelightHelpers derives its timestamp from NetworkTables (Unix epoch in microseconds),
+        // but the drivetrain's odometry uses Utils.getCurrentTimeSeconds() (epoch since system startup). 
+        // Passing a mismatched time base causes the Kalman filter to fuse vision
+        // measurements at the wrong time, leading to pose drift. Capture time = now - latency.
+        double correctedTimestamp = Utils.getCurrentTimeSeconds() - (estimate.latency / 1000.0);
+
         // Add vision measurement to pose estimator
-        drivetrain.addVisionMeasurement(visionPose, timestampSeconds, dynamicStdDevs);
+        drivetrain.addVisionMeasurement(visionPose, correctedTimestamp, dynamicStdDevs);
         updateStatus(cameraName, String.format("ACCEPTED: Fused (%.2fm diff, %d tags @ %.2fm avg, %.1fms latency)", 
             poseDifference, tagCount, estimate.avgTagDist, estimate.latency));
     }
@@ -506,6 +513,34 @@ public class Vision extends SubsystemBase {
             // Pigeon not available
         }
 
+        // Timestamp verification: vision timestamps must be in CTRE Phoenix time base (same as odometry).
+        // Phoenix and FPGA should be in same ballpark; camera timestamp should be slightly in the past.
+        double phoenixNow = Utils.getCurrentTimeSeconds();
+        double fpgaNow = Timer.getFPGATimestamp();
+        double phoenixVsFpgaDeltaSec = Math.abs(phoenixNow - fpgaNow);
+        String phoenixVsFpgaStatus = phoenixVsFpgaDeltaSec > 2.0
+                ? String.format("%.3fs (WARNING: >2s drift may affect fusion)", phoenixVsFpgaDeltaSec)
+                : String.format("%.3fs (OK)", phoenixVsFpgaDeltaSec);
+        BreakerLog.log("Vision/Timestamp/PhoenixNow", phoenixNow);
+        BreakerLog.log("Vision/Timestamp/FPGANow", fpgaNow);
+        BreakerLog.log("Vision/Timestamp/PhoenixVsFPGADelta", phoenixVsFpgaStatus);
+        if (frontCameraEstimate != null) {
+            double camTs = frontCameraEstimate.timestampSeconds;
+            double frontCamVsPhoenixDeltaSec = Math.abs(phoenixNow - camTs);
+            String frontCamVsPhoenixStatus = frontCamVsPhoenixDeltaSec > 1000.0
+                    ? String.format("%.2es (WARNING: different epoch - use corrected ts)", frontCamVsPhoenixDeltaSec)
+                    : String.format("%.3fs (OK)", frontCamVsPhoenixDeltaSec);
+            BreakerLog.log("Vision/Timestamp/FrontCameraTimestamp", camTs);
+            BreakerLog.log("Vision/Timestamp/FrontCameravsPhoenixDelta", frontCamVsPhoenixStatus);
+
+            double correctedTs = phoenixNow - (frontCameraEstimate.latency / 1000.0);
+            double correctedVsPhoenixDeltaSec = Math.abs(phoenixNow - correctedTs);
+            String correctedVsPhoenixStatus = correctedVsPhoenixDeltaSec > 2.0
+                    ? String.format("%.3fs (WARNING: >2s - check latency)", correctedVsPhoenixDeltaSec)
+                    : String.format("%.3fs (OK - same epoch)", correctedVsPhoenixDeltaSec);
+            BreakerLog.log("Vision/Timestamp/CorrectedVsPhoenixDelta", correctedVsPhoenixStatus);
+        }
+
         double frontTrustScore = frontCameraEstimate != null
                 ? getTrustScore(frontCameraEstimate.tagCount, frontCameraEstimate.avgTagDist)
                 : Double.NaN;
@@ -560,13 +595,19 @@ public class Vision extends SubsystemBase {
         String frontDistStr = Double.isNaN(frontDistToFused) ? "—" : String.format("%.3fm", frontDistToFused);
         String backLeftDistStr = Double.isNaN(backLeftDistToFused) ? "—" : String.format("%.3fm", backLeftDistToFused);
         String backRightDistStr = Double.isNaN(backRightDistToFused) ? "—" : String.format("%.3fm", backRightDistToFused);
+        String timestampVerifyStr = frontCameraEstimate != null
+                ? String.format("Phoenix=%.2f FPGA=%.2f CamTs=%.2f Δ=%.3fs",
+                        phoenixNow, fpgaNow, frontCameraEstimate.timestampSeconds, phoenixNow - frontCameraEstimate.timestampSeconds)
+                : String.format("Phoenix=%.2f FPGA=%.2f (no cam data)", phoenixNow, fpgaNow);
         String logMessage = String.format(
                 "------------------------------------------------------\n" +
+                "- Timestamp (verify Phoenix epoch): %s\n" +
                 "- Front Camera: Tags %s, Pose %s, Trust %s, ΔFused %s\n" +
                 "- Back-Left Camera: Tags %s, Pose %s, Trust %s, ΔFused %s\n" +
                 "- Back-Right Camera: Tags %s, Pose %s, Trust %s, ΔFused %s\n" +
                 "- Fused: Pose %s (X=%.2f Y=%.2f Yaw=%.2f)\n" +
                 "- IMU Yaw: %.2f deg",
+                timestampVerifyStr,
                 frontTagsStr, frontPoseStr, frontTrustStr, frontDistStr,
                 backLeftTagsStr, backLeftPoseStr, backLeftTrustStr, backLeftDistStr,
                 backRightTagsStr, backRightPoseStr, backRightTrustStr, backRightDistStr,
