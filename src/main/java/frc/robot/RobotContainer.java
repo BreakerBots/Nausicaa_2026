@@ -34,7 +34,7 @@ import frc.robot.subsystems.Vision;
 import frc.robot.subsystems.Climb;
 import frc.robot.subsystems.Hopper;
 import frc.robot.subsystems.PoseManager;
-import frc.robot.subsystems.TrajectoryManager;
+//import frc.robot.subsystems.TrajectoryManager;
 
 
 /**
@@ -47,11 +47,11 @@ public class RobotContainer {
 
     // The robot's subsystems and commands are defined here...
     private final BreakerXboxController controller = new BreakerXboxController(Constants.OperatorConstants.kDriverControllerPort);
-    private final BreakerXboxController controller2 = new BreakerXboxController(Constants.OperatorConstants.kDriverControllerPort2);
+    //private final BreakerXboxController controller2 = new BreakerXboxController(Constants.OperatorConstants.kDriverControllerPort2);
     private final Drivetrain drivetrain = new Drivetrain();
     private final Vision vision = new Vision(drivetrain);
     private final PoseManager poseManager = new PoseManager(drivetrain, vision);
-    private final TrajectoryManager trajectoryManager = new TrajectoryManager(drivetrain);
+    //private final TrajectoryManager trajectoryManager = new TrajectoryManager(drivetrain);
     private final Intake intake = new Intake();
     private final Climb climb = new Climb();
     private final Shooter shooter = new Shooter();
@@ -119,7 +119,7 @@ public class RobotContainer {
         // ---------- CONTROLLER 1 - DRIVER ----------
         // ---------------------------------------------
 
-        // BACK BUTTON --> SLOW MODE
+        // RIGHT BUMPER --> SLOW MODE
         controller.getRightBumper().onTrue(Commands.runOnce(() -> slowMode = !slowMode));
 
         // LEFT BUMPER --> RESET LOCALIZER'S POSE
@@ -281,47 +281,47 @@ public class RobotContainer {
 
         // Setpoints for Shooting
 
-        Trigger noDPad = new Trigger(() -> controller2.getBaseHID().getPOV() == -1);
-        if (Constants.FieldConstants.isRedAlliance()) {
-            controller2.getButtonX().and(controller2.getDPad().getUp()).onTrue(prepareToShootFromSetpointCommand(Constants.FieldConstants.POSE_SHOOTING_RED_L1));
-            controller2.getButtonA().and(controller2.getDPad().getUp()).onTrue(prepareToShootFromSetpointCommand(Constants.FieldConstants.POSE_SHOOTING_RED_C1));
-            controller2.getButtonB().and(controller2.getDPad().getUp()).onTrue(prepareToShootFromSetpointCommand(Constants.FieldConstants.POSE_SHOOTING_RED_R1));
-            controller2.getButtonX().and(noDPad).onTrue(prepareToShootFromSetpointCommand(Constants.FieldConstants.POSE_SHOOTING_RED_L2));
-            controller2.getButtonA().and(noDPad).onTrue(prepareToShootFromSetpointCommand(Constants.FieldConstants.POSE_SHOOTING_RED_C2));
-            controller2.getButtonB().and(noDPad).onTrue(prepareToShootFromSetpointCommand(Constants.FieldConstants.POSE_SHOOTING_RED_R2));
-            controller2.getButtonX().and(controller2.getDPad().getLeft()).onTrue(prepareToShootFromSetpointCommand(Constants.FieldConstants.POSE_SHOOTING_RED_L3));
-            controller2.getButtonB().and(controller2.getDPad().getRight()).onTrue(prepareToShootFromSetpointCommand(Constants.FieldConstants.POSE_SHOOTING_RED_R3));
-        } else {
-            controller2.getButtonX().and(controller2.getDPad().getUp()).onTrue(prepareToShootFromSetpointCommand(Constants.FieldConstants.POSE_SHOOTING_BLUE_L1));
-            controller2.getButtonA().and(controller2.getDPad().getUp()).onTrue(prepareToShootFromSetpointCommand(Constants.FieldConstants.POSE_SHOOTING_BLUE_C1));
-            controller2.getButtonB().and(controller2.getDPad().getUp()).onTrue(prepareToShootFromSetpointCommand(Constants.FieldConstants.POSE_SHOOTING_BLUE_R1));
-            controller2.getButtonX().and(noDPad).onTrue(prepareToShootFromSetpointCommand(Constants.FieldConstants.POSE_SHOOTING_BLUE_L2));
-            controller2.getButtonA().and(noDPad).onTrue(prepareToShootFromSetpointCommand(Constants.FieldConstants.POSE_SHOOTING_BLUE_C2));
-            controller2.getButtonB().and(noDPad).onTrue(prepareToShootFromSetpointCommand(Constants.FieldConstants.POSE_SHOOTING_BLUE_R2));
-            controller2.getButtonX().and(controller2.getDPad().getLeft()).onTrue(prepareToShootFromSetpointCommand(Constants.FieldConstants.POSE_SHOOTING_BLUE_L3));
-            controller2.getButtonB().and(controller2.getDPad().getRight()).onTrue(prepareToShootFromSetpointCommand(Constants.FieldConstants.POSE_SHOOTING_BLUE_R3));
-        }
+        // Trigger noDPad = new Trigger(() -> controller2.getBaseHID().getPOV() == -1);
+        // if (Constants.FieldConstants.isRedAlliance()) {
+        //     controller2.getButtonX().and(controller2.getDPad().getUp()).onTrue(prepareToShootFromSetpointCommand(Constants.FieldConstants.POSE_SHOOTING_RED_L1));
+        //     controller2.getButtonA().and(controller2.getDPad().getUp()).onTrue(prepareToShootFromSetpointCommand(Constants.FieldConstants.POSE_SHOOTING_RED_C1));
+        //     controller2.getButtonB().and(controller2.getDPad().getUp()).onTrue(prepareToShootFromSetpointCommand(Constants.FieldConstants.POSE_SHOOTING_RED_R1));
+        //     controller2.getButtonX().and(noDPad).onTrue(prepareToShootFromSetpointCommand(Constants.FieldConstants.POSE_SHOOTING_RED_L2));
+        //     controller2.getButtonA().and(noDPad).onTrue(prepareToShootFromSetpointCommand(Constants.FieldConstants.POSE_SHOOTING_RED_C2));
+        //     controller2.getButtonB().and(noDPad).onTrue(prepareToShootFromSetpointCommand(Constants.FieldConstants.POSE_SHOOTING_RED_R2));
+        //     controller2.getButtonX().and(controller2.getDPad().getLeft()).onTrue(prepareToShootFromSetpointCommand(Constants.FieldConstants.POSE_SHOOTING_RED_L3));
+        //     controller2.getButtonB().and(controller2.getDPad().getRight()).onTrue(prepareToShootFromSetpointCommand(Constants.FieldConstants.POSE_SHOOTING_RED_R3));
+        // } else {
+        //     controller2.getButtonX().and(controller2.getDPad().getUp()).onTrue(prepareToShootFromSetpointCommand(Constants.FieldConstants.POSE_SHOOTING_BLUE_L1));
+        //     controller2.getButtonA().and(controller2.getDPad().getUp()).onTrue(prepareToShootFromSetpointCommand(Constants.FieldConstants.POSE_SHOOTING_BLUE_C1));
+        //     controller2.getButtonB().and(controller2.getDPad().getUp()).onTrue(prepareToShootFromSetpointCommand(Constants.FieldConstants.POSE_SHOOTING_BLUE_R1));
+        //     controller2.getButtonX().and(noDPad).onTrue(prepareToShootFromSetpointCommand(Constants.FieldConstants.POSE_SHOOTING_BLUE_L2));
+        //     controller2.getButtonA().and(noDPad).onTrue(prepareToShootFromSetpointCommand(Constants.FieldConstants.POSE_SHOOTING_BLUE_C2));
+        //     controller2.getButtonB().and(noDPad).onTrue(prepareToShootFromSetpointCommand(Constants.FieldConstants.POSE_SHOOTING_BLUE_R2));
+        //     controller2.getButtonX().and(controller2.getDPad().getLeft()).onTrue(prepareToShootFromSetpointCommand(Constants.FieldConstants.POSE_SHOOTING_BLUE_L3));
+        //     controller2.getButtonB().and(controller2.getDPad().getRight()).onTrue(prepareToShootFromSetpointCommand(Constants.FieldConstants.POSE_SHOOTING_BLUE_R3));
+        // }
 
     }
 
     
 
-    public Command prepareToShootFromSetpointCommand(Pose2d targetPose) {
-        double hoodTarget = trajectoryManager.getHoodPositionForPose(targetPose);
-        Command shooterPrep = shooter.setStateCommand(Shooter.State.SPINNING_UP)
-                .andThen(shooter.hoodToRotationsCommand(hoodTarget));
-        Command fullCommand = poseManager.navigateToPoseCommand(targetPose).alongWith(shooterPrep);
-        return fullCommand.withTimeout(30.0)
-                .finallyDo((interrupted) -> {
-                    drivetrain.setControl(
-                        new SwerveRequest.FieldCentric().withDriveRequestType(DriveRequestType.Velocity)
-                            .withVelocityX(0).withVelocityY(0).withRotationalRate(0));
-                    Command defaultDrive = drivetrain.getDefaultCommand();
-                    if (defaultDrive != null) {
-                        CommandScheduler.getInstance().schedule(defaultDrive);
-                    }
-                });
-    }
+    // public Command prepareToShootFromSetpointCommand(Pose2d targetPose) {
+    //     double hoodTarget = trajectoryManager.getHoodPositionForPose(targetPose);
+    //     Command shooterPrep = shooter.setStateCommand(Shooter.State.SPINNING_UP)
+    //             .andThen(shooter.hoodToRotationsCommand(hoodTarget));
+    //     Command fullCommand = poseManager.navigateToPoseCommand(targetPose).alongWith(shooterPrep);
+    //     return fullCommand.withTimeout(30.0)
+    //             .finallyDo((interrupted) -> {
+    //                 drivetrain.setControl(
+    //                     new SwerveRequest.FieldCentric().withDriveRequestType(DriveRequestType.Velocity)
+    //                         .withVelocityX(0).withVelocityY(0).withRotationalRate(0));
+    //                 Command defaultDrive = drivetrain.getDefaultCommand();
+    //                 if (defaultDrive != null) {
+    //                     CommandScheduler.getInstance().schedule(defaultDrive);
+    //                 }
+    //             });
+    // }
 
    /** While held: shooter SHOOTING, hopper FEEDING; 
     * after 1s, intake jiggles LOW/HIGH every 0.5s. 
@@ -379,8 +379,8 @@ public class RobotContainer {
         shooter.setState(Shooter.State.INACTIVE);
         hopper.setState(Hopper.State.INACTIVE);
         // Make sure we drop the hood immediately so that the hopper extends
-        CommandScheduler.getInstance().schedule(
-                shooter.hoodToRotationsCommand(Constants.ShooterConstants.POSITION_HOOD_SETPOINT_HOME));
+        //CommandScheduler.getInstance().schedule(
+        //        shooter.hoodToRotationsCommand(Constants.ShooterConstants.POSITION_HOOD_SETPOINT_HOME));
     }
 
     /** Called once when the robot enters teleop. */
