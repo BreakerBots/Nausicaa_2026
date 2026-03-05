@@ -249,12 +249,10 @@ public class Vision extends SubsystemBase {
         // More tags and closer tags = lower std dev = more trust in vision
         Matrix<N3, N1> dynamicStdDevs = calculateDynamicStdDevs(tagCount, estimate.avgTagDist);
 
-        // Recompute timestamp in CTRE Phoenix time base instead of using estimate.timestampSeconds.
-        // LimelightHelpers derives its timestamp from NetworkTables (Unix epoch in microseconds),
-        // but the drivetrain's odometry uses Utils.getCurrentTimeSeconds() (epoch since system startup). 
-        // Passing a mismatched time base causes the Kalman filter to fuse vision
-        // measurements at the wrong time, leading to pose drift. Capture time = now - latency.
-        double correctedTimestamp = Utils.getCurrentTimeSeconds() - (estimate.latency / 1000.0);
+        // Use FPGA time (seconds since boot); CTRE addVisionMeasurement expects FPGA and converts
+        // internally. LimelightHelpers uses NetworkTables (Unix epoch) which mismatches. Capture
+        // time = now - latency.
+        double correctedTimestamp = Timer.getFPGATimestamp() - (estimate.latency / 1000.0);
 
         // Add vision measurement to pose estimator
         drivetrain.addVisionMeasurement(visionPose, correctedTimestamp, dynamicStdDevs);
@@ -533,12 +531,12 @@ public class Vision extends SubsystemBase {
             BreakerLog.log("Vision/Timestamp/FrontCameraTimestamp", camTs);
             BreakerLog.log("Vision/Timestamp/FrontCameravsPhoenixDelta", frontCamVsPhoenixStatus);
 
-            double correctedTs = phoenixNow - (frontCameraEstimate.latency / 1000.0);
-            double correctedVsPhoenixDeltaSec = Math.abs(phoenixNow - correctedTs);
-            String correctedVsPhoenixStatus = correctedVsPhoenixDeltaSec > 2.0
-                    ? String.format("%.3fs (WARNING: >2s - check latency)", correctedVsPhoenixDeltaSec)
-                    : String.format("%.3fs (OK - same epoch)", correctedVsPhoenixDeltaSec);
-            BreakerLog.log("Vision/Timestamp/CorrectedVsPhoenixDelta", correctedVsPhoenixStatus);
+            double correctedTs = fpgaNow - (frontCameraEstimate.latency / 1000.0);
+            double correctedVsFpgaDeltaSec = Math.abs(fpgaNow - correctedTs);
+            String correctedVsFpgaStatus = correctedVsFpgaDeltaSec > 2.0
+                    ? String.format("%.3fs (WARNING: >2s - check latency)", correctedVsFpgaDeltaSec)
+                    : String.format("%.3fs (OK - same epoch)", correctedVsFpgaDeltaSec);
+            BreakerLog.log("Vision/Timestamp/CorrectedVsFPGADelta", correctedVsFpgaStatus);
         }
 
         double frontTrustScore = frontCameraEstimate != null
