@@ -1,10 +1,15 @@
 package frc.robot;
 
 import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.Timer;
 import frc.robot.BreakerLib.util.logging.BreakerLog;
 
 public final class MatchTimer {
     private MatchTimer() {}
+
+    // When we're not connected to an FMS, we simulate
+    private static double simStartTime = -1.0;
+    private static double simDuration = 160.0;
 
     public enum MatchPhase {
         DISABLED,
@@ -20,14 +25,26 @@ public final class MatchTimer {
     public static void update() {
         double matchTime = DriverStation.getMatchTime();
 
-        // Match time can be negative or invalid when not connected / disabled.
+        // Match time is -1.0 when not connected to FMS
+        if (matchTime < 0.0 && DriverStation.isEnabled()) {
+            if (simStartTime < 0) {
+                simStartTime = Timer.getFPGATimestamp();
+                simDuration = DriverStation.isAutonomous() ? 20.0 : 140.0;
+            }
+            matchTime = Math.max(0, simDuration - (Timer.getFPGATimestamp() - simStartTime));
+        } else if (!DriverStation.isEnabled()) {
+            simStartTime = -1.0;
+        }
+
         boolean validTime = matchTime >= 0.0;
+        int displaySeconds = validTime ? (int) Math.round(matchTime) : 0;
 
         MatchPhase phase = getMatchPhase(matchTime);
 
-        BreakerLog.log("MatchTimer/Time", validTime ? matchTime : 0.0);
+        BreakerLog.log("MatchTimer/Time", (double) displaySeconds);
+        BreakerLog.log("MatchTimer/matchTime", matchTime);
         BreakerLog.log("MatchTimer/Phase", getDriverLabel(phase));
-        BreakerLog.log("MatchTimer/TransitionWarning", getTransitionWarning(phase, matchTime));
+        BreakerLog.log("MatchTimer/TransitionWarning", getTransitionWarning(phase, displaySeconds));
     }
 
     public static MatchPhase getMatchPhase(double matchTime) {
@@ -57,21 +74,24 @@ public final class MatchTimer {
         }
     }
 
-    /** Returns "Transition in [x]s" when within 5s of next phase, else "". */
-    public static String getTransitionWarning(MatchPhase phase, double matchTime) {
-        double secondsUntilTransition = -1.0;
+    /** Always returns "[NEXT_PHASE] in [x]s!" — uses displaySeconds so it matches the Time display. */
+    public static String getTransitionWarning(MatchPhase phase, int displaySeconds) {
+        if (phase == MatchPhase.DISABLED || displaySeconds < 0) return "";
+
+        String nextPhaseLabel;
+        int secondsUntil;
         switch (phase) {
-            case TRANSITION -> { if (matchTime <= 125.0 && matchTime > 120.0) secondsUntilTransition = matchTime - 120.0; }
-            case SHIFT_1 -> { if (matchTime <= 110.0 && matchTime > 105.0) secondsUntilTransition = matchTime - 105.0; }
-            case SHIFT_2 -> { if (matchTime <= 85.0 && matchTime > 80.0) secondsUntilTransition = matchTime - 80.0; }
-            case SHIFT_3 -> { if (matchTime <= 60.0 && matchTime > 55.0) secondsUntilTransition = matchTime - 55.0; }
-            case SHIFT_4 -> { if (matchTime <= 35.0 && matchTime > 30.0) secondsUntilTransition = matchTime - 30.0; }
-            case ENDGAME -> { if (matchTime <= 5.0 && matchTime >= 0.0) secondsUntilTransition = matchTime; }
-            default -> {}
+            case AUTO -> { nextPhaseLabel = "TRANSITION"; secondsUntil = displaySeconds; }
+            case TRANSITION -> { nextPhaseLabel = "SHIFT 1"; secondsUntil = displaySeconds - 130; }
+            case SHIFT_1 -> { nextPhaseLabel = "SHIFT 2"; secondsUntil = displaySeconds - 105; }
+            case SHIFT_2 -> { nextPhaseLabel = "SHIFT 3"; secondsUntil = displaySeconds - 80; }
+            case SHIFT_3 -> { nextPhaseLabel = "SHIFT 4"; secondsUntil = displaySeconds - 55; }
+            case SHIFT_4 -> { nextPhaseLabel = "ENDGAME"; secondsUntil = displaySeconds - 30; }
+            case ENDGAME -> { nextPhaseLabel = "Match end"; secondsUntil = displaySeconds; }
+            default -> { return ""; }
         }
-        if (secondsUntilTransition < 0) return "";
-        int sec = (int) Math.ceil(secondsUntilTransition);
-        return "Transition in " + sec + "s";
+        int sec = Math.max(0, secondsUntil);
+        return nextPhaseLabel + " in " + sec + "s!";
     }
 
     public static String getDriverLabel(MatchPhase phase) {

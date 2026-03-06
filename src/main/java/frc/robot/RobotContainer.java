@@ -364,7 +364,7 @@ public class RobotContainer {
     public void logPeriodic() {
         BreakerLog.log("SwerveDrivetrain/SafetyMode", safetyMode);
         BreakerLog.log("SwerveDrivetrain/SlowMode", slowMode);
-        MatchDashboard.update();
+        MatchTimer.update();
     }
 
 
