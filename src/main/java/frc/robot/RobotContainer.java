@@ -386,7 +386,7 @@ public class RobotContainer {
 
     /** Called once when the robot enters teleop. */
     public void teleopInit() {
-        // intake.setState(Intake.State.STOWED);
+        intake.setState(Intake.State.STOWED);
         climb.setState(Climb.State.INACTIVE);
         shooter.setState(Shooter.State.INACTIVE);
         hopper.setState(Hopper.State.INACTIVE);

@@ -7,6 +7,8 @@ import com.ctre.phoenix6.configs.Slot0Configs;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.DutyCycleOut;
 import com.ctre.phoenix6.controls.MotionMagicDutyCycle;
+import com.ctre.phoenix6.controls.VelocityDutyCycle;
+import com.ctre.phoenix6.controls.VelocityVoltage;
 import com.ctre.phoenix6.hardware.CANcoder;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.NeutralModeValue;
@@ -39,38 +41,55 @@ public class Intake extends SubsystemBase {
     public State state = State.STOWED;
 
     public Intake() {
-        TalonFXConfiguration config = new TalonFXConfiguration();
-        config.MotorOutput.NeutralMode = NeutralModeValue.Brake;
-        config.CurrentLimits = new CurrentLimitsConfigs()
-                .withStatorCurrentLimit(Constants.IntakeConstants.STATOR_CURRENT_LIMIT)
-                .withStatorCurrentLimitEnable(true);
-        config.Feedback.withRemoteCANcoder(pivotEncoder);
+        TalonFXConfiguration pivotConfig = new TalonFXConfiguration();
+        pivotConfig.MotorOutput.NeutralMode = NeutralModeValue.Brake;
+        pivotConfig.CurrentLimits = new CurrentLimitsConfigs();
+                //.withStatorCurrentLimit(Constants.IntakeConstants.STATOR_CURRENT_LIMIT)
+                //.withSupplyCurrentLimit(Constants.IntakeConstants.SUPPLY_CURRENT_LIMIT)
+                //.withStatorCurrentLimitEnable(true);
+                
+        pivotConfig.Feedback.withRemoteCANcoder(pivotEncoder);
 
-        Slot0Configs slot0 = config.Slot0;
+        Slot0Configs pivotSlot0 = pivotConfig.Slot0;
+
 
         // Motion Magic
-        config.MotionMagic.MotionMagicCruiseVelocity = Constants.IntakeConstants.PIVOT_MM_CRUISE_VELOCITY;
-        config.MotionMagic.MotionMagicAcceleration = Constants.IntakeConstants.PIVOT_MM_ACCELERATION;
-        config.MotionMagic.MotionMagicJerk = Constants.IntakeConstants.PIVOT_MM_JERK;
+        pivotConfig.MotionMagic.MotionMagicCruiseVelocity = Constants.IntakeConstants.PIVOT_MM_CRUISE_VELOCITY;
+        pivotConfig.MotionMagic.MotionMagicAcceleration = Constants.IntakeConstants.PIVOT_MM_ACCELERATION;
+        pivotConfig.MotionMagic.MotionMagicJerk = Constants.IntakeConstants.PIVOT_MM_JERK;
          
         // Feedforward
-        slot0.kS = Constants.IntakeConstants.PIVOT_kS;
-        slot0.kG = Constants.IntakeConstants.PIVOT_kG;
-        slot0.kV = Constants.IntakeConstants.PIVOT_kV;
-        slot0.kA = Constants.IntakeConstants.PIVOT_kA;
+        pivotSlot0.kS = Constants.IntakeConstants.PIVOT_kS;
+        pivotSlot0.kG = Constants.IntakeConstants.PIVOT_kG;
+        pivotSlot0.kV = Constants.IntakeConstants.PIVOT_kV;
+        pivotSlot0.kA = Constants.IntakeConstants.PIVOT_kA;
 
         // // PID
-        slot0.kP = Constants.IntakeConstants.PIVOT_kP;
-        slot0.kI = Constants.IntakeConstants.PIVOT_kI;
-        slot0.kD = Constants.IntakeConstants.PIVOT_kD;
+        pivotSlot0.kP = Constants.IntakeConstants.PIVOT_kP;
+        pivotSlot0.kI = Constants.IntakeConstants.PIVOT_kI;
+        pivotSlot0.kD = Constants.IntakeConstants.PIVOT_kD;
 
-        pivotMotor.getConfigurator().apply(config);
+        pivotMotor.getConfigurator().apply(pivotConfig);
 
         TalonFXConfiguration rollerConfig = new TalonFXConfiguration();
         rollerConfig.MotorOutput.NeutralMode = NeutralModeValue.Brake;
         rollerConfig.CurrentLimits = new CurrentLimitsConfigs()
                 .withStatorCurrentLimit(Constants.IntakeConstants.STATOR_CURRENT_LIMIT)
-                .withStatorCurrentLimitEnable(true);
+                .withStatorCurrentLimit(Constants.IntakeConstants.SUPPLY_CURRENT_LIMIT)
+                .withStatorCurrentLimitEnable(true)
+                .withSupplyCurrentLimitEnable(true);
+
+        Slot0Configs rollerSlot0 = rollerConfig.Slot0;
+
+        // Feedforward
+        rollerSlot0.kV = Constants.IntakeConstants.ROLLER_kV;
+        rollerSlot0.kS = Constants.IntakeConstants.ROLLER_kS;
+
+        // PID
+        rollerSlot0.kP = Constants.IntakeConstants.ROLLER_kP;
+        rollerSlot0.kI = Constants.IntakeConstants.ROLLER_kI;
+        rollerSlot0.kD = Constants.IntakeConstants.ROLLER_kD;
+
         rollerMotor.getConfigurator().apply(rollerConfig);
         
         targetPivotRotations = getPivotPositionRotations();
@@ -157,7 +176,12 @@ public class Intake extends SubsystemBase {
     }
 
     private void setRollerSpeed(double speed) {
-        rollerMotor.setControl(new DutyCycleOut(speed));
+        if (speed != 0) {
+            rollerMotor.setControl(new DutyCycleOut(speed));
+        }
+        else {
+            rollerMotor.setControl(new DutyCycleOut(0));
+        }
     }
 
 }

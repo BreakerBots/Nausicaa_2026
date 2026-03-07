@@ -254,16 +254,25 @@ public final class Constants {
          public static final double PIVOT_MM_ACCELERATION = 2.0;
          public static final double PIVOT_MM_JERK = 10;
 
-        /** Feedforward (Slot0). */
+        /** Feedforward (Slot0) for pivot motor. */
          public static final double PIVOT_kS = 0.08;
          public static final double PIVOT_kG = 0.08;
          public static final double PIVOT_kV = 0.12;
          public static final double PIVOT_kA = 0.01;
 
-        /** PID (Slot0). */
+         /** PID (Slot0) for pivot motor. */
         public static final double PIVOT_kP = 2.0;
         public static final double PIVOT_kI = 0.00;
         public static final double PIVOT_kD = 0.08;
+
+         /** Feedforward (Slot0) for roller motor. */
+         public static final double ROLLER_kS = 0.1; // 0.1
+         public static final double ROLLER_kV = 0.12; //0.12
+
+        /** PID (Slot0) for roller motor. */
+        public static final double ROLLER_kP = 0.25; //0.25
+        public static final double ROLLER_kI = 0.00; //0.0
+        public static final double ROLLER_kD = 0.00; //0.0
 
         public static final double SPEED_IDLE = 0;
         public static final double SPEED_EXTAKE = 0.5;
@@ -271,7 +280,8 @@ public final class Constants {
         public static final double SPEED_INTAKE = -0.7;
 
         /** Stator current limit (A) for pivot and roller – protects against jams. */
-        public static final int STATOR_CURRENT_LIMIT = 20;
+        public static final int STATOR_CURRENT_LIMIT = 60;
+        public static final int SUPPLY_CURRENT_LIMIT = 45;
     }
 
     // --------------- SHOOTER --------------
@@ -320,6 +330,7 @@ public final class Constants {
         public static final int FLYWHEEL_SUPPLY_CURRENT_LIMIT = 25;
         /** Stator current limit (A) for hood – protects against mechanical limits. */
         public static final int HOOD_STATOR_CURRENT_LIMIT = 50;
+        // public static final int HOOD_SUPPLY_CURRENT_LIMIT = 50;
 
         /** Hood homing: voltage to move toward physical bottom (negative = down). */
         public static final double HOOD_HOMING_VOLTAGE = -0.3;
@@ -338,7 +349,9 @@ public final class Constants {
         public static final int FEEDER_MOTOR_ID = 41;
         /** Stator current limit (A) for indexer and feeder – protects against jams. Matches other robot end effector rollers. */
         public static final int INDEXER_STATOR_CURRENT_LIMIT = 90;
+        //public static final int INDEXER_SUPPLY_CURRENT_LIMIT = 70;
         public static final int FEEDER_STATOR_CURRENT_LIMIT = 90;
+        //public static final int FEEDER_SUPPLY_CURRENT_LIMIT = 70;
         public static final double SPEED_INACTIVE = 0;
         public static final double SPEED_INDEXING = 0.5; // need to tune
         public static final double SPEED_FEEDING = 0.6; // need to tune
@@ -391,15 +404,21 @@ public final class Constants {
         public static final double HOMING_TIMEOUT_SECONDS = 5.0;
 
         /** Stator current limit (A) during homing – loosened so motor can stall without tripping. */
-        public static final int HOMING_STATOR_CURRENT_LIMIT = 20; // idk
+        public static final int HOMING_STATOR_CURRENT_LIMIT = 20;
+        //public static final int HOMING_SUPPLY_CURRENT_LIMIT = 15; // idk
         /** Stator current limit (A) for normal operation (restored after homing). Lowered for brownout mitigation. */
         public static final int NORMAL_STATOR_CURRENT_LIMIT = 30;
+        //public static final int NORMAL_SUPPLY_CURRENT_LIMIT = 25;
         public static final CurrentLimitsConfigs HOMING_CURRENT_LIMITS = new CurrentLimitsConfigs()
                 .withStatorCurrentLimit(HOMING_STATOR_CURRENT_LIMIT)
+                //.withSupplyCurrentLimit(HOMING_SUPPLY_CURRENT_LIMIT)
                 .withStatorCurrentLimitEnable(true);
+                //.withSupplyCurrentLimitEnable(true);
         public static final CurrentLimitsConfigs NORMAL_CURRENT_LIMITS = new CurrentLimitsConfigs()
                 .withStatorCurrentLimit(NORMAL_STATOR_CURRENT_LIMIT)
+                //.withSupplyCurrentLimit(NORMAL_SUPPLY_CURRENT_LIMIT)
                 .withStatorCurrentLimitEnable(true);
+                //.withSupplyCurrentLimitEnable(true);
 
         /** PID gains for setpoint control. */
         public static final double PID_kP = 4.0;
