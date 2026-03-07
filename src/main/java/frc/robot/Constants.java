@@ -90,6 +90,9 @@ public final class Constants {
         // MegaTag1: Original AprilTag localization, no IMU fusion required
         public static final boolean USE_MEGATAG2 = false;
 
+        /** Std dev calculation: true = distance-threshold approach (single/multi-tag bases, quadratic distance), false = trust-score approach. */
+        public static final boolean USE_DYNAMIC_STD_DEVS_V2 = false;
+
         // Limelight 4 camera names (configured in Limelight UI)
         public static final String FRONT_CAMERA = "limelight-f";
         public static final String BACK_LEFT_CAMERA = "limelight-bl";
@@ -125,6 +128,17 @@ public final class Constants {
         public static final double TAG_COUNT_SCALE_FACTOR = 0.5;
         /** How much proximity boosts trust. avgTagDist is in meters. At 1m: 1/(1+1)=0.5 boost. At 4m: 1/5=0.2 boost. */
         public static final double PROXIMITY_SCALE_FACTOR = 2.0;
+
+        /** V2 approach: single-tag base std devs (higher = less trusted). */
+        public static final Matrix<N3, N1> SINGLE_TAG_STD_DEVS = VecBuilder.fill(3.5, 3.5, 10.0);
+        /** V2 approach: multi-tag base std devs (2+ tags). */
+        public static final Matrix<N3, N1> MULTI_TAG_STD_DEVS = VecBuilder.fill(0.5, 0.5, 1.0);
+        /** V2 approach: max avg distance (m) for single-tag before rejecting. */
+        public static final double MAX_SINGLE_TAG_DIST_METERS = 4.5;
+        /** V2 approach: max avg distance (m) for multi-tag before rejecting. */
+        public static final double MAX_MULTI_TAG_DIST_METERS = 6.5;
+        /** V2 approach: distance² scaling. stdDev *= 1 + (avgDist² / this). */
+        public static final double DISTANCE_SCALE_FACTOR = 5.0;
     }
 
 
