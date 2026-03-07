@@ -238,7 +238,7 @@ public final class Constants {
         /** CANcoder: offset so position reads POSITION_STOWED when pivot is physically stowed. 
          * Determine the raw value via Phoenix Tuner.
          * offset = desiredValue - rawValue = 0 - 0.25 = -0.25. */
-        public static final double PIVOT_ENCODER_OFFSET_ROTATIONS = 0.295654296875;
+        public static final double PIVOT_ENCODER_OFFSET_ROTATIONS = -0.270263671875; // this was a direct copy-paste from mag offsets
         /** Choose a value safely beyond the mechanism's travel 
          * 0.5 is safe for an arm that rotates less than 180 degrees. */
         public static final double PIVOT_ENCODER_DISCONTINUITY = 0.5;
@@ -294,7 +294,7 @@ public final class Constants {
         public static final int HOOD_ENCODER_ID = 35;
 
         /** CANcoder: offset so position reads POSITION_HOOD_DOWN when hood is physically down. Calibrate via Phoenix Tuner. */
-        public static final double HOOD_ENCODER_OFFSET_ROTATIONS = -0.486328125;
+        public static final double HOOD_ENCODER_OFFSET_ROTATIONS = 0.091552734375;
         /** CANcoder: 0.5 = ±180° range. Set so discontinuity is outside mechanism travel. */
         public static final double HOOD_ENCODER_DISCONTINUITY = 0.5;
 
@@ -363,6 +363,7 @@ public final class Constants {
     public static class ClimbConstants {
         public static final int CLIMB_MOTOR_ID = 50;
         public static final int CLIMB_ENCODER_ID = 55;
+        // public static final int CLIMB_ENCODER_OFFSET = 0.069580078125;
 
         /** If true, use motor's integrated encoder instead of external CANcoder. */
         /** Setpoints: encoder positions (number of rotations) for UP and DOWN positions. */
@@ -623,7 +624,7 @@ public final class Constants {
         private static final int kFrontLeftDriveMotorId = 8;
         private static final int kFrontLeftSteerMotorId = 9;
         private static final int kFrontLeftEncoderId = 10;
-        private static final Angle kFrontLeftEncoderOffset = Rotations.of(0.1904296875); 
+        private static final Angle kFrontLeftEncoderOffset = Rotations.of(0.218994140625); 
         private static final boolean kFrontLeftSteerInvert = true; //true
         private static final boolean kFrontLeftEncoderInvert = false; //false
         private static final Translation2d kFrontLeftModulePosition = new Translation2d(
@@ -635,7 +636,7 @@ public final class Constants {
         private static final int kFrontRightDriveMotorId = 11;
         private static final int kFrontRightSteerMotorId = 12;
         private static final int kFrontRightEncoderId = 13;
-        private static final Angle kFrontRightEncoderOffset = Rotations.of(0.3896484375); 
+        private static final Angle kFrontRightEncoderOffset = Rotations.of(-0.306884765625); 
         private static final boolean kFrontRightSteerInvert = true; // true
         private static final boolean kFrontRightEncoderInvert = false; // false
         private static final Translation2d kFrontRightModulePosition = new Translation2d(
@@ -647,7 +648,7 @@ public final class Constants {
         private static final int kBackLeftDriveMotorId = 14;
         private static final int kBackLeftSteerMotorId = 15;
         private static final int kBackLeftEncoderId = 16;
-        private static final Angle kBackLeftEncoderOffset = Rotation.of(-0.047607421875); 
+        private static final Angle kBackLeftEncoderOffset = Rotation.of(-0.237060546875); 
         private static final boolean kBackLeftSteerInvert = true; //true
         private static final boolean kBackLeftEncoderInvert = false; // false
         private static final Translation2d kBackLeftModulePosition = new Translation2d(
@@ -659,7 +660,7 @@ public final class Constants {
         private static final int kBackRightDriveMotorId = 17;
         private static final int kBackRightSteerMotorId = 18;
         private static final int kBackRightEncoderId = 19;
-        private static final Angle kBackRightEncoderOffset = Rotations.of(-0.217041015625); 
+        private static final Angle kBackRightEncoderOffset = Rotations.of(-0.12744140625); 
         private static final boolean kBackRightSteerInvert = true; // true
         private static final boolean kBackRightEncoderInvert = false; // false
         private static final Translation2d kBackRightModulePosition = new Translation2d(
