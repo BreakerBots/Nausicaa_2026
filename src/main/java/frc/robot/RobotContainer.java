@@ -62,7 +62,7 @@ public class RobotContainer {
     private boolean slowMode;
     
     /** When true, drive controls and autonomous are disabled. */
-    private boolean safetyMode = false;
+    private boolean safetyMode = true;
     
     /** PathPlanner auto chooser; populated from GUI autos when AutoBuilder is configured. */
     private final SendableChooser<Command> autoChooser;
@@ -349,7 +349,7 @@ public class RobotContainer {
                         () -> {
                             hopper.setState(Hopper.State.INACTIVE);
                             shooter.setState(Shooter.State.INACTIVE);
-                            intake.setState(Intake.State.EXTENDED_INTAKING);
+                            intake.setState(Intake.State.EXTENDED_IDLE);
                         },
                         shooter, hopper, intake),
                 jiggleSequence);
@@ -386,7 +386,7 @@ public class RobotContainer {
 
     /** Called once when the robot enters teleop. */
     public void teleopInit() {
-        intake.setState(Intake.State.STOWED);
+        // intake.setState(Intake.State.STOWED);
         climb.setState(Climb.State.INACTIVE);
         shooter.setState(Shooter.State.INACTIVE);
         hopper.setState(Hopper.State.INACTIVE);
