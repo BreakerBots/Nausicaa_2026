@@ -43,10 +43,10 @@ public class Intake extends SubsystemBase {
     public Intake() {
         TalonFXConfiguration pivotConfig = new TalonFXConfiguration();
         pivotConfig.MotorOutput.NeutralMode = NeutralModeValue.Brake;
-        pivotConfig.CurrentLimits = new CurrentLimitsConfigs();
-                //.withStatorCurrentLimit(Constants.IntakeConstants.STATOR_CURRENT_LIMIT)
-                //.withSupplyCurrentLimit(Constants.IntakeConstants.SUPPLY_CURRENT_LIMIT)
-                //.withStatorCurrentLimitEnable(true);
+        pivotConfig.CurrentLimits = new CurrentLimitsConfigs()
+                .withStatorCurrentLimit(Constants.IntakeConstants.PIVOT_STATOR_CURRENT_LIMIT)
+                .withSupplyCurrentLimit(Constants.IntakeConstants.PIVOT_SUPPLY_CURRENT_LIMIT)
+                .withStatorCurrentLimitEnable(true);
                 
         pivotConfig.Feedback.withRemoteCANcoder(pivotEncoder);
 
@@ -74,8 +74,8 @@ public class Intake extends SubsystemBase {
         TalonFXConfiguration rollerConfig = new TalonFXConfiguration();
         rollerConfig.MotorOutput.NeutralMode = NeutralModeValue.Brake;
         rollerConfig.CurrentLimits = new CurrentLimitsConfigs()
-                .withStatorCurrentLimit(Constants.IntakeConstants.STATOR_CURRENT_LIMIT)
-                .withStatorCurrentLimit(Constants.IntakeConstants.SUPPLY_CURRENT_LIMIT)
+                .withStatorCurrentLimit(Constants.IntakeConstants.ROLLER_STATOR_CURRENT_LIMIT)
+                .withStatorCurrentLimit(Constants.IntakeConstants.ROLLER_SUPPLY_CURRENT_LIMIT)
                 .withStatorCurrentLimitEnable(true)
                 .withSupplyCurrentLimitEnable(true);
 

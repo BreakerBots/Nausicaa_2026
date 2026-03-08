@@ -90,6 +90,9 @@ public final class Constants {
         // MegaTag1: Original AprilTag localization, no IMU fusion required
         public static final boolean USE_MEGATAG2 = false;
 
+        /** Std dev calculation: true = distance-threshold approach (single/multi-tag bases, quadratic distance), false = trust-score approach. */
+        public static final boolean USE_DYNAMIC_STD_DEVS_V2 = true;
+
         // Limelight 4 camera names (configured in Limelight UI)
         public static final String FRONT_CAMERA = "limelight-f";
         public static final String BACK_LEFT_CAMERA = "limelight-bl";
@@ -116,7 +119,7 @@ public final class Constants {
         // Units: meters for x/y, radians for theta
         // Theta: 9999999 to fully trust IMU for rotation (vision won't correct heading)
         public static final Matrix<N3, N1> VISION_STD_DEVS = 
-            VecBuilder.fill(0.02, 0.02, 0.05);        
+            VecBuilder.fill(0.15, 0.15, 99999999);        
         
         // Dynamic standard deviation scaling factors (tag count + proximity)
         // trustScore = tagCount * TAG_COUNT_SCALE_FACTOR + PROXIMITY_SCALE_FACTOR / (1 + avgTagDist)
@@ -125,6 +128,17 @@ public final class Constants {
         public static final double TAG_COUNT_SCALE_FACTOR = 0.5;
         /** How much proximity boosts trust. avgTagDist is in meters. At 1m: 1/(1+1)=0.5 boost. At 4m: 1/5=0.2 boost. */
         public static final double PROXIMITY_SCALE_FACTOR = 2.0;
+
+        /** V2 approach: single-tag base std devs (higher = less trusted). */
+        public static final Matrix<N3, N1> SINGLE_TAG_STD_DEVS = VecBuilder.fill(3.5, 3.5, 10.0);
+        /** V2 approach: multi-tag base std devs (2+ tags). */
+        public static final Matrix<N3, N1> MULTI_TAG_STD_DEVS = VecBuilder.fill(0.5, 0.5, 1.0);
+        /** V2 approach: max avg distance (m) for single-tag before rejecting. */
+        public static final double MAX_SINGLE_TAG_DIST_METERS = 4.5;
+        /** V2 approach: max avg distance (m) for multi-tag before rejecting. */
+        public static final double MAX_MULTI_TAG_DIST_METERS = 6.5;
+        /** V2 approach: distance² scaling. stdDev *= 1 + (avgDist² / this). */
+        public static final double DISTANCE_SCALE_FACTOR = 5.0;
     }
 
 
@@ -277,11 +291,15 @@ public final class Constants {
         public static final double SPEED_IDLE = 0;
         public static final double SPEED_EXTAKE = 0.5;
 
-        public static final double SPEED_INTAKE = -0.7;
+        public static final double SPEED_INTAKE = -0.8;
 
-        /** Stator current limit (A) for pivot and roller – protects against jams. */
-        public static final int STATOR_CURRENT_LIMIT = 60;
-        public static final int SUPPLY_CURRENT_LIMIT = 45;
+        /** Stator current limit (A) for pivot – protects against jams. */
+        public static final int PIVOT_STATOR_CURRENT_LIMIT = 70;
+        public static final int PIVOT_SUPPLY_CURRENT_LIMIT = 60;
+        
+        /** Stator current limit (A) for roller – protects against jams. */
+        public static final int ROLLER_STATOR_CURRENT_LIMIT = 80;
+        public static final int ROLLER_SUPPLY_CURRENT_LIMIT = 60;
     }
 
     // --------------- SHOOTER --------------

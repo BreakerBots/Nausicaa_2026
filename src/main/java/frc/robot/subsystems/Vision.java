@@ -245,9 +245,10 @@ public class Vision extends SubsystemBase {
             return; // Vision measurement seems unreliable
         }
 
-        // Calculate dynamic standard deviations based on tag count and proximity
-        // More tags and closer tags = lower std dev = more trust in vision
-        Matrix<N3, N1> dynamicStdDevs = calculateDynamicStdDevs(tagCount, estimate.avgTagDist);
+        // Calculate dynamic standard deviations (approach selected in constants)
+        Matrix<N3, N1> dynamicStdDevs = VisionConstants.USE_DYNAMIC_STD_DEVS_V2
+            ? calculateDynamicStdDevs2(tagCount, estimate.avgTagDist)
+            : calculateDynamicStdDevs(tagCount, estimate.avgTagDist);
 
         // NT/LimelightHelpers timestamp is in FPGA time (microsecs since boot). 
         // CTRE odometry uses Phoenix time (different epoch).
@@ -441,6 +442,25 @@ public class Vision extends SubsystemBase {
             return null;
         }
         return drivetrain.getRobotToPointTranslation(tagPosition);
+    }
+
+    /**
+     * V2: Single vs multi-tag bases, distance thresholds, quadratic distance scaling.
+     * Rejects (Double.MAX_VALUE) if beyond max distance. Otherwise scales by 1 + (avgDist² / factor).
+     */
+    private Matrix<N3, N1> calculateDynamicStdDevs2(int tagCount, double avgTagDist) {
+        if (tagCount == 0) return VisionConstants.SINGLE_TAG_STD_DEVS;
+        Matrix<N3, N1> estStdDevs = tagCount > 1 ? VisionConstants.MULTI_TAG_STD_DEVS : VisionConstants.SINGLE_TAG_STD_DEVS;
+        double maxDist = tagCount == 1 ? VisionConstants.MAX_SINGLE_TAG_DIST_METERS : VisionConstants.MAX_MULTI_TAG_DIST_METERS;
+        if (avgTagDist > maxDist) {
+            return VecBuilder.fill(Double.MAX_VALUE, Double.MAX_VALUE, Double.MAX_VALUE);
+        }
+        double scale = 1.0 + (avgTagDist * avgTagDist / VisionConstants.DISTANCE_SCALE_FACTOR);
+        return VecBuilder.fill(
+            estStdDevs.get(0, 0) * scale,
+            estStdDevs.get(1, 0) * scale,
+            estStdDevs.get(2, 0) * scale
+        );
     }
 
     /**

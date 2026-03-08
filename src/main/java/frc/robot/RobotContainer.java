@@ -4,8 +4,6 @@
 
 package frc.robot;
 
-import com.ctre.phoenix6.swerve.SwerveModule.DriveRequestType;
-import com.ctre.phoenix6.swerve.SwerveRequest;
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.auto.NamedCommands;
 
@@ -20,7 +18,6 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.Commands;
-import edu.wpi.first.wpilibj2.command.button.Trigger;
 
 import frc.robot.BreakerLib.driverstation.BreakerInputStream;
 import frc.robot.BreakerLib.driverstation.BreakerInputStream2d;
@@ -62,7 +59,7 @@ public class RobotContainer {
     private boolean slowMode;
     
     /** When true, drive controls and autonomous are disabled. */
-    private boolean safetyMode = true;
+    private boolean safetyMode = false;
     
     /** PathPlanner auto chooser; populated from GUI autos when AutoBuilder is configured. */
     private final SendableChooser<Command> autoChooser;
@@ -76,9 +73,9 @@ public class RobotContainer {
         BreakerLog.setVerboseLogging(false);
 
         // Register named commands for PathPlanner event markers (must be before buildAutoChooser)
-        NamedCommands.registerCommand("rotateToHub", Commands.defer(() -> poseManager.rotateToTagCommand(Constants.FieldConstants.getHubTagID()), Set.of(drivetrain)));
+        NamedCommands.registerCommand("rotateToHub", Commands.defer(() -> poseManager.rotateToHubCenterCommand(), Set.of(drivetrain)));
         NamedCommands.registerCommand("enterSlowMode", Commands.defer(() -> Commands.runOnce(() -> slowMode = !slowMode), Set.of(drivetrain)));
-        NamedCommands.registerCommand("consolidatePose", Commands.defer(() -> Commands.runOnce(() -> drivetrain.getLocalizer().resetPose(new Pose2d(0,0, Rotation2d.fromRotations(0.0)))), Set.of(drivetrain)));
+        // NamedCommands.registerCommand("consolidatePose", Commands.defer(() -> Commands.runOnce(() -> drivetrain.getLocalizer().resetPose(new Pose2d(0,0, Rotation2d.fromRotations(0.0)))), Set.of(drivetrain)));
         NamedCommands.registerCommand("rangeToHub", Commands.defer(() -> poseManager.rangeToPointCommand(Constants.FieldConstants.getTargetHubCenter(), 2.0), Set.of(drivetrain)));
         NamedCommands.registerCommand("spinUp", Commands.defer(() -> shooter.setStateCommand(Shooter.State.SPINNING_UP), Set.of(shooter)));
         NamedCommands.registerCommand("shoot", Commands.defer(() -> shootCommand().withTimeout(6.0), Set.of(shooter, hopper, intake)));
