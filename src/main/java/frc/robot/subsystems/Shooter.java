@@ -242,6 +242,7 @@ public class Shooter extends SubsystemBase {
                 state, v1, v2, v3, hoodPos, hoodVel);
         BreakerLog.log("Shooter/Status", line);
         BreakerLog.log("Shooter/HoodPosition", hoodPos);
+        BreakerLog.log("Shooter/HoodEncoderPosition", hoodEncoder.getPosition().getValueAsDouble());
         BreakerLog.log("Shooter/Flywheel1Speed", v1);
         BreakerLog.log("Shooter/Flywheel2Speed", v2);
         BreakerLog.log("Shooter/Flywheel3Speed", v3);
@@ -249,7 +250,6 @@ public class Shooter extends SubsystemBase {
         BreakerLog.log("Electrical/Shooter/flywheel2", shooterFlywheel2Motor);
         BreakerLog.log("Electrical/Shooter/flywheel3", shooterFlywheel3Motor);
         BreakerLog.log("Electrical/Shooter/hood", hoodMotor);
-        BreakerLog.log("Hood/EncoderPosition", hoodEncoder.getPosition().getValueAsDouble());
     }
 
     private void setFlywheelSpeed(double speed) {

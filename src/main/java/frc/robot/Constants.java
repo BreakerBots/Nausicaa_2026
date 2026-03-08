@@ -310,11 +310,11 @@ public final class Constants {
         public static final double SPEED_FLYWHEEL_ACTIVE = 52.0;
 
         /** Hood: external encoder; command takes target rotations. */
-        public static final double SPEED_HOOD_UP = -0.2; // need to tune
-        public static final double SPEED_HOOD_DOWN = 0.3; // need to tune
+        public static final double SPEED_HOOD_UP = -0.2;
+        public static final double SPEED_HOOD_DOWN = 0.3;
         public static final double AUTO_SPEED_HOOD_DOWN = -0.3;
         public static final double POSITION_HOOD_MIN = -0.002197;
-        public static final double POSITION_HOOD_MAX = 0.477295;  // need to tune
+        public static final double POSITION_HOOD_MAX = 0.477295; 
         /** Deadband (rotations) for hood tracking; prevents oscillation when near target. */
         public static final double HOOD_TRACKING_TOLERANCE_ROTATIONS = 0.01;
 
