@@ -350,6 +350,9 @@ public final class Constants {
         public static final double SPEED_INACTIVE = 0;
         public static final double SPEED_INDEXING = 0.5; // need to tune
         public static final double SPEED_FEEDING = 0.6; // need to tune
+        /** Indexer/feeder speed during unclog (reverse at ~20% of normal). */
+        public static final double SPEED_UNCLOG_INDEXER = -0.1;
+        public static final double SPEED_UNCLOG_FEEDER = -0.12;
     }
 
     // --------------- CLIMB --------------

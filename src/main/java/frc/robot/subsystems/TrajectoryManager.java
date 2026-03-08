@@ -18,6 +18,8 @@ public class TrajectoryManager extends SubsystemBase {
     /**
      * Hood position vs distance from hub: (distance m, hood position rotations).
      * Tune through testing – add/remove/adjust pairs as needed.
+     * 
+     * Hood postition must stay between POSITION_HOOD_MIN and POSITION_HOOD_MAX!
      */
     private static final Translation2d[] HOOD_DISTANCE_ANGLE_TABLE = {
         new Translation2d(1.5, -0.07),   // close
@@ -90,7 +92,8 @@ public class TrajectoryManager extends SubsystemBase {
         double dMax = Collections.max(hoodLookup.keySet());
         double clampedDist = MathUtil.clamp(distanceToTargetMeters, dMin, dMax);
         BreakerInterpolableDouble result = hoodLookup.getInterpolatedValue(clampedDist);
-        return result != null ? result.getValue() : Constants.ShooterConstants.POSITION_HOOD_MIN;
+        double raw = result != null ? result.getValue() : Constants.ShooterConstants.POSITION_HOOD_MIN;
+        return MathUtil.clamp(raw, Constants.ShooterConstants.POSITION_HOOD_MIN, Constants.ShooterConstants.POSITION_HOOD_MAX);
     }
     
 }

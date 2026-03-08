@@ -84,6 +84,7 @@ public class RobotContainer {
         NamedCommands.registerCommand("stopIntake", Commands.defer(() -> intake.setStateCommand(Intake.State.EXTENDED_IDLE), Set.of(intake)));
         NamedCommands.registerCommand("halt", Commands.waitSeconds(2.0));
         NamedCommands.registerCommand("hooddown", Commands.defer(() -> shooter.hoodToRotationsCommand(Constants.ShooterConstants.POSITION_HOOD_MIN), Set.of(shooter)));
+        NamedCommands.registerCommand("unclog", Commands.defer(() -> unclogCommand().withTimeout(3.0), Set.of(hopper, intake)));
         
         // Set up our auto-chooser    
         if (AutoBuilder.isConfigured()) {
@@ -206,6 +207,9 @@ public class RobotContainer {
 
         // D-PAD DOWN --> Run climb down (while held)
         controller.getDPad().getDown().whileTrue(climb.runDown());
+
+        // Y --> Unclog: run feeder, indexer, and intake in reverse at 20% speed (while held)
+        controller.getButtonY().whileTrue(unclogCommand());
         // controller.getDPad().getDown().and(controller.getRightBumper().negate()).onTrue(climb.retract());
 
 
@@ -252,6 +256,20 @@ public class RobotContainer {
         //     }
         // }, intake));
 
+    }
+
+   /** Unclog: run feeder and indexer in reverse at ~20% speed; intake extaking. While held. */
+    private Command unclogCommand() {
+        return Commands.startEnd(
+                () -> {
+                    hopper.setState(Hopper.State.UNCLOG);
+                    intake.setState(Intake.State.EXTENDED_EXTAKING);
+                },
+                () -> {
+                    hopper.setState(Hopper.State.INACTIVE);
+                    intake.setState(Intake.State.EXTENDED_IDLE);
+                },
+                hopper, intake);
     }
 
    /** DO-ALL-THE-THINGS SHOOTER COMMAND

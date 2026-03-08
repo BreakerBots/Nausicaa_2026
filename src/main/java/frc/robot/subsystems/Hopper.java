@@ -44,7 +44,7 @@ public class Hopper extends SubsystemBase {
  
         INACTIVE(Constants.HopperConstants.SPEED_INACTIVE, Constants.HopperConstants.SPEED_INACTIVE),
         FEEDING(Constants.HopperConstants.SPEED_INDEXING, Constants.HopperConstants.SPEED_FEEDING),
-        AGITATING(Constants.HopperConstants.SPEED_INDEXING, Constants.HopperConstants.SPEED_INACTIVE);
+        UNCLOG(Constants.HopperConstants.SPEED_UNCLOG_INDEXER, Constants.HopperConstants.SPEED_UNCLOG_FEEDER);
 
         private double indexerSpeed;
         private double feederSpeed;
