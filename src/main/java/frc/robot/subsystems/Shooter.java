@@ -115,11 +115,14 @@ public class Shooter extends SubsystemBase {
         return Commands.runOnce(() -> setState(newState), this);
     }
 
-    // public boolean isAtTargetVelocity() {
-    //     double current = shooterFlywheel1Motor.getVelocity().getValueAsDouble();
-    //     double target = state.getFlywheelSpeed();
-    //     return Math.abs(current - target) < Constants.ShooterConstants.VELOCITY_TOLERANCE;
-    // }
+    /** Returns true when flywheel velocity is within tolerance of the active target speed. */
+    public boolean isAtTargetSpeed() {
+        double current = shooterFlywheel1Motor.getVelocity().getValueAsDouble();
+        double target = Constants.ShooterConstants.SPEED_FLYWHEEL_ACTIVE;
+        if (target == 0) return true;
+        double tolerance = Math.abs(target) * Constants.ShooterConstants.FLYWHEEL_SPEED_TOLERANCE;
+        return Math.abs(current - target) <= tolerance;
+    }
 
     // --------------- Hood (external encoder, run until target rotations) ---------------
 

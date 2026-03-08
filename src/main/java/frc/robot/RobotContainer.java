@@ -327,12 +327,10 @@ public class RobotContainer {
     //             });
     // }
 
-   /** While held: shooter SHOOTING, hopper FEEDING; 
-    * after 1s, intake jiggles LOW/HIGH every 0.5s. 
-    * On release: stop feeder, shooter INACTIVE, intake EXTENDED_INTAKING. 
+   /** While held: first sets shooter SPINNING_UP, waits until flywheel is at target speed (within 5%),
+    * then runs shooter SHOOTING + hopper FEEDING. On release: stop feeder, shooter INACTIVE, intake EXTENDED_IDLE.
     */
     private Command shootCommand() {
-        System.out.println("starting Shoot Command");
         Command jiggleSequence = Commands.sequence(
                 Commands.waitSeconds(1.0),
                 Commands.sequence(
@@ -342,10 +340,8 @@ public class RobotContainer {
                         Commands.waitSeconds(0.3))
                         .repeatedly()
                         .until(() -> hopper.state != Hopper.State.FEEDING));
-                
-                        
-                        
-        return Commands.parallel(
+
+        Command feedPhase = Commands.parallel(
                 Commands.startEnd(
                         () -> {
                             shooter.setState(Shooter.State.SHOOTING);
@@ -356,8 +352,14 @@ public class RobotContainer {
                             shooter.setState(Shooter.State.INACTIVE);
                             intake.setState(Intake.State.EXTENDED_IDLE);
                         },
-                        shooter, hopper, intake)
-                ); // there was feedjiggle here
+                        shooter, hopper, intake),
+                jiggleSequence);
+
+        return Commands.sequence(
+                Commands.runOnce(() -> shooter.setState(Shooter.State.SPINNING_UP), shooter),
+                Commands.waitUntil(shooter::isAtTargetSpeed),
+                feedPhase)
+                .finallyDo((interrupted) -> shooter.setState(Shooter.State.INACTIVE));
     }
 
     

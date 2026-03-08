@@ -290,8 +290,9 @@ public final class Constants {
 
         public static final double SPEED_IDLE = 0;
         public static final double SPEED_EXTAKE = 0.5;
-
         public static final double SPEED_INTAKE = -0.8;
+        /** Roller speed during feed jiggle (gentle reverse to help clear jams). */
+        public static final double SPEED_FEED_JIGGLE = -0.2;
 
         /** Stator current limit (A) for pivot – protects against jams. */
         public static final int PIVOT_STATOR_CURRENT_LIMIT = 70;
@@ -325,8 +326,9 @@ public final class Constants {
         public static final double SHOOTER_kI = 0.0;
         public static final double SHOOTER_kD = 0.0;
 
-        // public static final double VELOCITY_TOLERANCE = 2.0;
-        
+        /** Fractional tolerance (0.05 = 5%) for flywheel at target speed before feeding. */
+        public static final double FLYWHEEL_SPEED_TOLERANCE = 0.05;
+
         public static final double SPEED_IDLE = 0;
         public static final double SPEED_FLYWHEEL_ACTIVE = 52.0; // 52 - TOGGLE ME
 
