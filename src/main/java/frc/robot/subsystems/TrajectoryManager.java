@@ -84,12 +84,12 @@ public class TrajectoryManager extends SubsystemBase {
      */
     public static double getHoodPositionForDistance(double distanceToTargetMeters) {
         if (hoodLookup.isEmpty()) {
-            return Constants.ShooterConstants.POSITION_HOOD_SETPOINT_2;
+            return Constants.ShooterConstants.POSITION_HOOD_MIN;
         }
         double dMin = Collections.min(hoodLookup.keySet());
         double dMax = Collections.max(hoodLookup.keySet());
         double clampedDist = MathUtil.clamp(distanceToTargetMeters, dMin, dMax);
         BreakerInterpolableDouble result = hoodLookup.getInterpolatedValue(clampedDist);
-        return result != null ? result.getValue() : Constants.ShooterConstants.POSITION_HOOD_SETPOINT_2;
+        return result != null ? result.getValue() : Constants.ShooterConstants.POSITION_HOOD_MIN;
     }
 }

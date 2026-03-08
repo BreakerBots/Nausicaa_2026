@@ -162,7 +162,7 @@ public class Shooter extends SubsystemBase {
             }, this),
             Commands.waitSeconds(0.2),
             Commands.runOnce(() -> {
-                hoodEncoder.setPosition(Constants.ShooterConstants.POSITION_HOOD_SETPOINT_HOME);
+                hoodEncoder.setPosition(Constants.ShooterConstants.POSITION_HOOD_MIN);
                 BreakerLog.log("Shooter/Hood/Homing", "CANcoder zeroed to POSITION_HOOD_SETPOINT_HOME");
             }, this))
             .finallyDo((interrupted) -> BreakerLog.log("Shooter/Hood/Homing", "Finished (interrupted=" + interrupted + ")"));
@@ -202,18 +202,15 @@ public class Shooter extends SubsystemBase {
     }
 
     public Command hoodToRotationsCommand(double targetRotations) {
-        double current = getHoodEncoderRotations();
-        if (targetRotations > current) {
-            return Commands.run(this::runHoodUp, this)
-                    .until(() -> getHoodEncoderRotations() >= targetRotations)
-                    .andThen(Commands.runOnce(this::stopHood, this));
-        } else if (targetRotations < current) {
-            return Commands.run(this::runHoodDown, this)
-                    .until(() -> getHoodEncoderRotations() <= targetRotations)
-                    .andThen(Commands.runOnce(this::stopHood, this));
-        } else {
-            return Commands.runOnce(this::stopHood, this);
-        }
+    return Commands.either(
+        Commands.run(this::runHoodUp, this)
+            .until(() -> getHoodEncoderRotations() >= targetRotations)
+            .andThen(Commands.runOnce(this::stopHood, this)),
+        Commands.run(this::runHoodDown, this)
+            .until(() -> getHoodEncoderRotations() <= targetRotations)
+            .andThen(Commands.runOnce(this::stopHood, this)),
+        () -> targetRotations > getHoodEncoderRotations()  
+        );
     }
 
     
@@ -241,6 +238,7 @@ public class Shooter extends SubsystemBase {
         BreakerLog.log("Electrical/Shooter/flywheel2", shooterFlywheel2Motor);
         BreakerLog.log("Electrical/Shooter/flywheel3", shooterFlywheel3Motor);
         BreakerLog.log("Electrical/Shooter/hood", hoodMotor);
+        BreakerLog.log("Hood/EncoderPosition", hoodEncoder.getPosition().getValueAsDouble());
     }
 
     private void setFlywheelSpeed(double speed) {

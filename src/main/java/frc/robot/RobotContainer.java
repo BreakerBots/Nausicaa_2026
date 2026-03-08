@@ -86,7 +86,7 @@ public class RobotContainer {
         NamedCommands.registerCommand("intake", Commands.defer(() -> intake.setStateCommand(Intake.State.EXTENDED_INTAKING), Set.of(intake)));
         NamedCommands.registerCommand("stopIntake", Commands.defer(() -> intake.setStateCommand(Intake.State.EXTENDED_IDLE), Set.of(intake)));
         NamedCommands.registerCommand("halt", Commands.waitSeconds(2.0));
-        NamedCommands.registerCommand("hooddown", Commands.defer(() -> shooter.hoodToRotationsCommand(Constants.ShooterConstants.POSITION_HOOD_SETPOINT_HOME), Set.of(shooter)));
+        NamedCommands.registerCommand("hooddown", Commands.defer(() -> shooter.hoodToRotationsCommand(Constants.ShooterConstants.POSITION_HOOD_MIN), Set.of(shooter)));
         
         // Set up our auto-chooser    
         if (AutoBuilder.isConfigured()) {
@@ -179,7 +179,7 @@ public class RobotContainer {
                     .alongWith(shooter.positionHoodForTargetCommand(leftTriggerDistance)));
 
             // Y --> Home hood (for testing; encoder zero when position unknown)
-            controller.getButtonY().onTrue(shooter.homeHood());
+            //controller.getButtonY().onTrue(shooter.homeHood());
             // controller.getButtonY().onTrue(Commands.defer(() -> poseManager.rangeToPointCommand(Constants.FieldConstants.getTargetHubCenter(), 1.0), Set.of(drivetrain)));
 
             // Range to tag (A button)
@@ -230,7 +230,12 @@ public class RobotContainer {
             Commands.run(shooter::runHoodDown, shooter).finallyDo(shooter::stopHood));
 
         // A: Hood all the way down
-        controller.getButtonA().onTrue(shooter.hoodToRotationsCommand(Constants.ShooterConstants.POSITION_HOOD_SETPOINT_HOME));
+        //controller.getButtonA().onTrue(shooter.hoodToRotationsCommand(Constants.ShooterConstants.POSITION_HOOD_MIN));
+
+        //controller.getButtonA().whileTrue(
+            //Commands.run(hopper::runIndexerCommand, hopper).finallyDo(hopper::stopIndexerCommand));
+        // controller.getButtonA().whileTrue(hopper.runFeederCommand().alongWith(hopper.runIndexerCommand()));
+        // controller.getButtonA().onFalse(hopper.stopIndexerCommand().alongWith(hopper.stopFeederCommand()));
 
         // X: Toggle SPINNING_UP + hood setpoint 1 ↔ INACTIVE + hood down
         controller.getButtonX().onTrue(Commands.runOnce(() -> {
@@ -244,6 +249,8 @@ public class RobotContainer {
                         //.andThen(shooter.hoodToRotationsCommand(Constants.ShooterConstants.POSITION_HOOD_SETPOINT_HOME)));
             }
         }, shooter));
+        
+        
 
         // //INACTIVE
         // controller.getDPad().getDown().onTrue(shooter.setStateCommand(Shooter.State.INACTIVE));
@@ -338,6 +345,7 @@ public class RobotContainer {
                         Commands.waitSeconds(0.3))
                         .repeatedly()
                         .until(() -> hopper.state != Hopper.State.FEEDING));
+                
                         
                         
         return Commands.parallel(
@@ -351,9 +359,11 @@ public class RobotContainer {
                             shooter.setState(Shooter.State.INACTIVE);
                             intake.setState(Intake.State.EXTENDED_IDLE);
                         },
-                        shooter, hopper, intake),
-                jiggleSequence);
+                        shooter, hopper, intake)
+                ); // there was feedjiggle here
     }
+
+    
 
 
     public Drivetrain getDrivetrain() {
@@ -390,8 +400,8 @@ public class RobotContainer {
         climb.setState(Climb.State.INACTIVE);
         shooter.setState(Shooter.State.INACTIVE);
         hopper.setState(Hopper.State.INACTIVE);
-        // CommandScheduler.getInstance().schedule(
-        //         shooter.hoodToRotationsCommand(Constants.ShooterConstants.POSITION_HOOD_SETPOINT_HOME));
+         //CommandScheduler.getInstance().schedule(
+                 //shooter.hoodToRotationsCommand(Constants.ShooterConstants.POSITION_HOOD_SETPOINT_HOME));
     }
 
 }

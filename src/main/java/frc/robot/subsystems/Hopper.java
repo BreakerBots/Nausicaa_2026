@@ -80,6 +80,22 @@ public class Hopper extends SubsystemBase {
         return Commands.runOnce(() -> setState(newState), this);
     }
 
+    public Command runIndexerCommand() {
+        return Commands.runOnce(() -> setIndexerSpeed(Constants.HopperConstants.SPEED_INDEXING), this);
+    }
+
+    public Command stopIndexerCommand() {
+        return Commands.runOnce(() -> setIndexerSpeed(Constants.HopperConstants.SPEED_INACTIVE), this);
+    }
+
+    public Command runFeederCommand() {
+        return Commands.runOnce(() -> setIndexerSpeed(Constants.HopperConstants.SPEED_FEEDING), this);
+    }
+
+    public Command stopFeederCommand() {
+        return Commands.runOnce(() -> setFeederSpeed(Constants.HopperConstants.SPEED_INACTIVE), this);
+    }
+
 
     @Override
     public void periodic() {
