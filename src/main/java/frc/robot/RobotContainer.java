@@ -174,37 +174,8 @@ public class RobotContainer {
                     //  .andThen(poseManager.trackLeftTriggerTargetCommand(driverX, driverY)
                 poseManager.trackTargetCommand(driverX, driverY)
                     .alongWith(shooter.positionHoodForTargetCommand(targetDistance)));
-
-            // Y --> Home hood (for testing; encoder zero when position unknown)
-            //controller.getButtonY().onTrue(shooter.homeHood());
-            // controller.getButtonY().onTrue(Commands.defer(() -> poseManager.rangeToPointCommand(Constants.FieldConstants.getTargetHubCenter(), 1.0), Set.of(drivetrain)));
-
-            // Range to tag (A button)
-            // controller.getButtonA().onTrue(rangeToTagCommand(Constants.FieldConstants.getTrenchTagID(), 1.0));        
         }
 
-        // ----------------- TEST CONTROLS -------------
-        
-        // B: ROLLER
-        // controller.getButtonB().onTrue(Commands.runOnce(() -> {
-        //     if (intake.state == Intake.State.EXTENDED_INTAKING) {
-        //         CommandScheduler.getInstance().schedule(intake.setStateCommand(Intake.State.EXTENDED_IDLE));
-        //     } else {
-        //         CommandScheduler.getInstance().schedule(intake.setStateCommand(Intake.State.STOWED));
-        //     }
-        // }, intake));
-
-
-
-        // B: STOWED → EXTENDED_IDLE → EXTENDED_INTAKING → EXTENDED_IDLE → ... (saved for later)
-        // controller.getButtonB().onTrue(Commands.runOnce(() -> {
-        //     switch (intake.state) {
-        //         case STOWED -> CommandScheduler.getInstance().schedule(intake.setStateCommand(Intake.State.EXTENDED_IDLE));
-        //         case EXTENDED_IDLE -> CommandScheduler.getInstance().schedule(intake.setStateCommand(Intake.State.EXTENDED_INTAKING));
-        //         case EXTENDED_INTAKING -> CommandScheduler.getInstance().schedule(intake.setStateCommand(Intake.State.EXTENDED_IDLE));
-        //         default -> CommandScheduler.getInstance().schedule(intake.setStateCommand(Intake.State.EXTENDED_IDLE));
-        //     }
-        // }, intake));
 
         // ----------------- INTAKE -------------
 
@@ -218,6 +189,7 @@ public class RobotContainer {
         // RIGHT TRIGGER: Shoot (shooter + hopper while held; both inactive on release)
         controller.getRightTrigger().whileTrue(shootCommand());
 
+
         // D-PAD RIGHT --> Hood up (while held; stop when released)
         controller.getDPad().getRight().whileTrue(
             Commands.run(shooter::runHoodUp, shooter).finallyDo(shooter::stopHood));
@@ -225,48 +197,9 @@ public class RobotContainer {
         // D-PAD LEFT --> Hood down (while held; stop when released)
         controller.getDPad().getLeft().whileTrue(
             Commands.run(shooter::runHoodDown, shooter).finallyDo(shooter::stopHood));
-
-        // A: Hood all the way down
-        //controller.getButtonA().onTrue(shooter.hoodToRotationsCommand(Constants.ShooterConstants.POSITION_HOOD_MIN));
-
-        //controller.getButtonA().whileTrue(
-            //Commands.run(hopper::runIndexerCommand, hopper).finallyDo(hopper::stopIndexerCommand));
-        // controller.getButtonA().whileTrue(hopper.runFeederCommand().alongWith(hopper.runIndexerCommand()));
-        // controller.getButtonA().onFalse(hopper.stopIndexerCommand().alongWith(hopper.stopFeederCommand()));
-
-        // X: Toggle SPINNING_UP + hood setpoint 1 ↔ INACTIVE + hood down
-        controller.getButtonX().onTrue(Commands.runOnce(() -> {
-            if (shooter.state == Shooter.State.INACTIVE) {
-                CommandScheduler.getInstance().schedule(
-                    shooter.setStateCommand(Shooter.State.SPINNING_UP));
-                        //.andThen(shooter.hoodToRotationsCommand(Constants.ShooterConstants.POSITION_HOOD_SETPOINT_1)));
-            } else {
-                CommandScheduler.getInstance().schedule(
-                    shooter.setStateCommand(Shooter.State.INACTIVE));
-                        //.andThen(shooter.hoodToRotationsCommand(Constants.ShooterConstants.POSITION_HOOD_SETPOINT_HOME)));
-            }
-        }, shooter));
         
-        
-
-        // //INACTIVE
-        // controller.getDPad().getDown().onTrue(shooter.setStateCommand(Shooter.State.INACTIVE));
-
-        // //SHOOTING
-        // controller.getDPad().getUp().onTrue(shooter.setStateCommand(Shooter.State.SHOOTING));
-
 
         // ----------------- CLIMB -------------
-
-        // LEFT TRIGGER --> Extend (if retracted/retracting) or Retract (if extended/extending).
-        // Pressing again during an in-progress extend cancels it and retracts (and vice versa).
-        // controller.getLeftTrigger().onTrue(Commands.runOnce(() -> {
-        //     if (climb.isRetractedOrRetracting()) {
-        //         CommandScheduler.getInstance().schedule(climb.extend());
-        //     } else if (climb.isExtendedOrExtending()) {
-        //         CommandScheduler.getInstance().schedule(climb.retract());
-        //     }
-        // }));
 
         // D-PAD UP --> Run climb up (while held)
         controller.getDPad().getUp().whileTrue(climb.runUp());
@@ -275,59 +208,54 @@ public class RobotContainer {
         controller.getDPad().getDown().whileTrue(climb.runDown());
         // controller.getDPad().getDown().and(controller.getRightBumper().negate()).onTrue(climb.retract());
 
-        // Right Bumper --> Climb UP
-        // controller.getRightBumper().onTrue(climb.ascend());
-
 
         // ---------------------------------------------
-        // ---------- CONTROLLER 2 - CO-PILOT ----------
+        // ---------- CONTROLLER 2 - TESTING ----------
         // ---------------------------------------------
 
-        // Setpoints for Shooting
+        // A: Hood all the way down
+        //controller.getButtonA().onTrue(shooter.hoodToRotationsCommand(Constants.ShooterConstants.POSITION_HOOD_MIN));
+        //controller.getButtonA().whileTrue(
+            //Commands.run(hopper::runIndexerCommand, hopper).finallyDo(hopper::stopIndexerCommand));
+        // controller.getButtonA().whileTrue(hopper.runFeederCommand().alongWith(hopper.runIndexerCommand()));
+        // controller.getButtonA().onFalse(hopper.stopIndexerCommand().alongWith(hopper.stopFeederCommand()));
 
-        // Trigger noDPad = new Trigger(() -> controller2.getBaseHID().getPOV() == -1);
-        // if (Constants.FieldConstants.isRedAlliance()) {
-        //     controller2.getButtonX().and(controller2.getDPad().getUp()).onTrue(prepareToShootFromSetpointCommand(Constants.FieldConstants.POSE_SHOOTING_RED_L1));
-        //     controller2.getButtonA().and(controller2.getDPad().getUp()).onTrue(prepareToShootFromSetpointCommand(Constants.FieldConstants.POSE_SHOOTING_RED_C1));
-        //     controller2.getButtonB().and(controller2.getDPad().getUp()).onTrue(prepareToShootFromSetpointCommand(Constants.FieldConstants.POSE_SHOOTING_RED_R1));
-        //     controller2.getButtonX().and(noDPad).onTrue(prepareToShootFromSetpointCommand(Constants.FieldConstants.POSE_SHOOTING_RED_L2));
-        //     controller2.getButtonA().and(noDPad).onTrue(prepareToShootFromSetpointCommand(Constants.FieldConstants.POSE_SHOOTING_RED_C2));
-        //     controller2.getButtonB().and(noDPad).onTrue(prepareToShootFromSetpointCommand(Constants.FieldConstants.POSE_SHOOTING_RED_R2));
-        //     controller2.getButtonX().and(controller2.getDPad().getLeft()).onTrue(prepareToShootFromSetpointCommand(Constants.FieldConstants.POSE_SHOOTING_RED_L3));
-        //     controller2.getButtonB().and(controller2.getDPad().getRight()).onTrue(prepareToShootFromSetpointCommand(Constants.FieldConstants.POSE_SHOOTING_RED_R3));
-        // } else {
-        //     controller2.getButtonX().and(controller2.getDPad().getUp()).onTrue(prepareToShootFromSetpointCommand(Constants.FieldConstants.POSE_SHOOTING_BLUE_L1));
-        //     controller2.getButtonA().and(controller2.getDPad().getUp()).onTrue(prepareToShootFromSetpointCommand(Constants.FieldConstants.POSE_SHOOTING_BLUE_C1));
-        //     controller2.getButtonB().and(controller2.getDPad().getUp()).onTrue(prepareToShootFromSetpointCommand(Constants.FieldConstants.POSE_SHOOTING_BLUE_R1));
-        //     controller2.getButtonX().and(noDPad).onTrue(prepareToShootFromSetpointCommand(Constants.FieldConstants.POSE_SHOOTING_BLUE_L2));
-        //     controller2.getButtonA().and(noDPad).onTrue(prepareToShootFromSetpointCommand(Constants.FieldConstants.POSE_SHOOTING_BLUE_C2));
-        //     controller2.getButtonB().and(noDPad).onTrue(prepareToShootFromSetpointCommand(Constants.FieldConstants.POSE_SHOOTING_BLUE_R2));
-        //     controller2.getButtonX().and(controller2.getDPad().getLeft()).onTrue(prepareToShootFromSetpointCommand(Constants.FieldConstants.POSE_SHOOTING_BLUE_L3));
-        //     controller2.getButtonB().and(controller2.getDPad().getRight()).onTrue(prepareToShootFromSetpointCommand(Constants.FieldConstants.POSE_SHOOTING_BLUE_R3));
-        // }
+        // X: Toggle SPINNING_UP + hood setpoint 1 ↔ INACTIVE + hood down
+        // controller.getButtonX().onTrue(Commands.runOnce(() -> {
+        //     if (shooter.state == Shooter.State.INACTIVE) {
+        //         CommandScheduler.getInstance().schedule(
+        //             shooter.setStateCommand(Shooter.State.SPINNING_UP));
+        //                 //.andThen(shooter.hoodToRotationsCommand(Constants.ShooterConstants.POSITION_HOOD_SETPOINT_1)));
+        //     } else {
+        //         CommandScheduler.getInstance().schedule(
+        //             shooter.setStateCommand(Shooter.State.INACTIVE));
+        //                 //.andThen(shooter.hoodToRotationsCommand(Constants.ShooterConstants.POSITION_HOOD_SETPOINT_HOME)));
+        //     }
+        // }, shooter));
+
+        // B: ROLLER
+        // controller.getButtonB().onTrue(Commands.runOnce(() -> {
+        //     if (intake.state == Intake.State.EXTENDED_INTAKING) {
+        //         CommandScheduler.getInstance().schedule(intake.setStateCommand(Intake.State.EXTENDED_IDLE));
+        //     } else {
+        //         CommandScheduler.getInstance().schedule(intake.setStateCommand(Intake.State.STOWED));
+        //     }
+        // }, intake));
+
+        // B: STOWED → EXTENDED_IDLE → EXTENDED_INTAKING → EXTENDED_IDLE → ... (saved for later)
+        // controller.getButtonB().onTrue(Commands.runOnce(() -> {
+        //     switch (intake.state) {
+        //         case STOWED -> CommandScheduler.getInstance().schedule(intake.setStateCommand(Intake.State.EXTENDED_IDLE));
+        //         case EXTENDED_IDLE -> CommandScheduler.getInstance().schedule(intake.setStateCommand(Intake.State.EXTENDED_INTAKING));
+        //         case EXTENDED_INTAKING -> CommandScheduler.getInstance().schedule(intake.setStateCommand(Intake.State.EXTENDED_IDLE));
+        //         default -> CommandScheduler.getInstance().schedule(intake.setStateCommand(Intake.State.EXTENDED_IDLE));
+        //     }
+        // }, intake));
 
     }
 
-    
-
-    // public Command prepareToShootFromSetpointCommand(Pose2d targetPose) {
-    //     double hoodTarget = trajectoryManager.getHoodPositionForPose(targetPose);
-    //     Command shooterPrep = shooter.setStateCommand(Shooter.State.SPINNING_UP)
-    //             .andThen(shooter.hoodToRotationsCommand(hoodTarget));
-    //     Command fullCommand = poseManager.navigateToPoseCommand(targetPose).alongWith(shooterPrep);
-    //     return fullCommand.withTimeout(30.0)
-    //             .finallyDo((interrupted) -> {
-    //                 drivetrain.setControl(
-    //                     new SwerveRequest.FieldCentric().withDriveRequestType(DriveRequestType.Velocity)
-    //                         .withVelocityX(0).withVelocityY(0).withRotationalRate(0));
-    //                 Command defaultDrive = drivetrain.getDefaultCommand();
-    //                 if (defaultDrive != null) {
-    //                     CommandScheduler.getInstance().schedule(defaultDrive);
-    //                 }
-    //             });
-    // }
-
-   /** While held: first sets shooter SPINNING_UP, waits until flywheel is at target speed (within 5%),
+   /** DO-ALL-THE-THINGS SHOOTER COMMAND
+    * While held: first sets shooter SPINNING_UP, waits until flywheel is at target speed (within 5%),
     * then runs shooter SHOOTING + hopper FEEDING. Tracks target and positions hood for the entire duration.
     * On release: stop feeder, shooter INACTIVE, intake EXTENDED_IDLE.
     */

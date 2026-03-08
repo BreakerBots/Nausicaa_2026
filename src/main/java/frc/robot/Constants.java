@@ -100,13 +100,13 @@ public final class Constants {
         
         // Camera pose relative to robot center (meters, degrees)
         // Format: [forward, side, up, roll, pitch, yaw]
-        // TODO: Measure and configure actual camera positions
-        //public static final double[] FRONT_CAMERA_POSE = {0.244983, 0.3155442, 0.2014728, 0.0, 23.0, 34.0};
-        //public static final double[] BACK_CAMERA_POSE = {-0.244983, -0.3155442, 0.2014728, 0.0, 23.0, -146.0};
-        public static final double[] FRONT_CAMERA_POSE = {0.1513179, 0.0, 0.128, 0.0, 26.0, 0};
-        public static final double[] BACK_LEFT_CAMERA_POSE = {-0.30145941, -0.29537006, 0.187641611, 0.0, 28.1, -145.0093};
-         public static final double[] BACK_RIGHT_CAMERA_POSE = {-0.30441567, 0.24862055, 0.1876415856, 0.0, 28.1, 144};
-        
+        // public static final double[] FRONT_CAMERA_POSE = {0.1513179, 0.0, 0.128, 0.0, 26.0, 0};
+        // public static final double[] BACK_LEFT_CAMERA_POSE = {-0.30145941, -0.29537006, 0.187641611, 0.0, 28.1, -145.0093};
+        // public static final double[] BACK_RIGHT_CAMERA_POSE = {-0.30441567, 0.24862055, 0.1876415856, 0.0, 28.1, 144};
+        public static final double[] FRONT_CAMERA_POSE = {0, 0.0, 0, 0.0, 0, 0};
+        public static final double[] BACK_LEFT_CAMERA_POSE = {0, 0, 0, 0.0, 0, 0};
+        public static final double[] BACK_RIGHT_CAMERA_POSE = {0, 0, 0, 0.0, 0, 0};
+                
         
         // Minimum number of tags required to trust a vision measurement
         public static final int MIN_TAG_COUNT = 1;
@@ -151,26 +151,6 @@ public final class Constants {
         public static final Pose2d POSE_CLIMBING_BLUE_TOWER_LEFT = new Pose2d(1.05, 4.75, Rotation2d.fromDegrees(180));
         public static final Pose2d POSE_CLIMBING_RED_TOWER_LEFT = new Pose2d(15.49, 3.32, Rotation2d.fromDegrees(0));
 
-        // public static final Pose2d POSE_SHOOTING_BLUE_HUB_CENTER = new Pose2d(2.6, 4.0, Rotation2d.fromDegrees(0));
-        // public static final Pose2d POSE_SHOOTING_BLUE_L1 = new Pose2d(3.60063, 5.26185, Rotation2d.fromDegrees(-50.1945667));
-        // public static final Pose2d POSE_SHOOTING_BLUE_C1 = new Pose2d(3.0, 4.0, Rotation2d.fromDegrees(0));
-        // public static final Pose2d POSE_SHOOTING_BLUE_R1 = new Pose2d(3.60063, 2.80815, Rotation2d.fromDegrees(50.1945667));
-        // public static final Pose2d POSE_SHOOTING_BLUE_L2 = new Pose2d(2.96045, 6.03007, Rotation2d.fromDegrees(-50.1945667));
-        // public static final Pose2d POSE_SHOOTING_BLUE_C2 = new Pose2d(2.0, 4.0, Rotation2d.fromDegrees(0));
-        // public static final Pose2d POSE_SHOOTING_BLUE_R2 = new Pose2d(2.96045, 2.03993, Rotation2d.fromDegrees(50.1945667));
-        // public static final Pose2d POSE_SHOOTING_BLUE_L3 = new Pose2d(3.5, 7.333, Rotation2d.fromDegrees(-71.5651177));
-        // public static final Pose2d POSE_SHOOTING_BLUE_R3 = new Pose2d(3.5, 0.666, Rotation2d.fromDegrees(71.5651177));
-
-        // public static final Pose2d POSE_SHOOTING_RED_HUB_CENTER = new Pose2d(13.94, 4.07, Rotation2d.fromDegrees(180));
-        // public static final Pose2d POSE_SHOOTING_RED_L1 = new Pose2d(12.93937, 2.80815, Rotation2d.fromDegrees(129.8054333));
-        // public static final Pose2d POSE_SHOOTING_RED_C1 = new Pose2d(13.54, 4.07, Rotation2d.fromDegrees(180));
-        // public static final Pose2d POSE_SHOOTING_RED_R1 = new Pose2d(12.93937, 5.26185, Rotation2d.fromDegrees(-129.8054333));
-        // public static final Pose2d POSE_SHOOTING_RED_L2 = new Pose2d(13.57955, 2.03993, Rotation2d.fromDegrees(129.8054333));
-        // public static final Pose2d POSE_SHOOTING_RED_C2 = new Pose2d(14.54, 4.07, Rotation2d.fromDegrees(180));
-        // public static final Pose2d POSE_SHOOTING_RED_R2 = new Pose2d(13.57955, 6.03007, Rotation2d.fromDegrees(-129.8054333));
-        // public static final Pose2d POSE_SHOOTING_RED_L3 = new Pose2d(13.04, 0.737, Rotation2d.fromDegrees(108.4348823));
-        // public static final Pose2d POSE_SHOOTING_RED_R3 = new Pose2d(13.04, 7.404, Rotation2d.fromDegrees(-108.4348823));
-
         // Targets to aim at for shooting/passing.
 
         public static final Translation2d TARGET_BLUE_HUB_CENTER = new Translation2d(4.618, 4.036);
@@ -181,11 +161,8 @@ public final class Constants {
         public static final Translation2d TARGET_RED_AZ_LEFT = new Translation2d(15.0, 1.5);
         public static final Translation2d TARGET_RED_AZ_RIGHT = new Translation2d(15.0, 6.5);   
         
-        //public static final int HUB_TAG_ID_RED = 12;
-        //public static final int HUB_TAG_ID_BLUE = 12;
         public static final int HUB_TAG_ID_RED = 10;
         public static final int HUB_TAG_ID_BLUE = 26;
-
         public static final int TRENCH_TAG_ID_RED = 12;
         public static final int TRENCH_TAG_ID_BLUE = 28;
 
