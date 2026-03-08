@@ -191,11 +191,11 @@ public class PoseManager extends SubsystemBase {
     /**
       * When in our AZ, track the hub. When outside, track one of two passing targets.
       */
-    public Command trackLeftTriggerTargetCommand(DoubleSupplier vx, DoubleSupplier vy) {
+    public Command trackTargetCommand(DoubleSupplier vx, DoubleSupplier vy) {
         return trackPointCommand(() -> {
             Pose2d pose = drivetrain.getLocalizer().getPose();
-               Translation2d target = Constants.FieldConstants.getLeftTriggerTarget(pose);
-               BreakerLog.log("PoseManager/LeftTriggerTarget", target);
+               Translation2d target = Constants.FieldConstants.getTargetForPose(pose);
+               BreakerLog.log("PoseManager/TargetForPose", target);
                return target;
         },
         vx, vy);
@@ -204,7 +204,7 @@ public class PoseManager extends SubsystemBase {
     /**
      * Adjust rotation to always face target AprilTag.
      */
-    public Command trackTagCommand(int targetTagId, DoubleSupplier vx, DoubleSupplier vy) {
+    public Command trackTargetCommand(int targetTagId, DoubleSupplier vx, DoubleSupplier vy) {
         Translation2d tagPosition = vision.getTagPosition(targetTagId);
         if (tagPosition == null) {
             return Commands.none(); // Tag not in field layout

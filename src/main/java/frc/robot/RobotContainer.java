@@ -167,13 +167,13 @@ public class RobotContainer {
             drivetrain.setDefaultCommand(drivetrain.getTeleopControlCommand(driverX, driverY, driverOmega, Constants.DriveConstants.TELEOP_CONTROL_CONFIG));
         
             // LEFT TRIGGER --> Track hub center; driver keeps X/Y, rotation follows hub; hood tracks distance
-            DoubleSupplier leftTriggerDistance = () -> drivetrain.getRobotToPointTranslation(
-                    Constants.FieldConstants.getLeftTriggerTarget(drivetrain.getLocalizer().getPose())).getNorm();
+            DoubleSupplier targetDistance = () -> drivetrain.getRobotToPointTranslation(
+                    Constants.FieldConstants.getTargetForPose(drivetrain.getLocalizer().getPose())).getNorm();
             controller.getLeftTrigger().whileTrue(
                 //drivetrain.getLocalizer().resetPose(new Pose2d(0,0, Rotation2d.fromRotations(0.0))))
                     //  .andThen(poseManager.trackLeftTriggerTargetCommand(driverX, driverY)
-                poseManager.trackLeftTriggerTargetCommand(driverX, driverY)
-                    .alongWith(shooter.positionHoodForTargetCommand(leftTriggerDistance)));
+                poseManager.trackTargetCommand(driverX, driverY)
+                    .alongWith(shooter.positionHoodForTargetCommand(targetDistance)));
 
             // Y --> Home hood (for testing; encoder zero when position unknown)
             //controller.getButtonY().onTrue(shooter.homeHood());
@@ -328,9 +328,13 @@ public class RobotContainer {
     // }
 
    /** While held: first sets shooter SPINNING_UP, waits until flywheel is at target speed (within 5%),
-    * then runs shooter SHOOTING + hopper FEEDING. On release: stop feeder, shooter INACTIVE, intake EXTENDED_IDLE.
+    * then runs shooter SHOOTING + hopper FEEDING. Tracks target and positions hood for the entire duration.
+    * On release: stop feeder, shooter INACTIVE, intake EXTENDED_IDLE.
     */
     private Command shootCommand() {
+        DoubleSupplier targetDistance = () -> drivetrain.getRobotToPointTranslation(
+                Constants.FieldConstants.getTargetForPose(drivetrain.getLocalizer().getPose())).getNorm();
+
         Command jiggleSequence = Commands.sequence(
                 Commands.waitSeconds(1.0),
                 Commands.sequence(
@@ -355,11 +359,16 @@ public class RobotContainer {
                         shooter, hopper, intake),
                 jiggleSequence);
 
-        return Commands.sequence(
+        Command shootSequence = Commands.sequence(
                 Commands.runOnce(() -> shooter.setState(Shooter.State.SPINNING_UP), shooter),
                 Commands.waitUntil(shooter::isAtTargetSpeed),
                 feedPhase)
                 .finallyDo((interrupted) -> shooter.setState(Shooter.State.INACTIVE));
+
+        return Commands.parallel(
+                shootSequence,
+                poseManager.trackTargetCommand(driverX, driverY),
+                shooter.positionHoodForTargetCommand(targetDistance));
     }
 
     

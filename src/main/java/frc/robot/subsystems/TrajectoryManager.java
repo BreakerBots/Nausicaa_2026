@@ -92,4 +92,5 @@ public class TrajectoryManager extends SubsystemBase {
         BreakerInterpolableDouble result = hoodLookup.getInterpolatedValue(clampedDist);
         return result != null ? result.getValue() : Constants.ShooterConstants.POSITION_HOOD_MIN;
     }
+    
 }
