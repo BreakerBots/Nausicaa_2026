@@ -132,11 +132,19 @@ public class Shooter extends SubsystemBase {
     }
 
     public void runHoodUp() {
-        hoodMotor.setControl(new DutyCycleOut(Constants.ShooterConstants.SPEED_HOOD_UP));
+        if (getHoodEncoderRotations() >= Constants.ShooterConstants.POSITION_HOOD_MAX) {
+            stopHood();
+        } else {
+            hoodMotor.setControl(new DutyCycleOut(Constants.ShooterConstants.SPEED_HOOD_UP));
+        }
     }
 
     public void runHoodDown() {
-        hoodMotor.setControl(new DutyCycleOut(Constants.ShooterConstants.SPEED_HOOD_DOWN));
+        if (getHoodEncoderRotations() <= Constants.ShooterConstants.POSITION_HOOD_MIN) {
+            stopHood();
+        } else {
+            hoodMotor.setControl(new DutyCycleOut(Constants.ShooterConstants.SPEED_HOOD_DOWN));
+        }
     }
 
     public void autoRunHoodDown() {
