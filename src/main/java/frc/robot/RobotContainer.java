@@ -219,7 +219,8 @@ public class RobotContainer {
         // ---------------------------------------------
 
         // A: Hood all the way down
-        //controller.getButtonA().onTrue(shooter.hoodToRotationsCommand(Constants.ShooterConstants.POSITION_HOOD_MIN));
+        controller.getButtonA().onTrue(shooter.hoodToRotationsCommand(Constants.ShooterConstants.POSITION_HOOD_MIN));
+        controller.getButtonX().onTrue(shooter.hoodToRotationsCommand(Constants.ShooterConstants.POSITION_HOOD_MAX));
         //controller.getButtonA().whileTrue(
             //Commands.run(hopper::runIndexerCommand, hopper).finallyDo(hopper::stopIndexerCommand));
         // controller.getButtonA().whileTrue(hopper.runFeederCommand().alongWith(hopper.runIndexerCommand()));
@@ -327,10 +328,14 @@ public class RobotContainer {
             }
         }).finallyDo(shooter::stopHood);
 
+        //return shootSequence;
+
         return Commands.parallel(
-                shootSequence,
+                positionHood,
                 poseManager.trackTargetCommand(driverX, driverY),
-                positionHood)
+                Commands.waitSeconds(2),
+                shootSequence)
+                
                 .finallyDo((interrupted) -> CommandScheduler.getInstance().schedule(
                         shooter.hoodToRotationsCommand(Constants.ShooterConstants.POSITION_HOOD_MIN)));
     }
@@ -347,6 +352,8 @@ public class RobotContainer {
         BreakerLog.log("SwerveDrivetrain/SlowMode", slowMode);
         BreakerLog.log("DistanceToTarget", drivetrain.getRobotToPointTranslation(
                 Constants.FieldConstants.getTargetForPose(drivetrain.getLocalizer().getPose())).getNorm());
+        BreakerLog.log("DistanceFromRobotFrontToTarget", drivetrain.getRobotToPointTranslation(
+                Constants.FieldConstants.getTargetForPose(drivetrain.getLocalizer().getPose())).getNorm() - 0.39878);
         MatchTimer.update();
     }
 
@@ -373,8 +380,8 @@ public class RobotContainer {
         climb.setState(Climb.State.INACTIVE);
         shooter.setState(Shooter.State.INACTIVE);
         hopper.setState(Hopper.State.INACTIVE);
-         //CommandScheduler.getInstance().schedule(
-                 //shooter.hoodToRotationsCommand(Constants.ShooterConstants.POSITION_HOOD_SETPOINT_HOME));
+        CommandScheduler.getInstance().schedule(
+                shooter.hoodToRotationsCommand(Constants.ShooterConstants.POSITION_HOOD_MIN));
     }
 
 }

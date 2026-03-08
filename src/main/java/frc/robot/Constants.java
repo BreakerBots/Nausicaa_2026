@@ -103,9 +103,9 @@ public final class Constants {
         // public static final double[] FRONT_CAMERA_POSE = {0.1513179, 0.0, 0.128, 0.0, 26.0, 0};
         // public static final double[] BACK_LEFT_CAMERA_POSE = {-0.30145941, -0.29537006, 0.187641611, 0.0, 28.1, -145.0093};
         // public static final double[] BACK_RIGHT_CAMERA_POSE = {-0.30441567, 0.24862055, 0.1876415856, 0.0, 28.1, 144};
-        public static final double[] FRONT_CAMERA_POSE = {0, 0.0, 0, 0.0, 0, 0};
-        public static final double[] BACK_LEFT_CAMERA_POSE = {0, 0, 0, 0.0, 0, 0};
-        public static final double[] BACK_RIGHT_CAMERA_POSE = {0, 0, 0, 0.0, 0, 0};
+        public static final double[] FRONT_CAMERA_POSE = {0.1602181454, 0.0002463292, 0.4868479214, 0.0, 26.0, 0};
+        public static final double[] BACK_LEFT_CAMERA_POSE = {-0.3057986264, -0.2792043692, 0.1893890548, 0.0, 28.1, -141};
+        public static final double[] BACK_RIGHT_CAMERA_POSE = {-0.2991690994, 0.2016386874, 0.2190634684, 0.0, 28.1, 141};
                 
         
         // Minimum number of tags required to trust a vision measurement
@@ -299,7 +299,7 @@ public final class Constants {
         public static final double SHOOTER_kV = 0.12;
 
         /**PID */
-        public static final double SHOOTER_kP = 0.25;
+        public static final double SHOOTER_kP = 0.5; // 0.25
         public static final double SHOOTER_kI = 0.0;
         public static final double SHOOTER_kD = 0.0;
 
@@ -307,22 +307,22 @@ public final class Constants {
         public static final double FLYWHEEL_SPEED_TOLERANCE = 0.05;
 
         public static final double SPEED_IDLE = 0;
-        public static final double SPEED_FLYWHEEL_ACTIVE = 52.0;
+        public static final double SPEED_FLYWHEEL_ACTIVE = 60.0;
 
         /** Hood: external encoder; command takes target rotations. */
-        public static final double SPEED_HOOD_UP = -0.2;
-        public static final double SPEED_HOOD_DOWN = 0.3;
+        public static final double SPEED_HOOD_UP = -0.2; //-0.2
+        public static final double SPEED_HOOD_DOWN = 0.3; // 0.3
         public static final double AUTO_SPEED_HOOD_DOWN = -0.3;
-        public static final double POSITION_HOOD_MIN = -0.002197;
-        public static final double POSITION_HOOD_MAX = 0.477295; 
+        public static final double POSITION_HOOD_MIN = -0.002197; //-0.002197
+        public static final double POSITION_HOOD_MAX = 0.477295; //0.477295
         /** Deadband (rotations) for hood tracking; prevents oscillation when near target. */
-        public static final double HOOD_TRACKING_TOLERANCE_ROTATIONS = 0.01;
+        public static final double HOOD_TRACKING_TOLERANCE_ROTATIONS = 0.005;
 
         
         /** Stator current limit (A) for flywheels – protects during spin-up. */
-        public static final int FLYWHEEL_STATOR_CURRENT_LIMIT = 40;
+        public static final int FLYWHEEL_STATOR_CURRENT_LIMIT = 80; // 40
         /** Supply current limit (A) per flywheel – 3 motors draw heavily during spin-up; helps prevent brownouts. */
-        public static final int FLYWHEEL_SUPPLY_CURRENT_LIMIT = 25;
+        public static final int FLYWHEEL_SUPPLY_CURRENT_LIMIT = 50; // 25
         /** Stator current limit (A) for hood – protects against mechanical limits. */
         public static final int HOOD_STATOR_CURRENT_LIMIT = 50;
         // public static final int HOOD_SUPPLY_CURRENT_LIMIT = 50;

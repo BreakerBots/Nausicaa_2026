@@ -257,7 +257,7 @@ public class Shooter extends SubsystemBase {
             // This makes sure the flywheel is coasting to a stop, not braking to a stop
             shooterFlywheel1Motor.setControl(new DutyCycleOut(0).withOverrideBrakeDurNeutral(false));
         } else {
-            shooterFlywheel1Motor.setControl(new VelocityVoltage(speed).withAcceleration(15));
+            shooterFlywheel1Motor.setControl(new VelocityVoltage(speed).withAcceleration(40)); // 15
         }
         
     }

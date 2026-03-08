@@ -20,14 +20,23 @@ public class TrajectoryManager extends SubsystemBase {
      * Tune through testing – add/remove/adjust pairs as needed.
      * 
      * Hood postition must stay between POSITION_HOOD_MIN and POSITION_HOOD_MAX!
+     * 
+     * Distance from robot center to chasis front edge = 15.7" (0.39878 meters)
+     * 
+     * Position Mark + 23.5" 
+     * 
+     * 12 + 23.5" --> m
+     * 
+     * 
      */
     private static final Translation2d[] HOOD_DISTANCE_ANGLE_TABLE = {
-        new Translation2d(1.5, -0.07),   // close
-        new Translation2d(2.0, -0.08),
-        new Translation2d(2.5, -0.09),
-        new Translation2d(3.0, -0.10),
-        new Translation2d(3.5, -0.12),
-        new Translation2d(4.0, -0.15),   // far
+        new Translation2d(1.2192, 0.02),        //4ft
+        new Translation2d(1.524, 0.06),         // 5ft
+        new Translation2d(1.8288, 0.115),       // 6 ft
+        new Translation2d(2.1336, 0.14),        // 7ft
+        new Translation2d(2.4384, 0.172119),    // 8 ft
+        new Translation2d(2.7432, 0.212891),    // 9 ft
+        new Translation2d(3.05, 0.2459),        //10 ft
     };
 
     private static final BreakerInterpolatingTreeMap<Double, BreakerInterpolableDouble> hoodLookup = buildHoodLookup();
