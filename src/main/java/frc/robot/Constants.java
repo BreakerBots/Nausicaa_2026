@@ -91,7 +91,7 @@ public final class Constants {
         public static final boolean USE_MEGATAG2 = false;
 
         /** Std dev calculation: true = distance-threshold approach (single/multi-tag bases, quadratic distance), false = trust-score approach. */
-        public static final boolean USE_DYNAMIC_STD_DEVS_V2 = false;
+        public static final boolean USE_DYNAMIC_STD_DEVS_V2 = true;
 
         // Limelight 4 camera names (configured in Limelight UI)
         public static final String FRONT_CAMERA = "limelight-f";
@@ -119,7 +119,7 @@ public final class Constants {
         // Units: meters for x/y, radians for theta
         // Theta: 9999999 to fully trust IMU for rotation (vision won't correct heading)
         public static final Matrix<N3, N1> VISION_STD_DEVS = 
-            VecBuilder.fill(0.02, 0.02, 0.05);        
+            VecBuilder.fill(0.15, 0.15, 99999999);        
         
         // Dynamic standard deviation scaling factors (tag count + proximity)
         // trustScore = tagCount * TAG_COUNT_SCALE_FACTOR + PROXIMITY_SCALE_FACTOR / (1 + avgTagDist)
@@ -291,11 +291,15 @@ public final class Constants {
         public static final double SPEED_IDLE = 0;
         public static final double SPEED_EXTAKE = 0.5;
 
-        public static final double SPEED_INTAKE = -0.7;
+        public static final double SPEED_INTAKE = -0.8;
 
-        /** Stator current limit (A) for pivot and roller – protects against jams. */
-        public static final int STATOR_CURRENT_LIMIT = 60;
-        public static final int SUPPLY_CURRENT_LIMIT = 45;
+        /** Stator current limit (A) for pivot – protects against jams. */
+        public static final int PIVOT_STATOR_CURRENT_LIMIT = 70;
+        public static final int PIVOT_SUPPLY_CURRENT_LIMIT = 60;
+        
+        /** Stator current limit (A) for roller – protects against jams. */
+        public static final int ROLLER_STATOR_CURRENT_LIMIT = 80;
+        public static final int ROLLER_SUPPLY_CURRENT_LIMIT = 60;
     }
 
     // --------------- SHOOTER --------------
@@ -637,7 +641,7 @@ public final class Constants {
         private static final int kFrontLeftDriveMotorId = 8;
         private static final int kFrontLeftSteerMotorId = 9;
         private static final int kFrontLeftEncoderId = 10;
-        private static final Angle kFrontLeftEncoderOffset = Rotations.of(0.1904296875); 
+        private static final Angle kFrontLeftEncoderOffset = Rotations.of(0.189453125); 
         private static final boolean kFrontLeftSteerInvert = true; //true
         private static final boolean kFrontLeftEncoderInvert = false; //false
         private static final Translation2d kFrontLeftModulePosition = new Translation2d(
@@ -649,7 +653,7 @@ public final class Constants {
         private static final int kFrontRightDriveMotorId = 11;
         private static final int kFrontRightSteerMotorId = 12;
         private static final int kFrontRightEncoderId = 13;
-        private static final Angle kFrontRightEncoderOffset = Rotations.of(0.3896484375); 
+        private static final Angle kFrontRightEncoderOffset = Rotations.of(0.396728515625); 
         private static final boolean kFrontRightSteerInvert = true; // true
         private static final boolean kFrontRightEncoderInvert = false; // false
         private static final Translation2d kFrontRightModulePosition = new Translation2d(
@@ -661,7 +665,7 @@ public final class Constants {
         private static final int kBackLeftDriveMotorId = 14;
         private static final int kBackLeftSteerMotorId = 15;
         private static final int kBackLeftEncoderId = 16;
-        private static final Angle kBackLeftEncoderOffset = Rotation.of(-0.047607421875); 
+        private static final Angle kBackLeftEncoderOffset = Rotation.of(-0.047119140625); 
         private static final boolean kBackLeftSteerInvert = true; //true
         private static final boolean kBackLeftEncoderInvert = false; // false
         private static final Translation2d kBackLeftModulePosition = new Translation2d(
@@ -673,7 +677,7 @@ public final class Constants {
         private static final int kBackRightDriveMotorId = 17;
         private static final int kBackRightSteerMotorId = 18;
         private static final int kBackRightEncoderId = 19;
-        private static final Angle kBackRightEncoderOffset = Rotations.of(-0.217041015625); 
+        private static final Angle kBackRightEncoderOffset = Rotations.of(-0.042724609375);
         private static final boolean kBackRightSteerInvert = true; // true
         private static final boolean kBackRightEncoderInvert = false; // false
         private static final Translation2d kBackRightModulePosition = new Translation2d(

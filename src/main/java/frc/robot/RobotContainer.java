@@ -62,7 +62,7 @@ public class RobotContainer {
     private boolean slowMode;
     
     /** When true, drive controls and autonomous are disabled. */
-    private boolean safetyMode = true;
+    private boolean safetyMode = false;
     
     /** PathPlanner auto chooser; populated from GUI autos when AutoBuilder is configured. */
     private final SendableChooser<Command> autoChooser;
@@ -76,9 +76,9 @@ public class RobotContainer {
         BreakerLog.setVerboseLogging(false);
 
         // Register named commands for PathPlanner event markers (must be before buildAutoChooser)
-        NamedCommands.registerCommand("rotateToHub", Commands.defer(() -> poseManager.rotateToTagCommand(Constants.FieldConstants.getHubTagID()), Set.of(drivetrain)));
+        NamedCommands.registerCommand("rotateToHub", Commands.defer(() -> poseManager.rotateToHubCenterCommand(), Set.of(drivetrain)));
         NamedCommands.registerCommand("enterSlowMode", Commands.defer(() -> Commands.runOnce(() -> slowMode = !slowMode), Set.of(drivetrain)));
-        NamedCommands.registerCommand("consolidatePose", Commands.defer(() -> Commands.runOnce(() -> drivetrain.getLocalizer().resetPose(new Pose2d(0,0, Rotation2d.fromRotations(0.0)))), Set.of(drivetrain)));
+        // NamedCommands.registerCommand("consolidatePose", Commands.defer(() -> Commands.runOnce(() -> drivetrain.getLocalizer().resetPose(new Pose2d(0,0, Rotation2d.fromRotations(0.0)))), Set.of(drivetrain)));
         NamedCommands.registerCommand("rangeToHub", Commands.defer(() -> poseManager.rangeToPointCommand(Constants.FieldConstants.getTargetHubCenter(), 2.0), Set.of(drivetrain)));
         NamedCommands.registerCommand("spinUp", Commands.defer(() -> shooter.setStateCommand(Shooter.State.SPINNING_UP), Set.of(shooter)));
         NamedCommands.registerCommand("shoot", Commands.defer(() -> shootCommand().withTimeout(6.0), Set.of(shooter, hopper, intake)));
@@ -86,7 +86,7 @@ public class RobotContainer {
         NamedCommands.registerCommand("intake", Commands.defer(() -> intake.setStateCommand(Intake.State.EXTENDED_INTAKING), Set.of(intake)));
         NamedCommands.registerCommand("stopIntake", Commands.defer(() -> intake.setStateCommand(Intake.State.EXTENDED_IDLE), Set.of(intake)));
         NamedCommands.registerCommand("halt", Commands.waitSeconds(2.0));
-        NamedCommands.registerCommand("hooddown", Commands.defer(() -> shooter.hoodToRotationsCommand(Constants.ShooterConstants.POSITION_HOOD_SETPOINT_HOME), Set.of(shooter)));
+        //NamedCommands.registerCommand("hooddown", Commands.defer(() -> shooter.hoodToRotationsCommand(Constants.ShooterConstants.POSITION_HOOD_SETPOINT_HOME), Set.of(shooter)));
         
         // Set up our auto-chooser    
         if (AutoBuilder.isConfigured()) {
@@ -179,7 +179,7 @@ public class RobotContainer {
                     .alongWith(shooter.positionHoodForTargetCommand(leftTriggerDistance)));
 
             // Y --> Home hood (for testing; encoder zero when position unknown)
-            controller.getButtonY().onTrue(shooter.homeHood());
+            // controller.getButtonY().onTrue(shooter.homeHood());
             // controller.getButtonY().onTrue(Commands.defer(() -> poseManager.rangeToPointCommand(Constants.FieldConstants.getTargetHubCenter(), 1.0), Set.of(drivetrain)));
 
             // Range to tag (A button)
@@ -230,7 +230,7 @@ public class RobotContainer {
             Commands.run(shooter::runHoodDown, shooter).finallyDo(shooter::stopHood));
 
         // A: Hood all the way down
-        controller.getButtonA().onTrue(shooter.hoodToRotationsCommand(Constants.ShooterConstants.POSITION_HOOD_SETPOINT_HOME));
+        // controller.getButtonA().onTrue(shooter.hoodToRotationsCommand(Constants.ShooterConstants.POSITION_HOOD_SETPOINT_HOME));
 
         // X: Toggle SPINNING_UP + hood setpoint 1 ↔ INACTIVE + hood down
         controller.getButtonX().onTrue(Commands.runOnce(() -> {

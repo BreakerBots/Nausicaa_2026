@@ -7,7 +7,7 @@
         {
           "type": "path",
           "data": {
-            "pathName": "Intake from NZ and Shoot"
+            "pathName": "Intake thru bump and Shoot"
           }
         },
         {
@@ -19,13 +19,13 @@
         {
           "type": "named",
           "data": {
-            "name": "rangeToHub"
+            "name": "spinUp"
           }
         },
         {
-          "type": "named",
+          "type": "wait",
           "data": {
-            "name": "spinUp"
+            "waitTime": 2.0
           }
         },
         {
