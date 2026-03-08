@@ -182,7 +182,8 @@ public class RobotContainer {
         // ----------------- INTAKE -------------
 
         // B: 
-        controller.getButtonB().whileTrue(Commands.run(() -> intake.setState(Intake.State.EXTENDED_INTAKING), intake)
+        
+        controller.getLeftTrigger().whileTrue(Commands.run(() -> intake.setState(Intake.State.EXTENDED_INTAKING), intake)
             .finallyDo(() -> intake.setState(Intake.State.EXTENDED_IDLE)));
             
 
