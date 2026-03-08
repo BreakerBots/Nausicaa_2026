@@ -15,7 +15,6 @@ import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc.robot.BreakerLib.util.logging.BreakerLog;
-import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
 import frc.robot.Constants.VisionConstants;
@@ -90,9 +89,6 @@ public class Vision extends SubsystemBase {
         // Set up the field and start sending its info to Elastic
         field = new Field2d();
         SmartDashboard.putData("Vision/Field", field);
-
-        // Register this subsystem with CommandScheduler so periodic() is called
-        CommandScheduler.getInstance().registerSubsystem(this);
     }
 
     @Override
