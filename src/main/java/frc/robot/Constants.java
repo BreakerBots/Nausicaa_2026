@@ -307,7 +307,7 @@ public final class Constants {
         public static final double FLYWHEEL_SPEED_TOLERANCE = 0.05;
 
         public static final double SPEED_IDLE = 0;
-        public static final double SPEED_FLYWHEEL_ACTIVE = 52.0; // 52 - TOGGLE ME
+        public static final double SPEED_FLYWHEEL_ACTIVE = 52.0;
 
         /** Hood: external encoder; command takes target rotations. */
         public static final double SPEED_HOOD_UP = -0.2; // need to tune
