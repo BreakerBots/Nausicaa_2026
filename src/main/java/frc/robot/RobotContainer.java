@@ -12,6 +12,7 @@ import java.util.function.DoubleSupplier;
 
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.units.Units;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
@@ -73,18 +74,19 @@ public class RobotContainer {
         BreakerLog.setVerboseLogging(false);
 
         // Register named commands for PathPlanner event markers (must be before buildAutoChooser)
-        NamedCommands.registerCommand("rotateToHub", Commands.defer(() -> poseManager.rotateToHubCenterCommand(), Set.of(drivetrain)));
+        //NamedCommands.registerCommand("rotateToHub", Commands.defer(() -> poseManager.rotateToHubCenterCommand(), Set.of(drivetrain)));
         NamedCommands.registerCommand("enterSlowMode", Commands.defer(() -> Commands.runOnce(() -> slowMode = !slowMode), Set.of(drivetrain)));
-        NamedCommands.registerCommand("consolidatePose", Commands.defer(() -> Commands.runOnce(() -> drivetrain.getLocalizer().resetPose(new Pose2d(0, 0, Rotation2d.fromRotations(0.0)))), Set.of(drivetrain)));
-        NamedCommands.registerCommand("rangeToHub", Commands.defer(() -> poseManager.rangeToPointCommand(Constants.FieldConstants.getTargetHubCenter(), 2.0), Set.of(drivetrain)));
+        //NamedCommands.registerCommand("consolidatePose", Commands.defer(() -> Commands.runOnce(() -> drivetrain.getLocalizer().resetPose(new Pose2d(0, 0, Rotation2d.fromRotations(0.0)))), Set.of(drivetrain)));
+        //NamedCommands.registerCommand("rangeToHub", Commands.defer(() -> poseManager.rangeToPointCommand(Constants.FieldConstants.getTargetHubCenter(), 2.0), Set.of(drivetrain)));
         NamedCommands.registerCommand("wait", Commands.waitSeconds(1.0));
         NamedCommands.registerCommand("spinUp", Commands.defer(() -> shooter.setStateCommand(Shooter.State.SPINNING_UP), Set.of(shooter)));
-        NamedCommands.registerCommand("shoot", Commands.defer(() -> shootCommand().withTimeout(6.0), Set.of(shooter, hopper, intake)));
-        NamedCommands.registerCommand("stopShoot", Commands.defer(() -> shooter.setStateCommand(Shooter.State.INACTIVE), Set.of(shooter)));
+        NamedCommands.registerCommand("aim", Commands.defer(() -> aimCommand(), Set.of(drivetrain, shooter)));
+        NamedCommands.registerCommand("shoot", Commands.defer(() -> shootForAutoCommand(), Set.of(shooter, hopper, intake)));
+        //NamedCommands.registerCommand("stopShoot", Commands.defer(() -> shooter.setStateCommand(Shooter.State.INACTIVE), Set.of(shooter)));
         NamedCommands.registerCommand("intake", Commands.defer(() -> intake.setStateCommand(Intake.State.EXTENDED_INTAKING), Set.of(intake)));
         NamedCommands.registerCommand("stopIntake", Commands.defer(() -> intake.setStateCommand(Intake.State.EXTENDED_IDLE), Set.of(intake)));
         NamedCommands.registerCommand("halt", Commands.waitSeconds(2.0));
-        NamedCommands.registerCommand("hooddown", Commands.defer(() -> shooter.hoodToRotationsCommand(Constants.ShooterConstants.POSITION_HOOD_MIN), Set.of(shooter)));
+        NamedCommands.registerCommand("hoodDown", Commands.defer(() -> shooter.hoodToRotationsCommand(Constants.ShooterConstants.POSITION_HOOD_MIN), Set.of(shooter)));
         NamedCommands.registerCommand("unclog", Commands.defer(() -> unclogCommand().withTimeout(3.0), Set.of(hopper, intake)));
         
         // Set up our auto-chooser    
@@ -181,16 +183,15 @@ public class RobotContainer {
 
         // ----------------- INTAKE -------------
 
-        // B: 
-        
+        // LEFT TRIGGER --> Intake (while held; stop when released)
         controller.getLeftTrigger().whileTrue(Commands.run(() -> intake.setState(Intake.State.EXTENDED_INTAKING), intake)
             .finallyDo(() -> intake.setState(Intake.State.EXTENDED_IDLE)));
             
 
         // ----------------- SHOOTER + HOPPER/FEEDER -------------
 
-        // RIGHT TRIGGER: Shoot (shooter + hopper while held; both inactive on release)
-        controller.getRightTrigger().whileTrue(shootCommand());
+        // RIGHT TRIGGER --> Aim (rotate + hood), then shoot while held
+        controller.getRightTrigger().whileTrue(aimThenShootCommand());
 
 
         // D-PAD RIGHT --> Hood up (while held; stop when released)
@@ -210,8 +211,7 @@ public class RobotContainer {
         // D-PAD DOWN --> Run climb down (while held)
         controller.getDPad().getDown().whileTrue(climb.runDown());
 
-        // Y --> Unclog: run feeder, indexer, and intake in reverse at 20% speed (while held)
-        controller.getButtonY().whileTrue(unclogCommand());
+
         // controller.getDPad().getDown().and(controller.getRightBumper().negate()).onTrue(climb.retract());
 
 
@@ -219,9 +219,17 @@ public class RobotContainer {
         // ---------- CONTROLLER 2 - TESTING ----------
         // ---------------------------------------------
 
-        // A: Hood all the way down
-        controller.getButtonA().onTrue(shooter.hoodToRotationsCommand(Constants.ShooterConstants.POSITION_HOOD_MIN));
-        controller.getButtonX().onTrue(shooter.hoodToRotationsCommand(Constants.ShooterConstants.POSITION_HOOD_MAX));
+
+        // A --> Hood all the way down
+        controller.getButtonA().onTrue(aimCommand());
+
+        // Y --> Unclog: run feeder, indexer, and intake in reverse at 20% speed (while held)
+        controller.getButtonY().whileTrue(unclogCommand());
+
+        // X/Y --> Hood all the way down/up
+        controller.getButtonX().onTrue(shooter.hoodToRotationsCommand(Constants.ShooterConstants.POSITION_HOOD_MIN));
+        controller.getButtonY().onTrue(shooter.hoodToRotationsCommand(Constants.ShooterConstants.POSITION_HOOD_MAX));
+        
         //controller.getButtonA().whileTrue(
             //Commands.run(hopper::runIndexerCommand, hopper).finallyDo(hopper::stopIndexerCommand));
         // controller.getButtonA().whileTrue(hopper.runFeederCommand().alongWith(hopper.runIndexerCommand()));
@@ -275,15 +283,28 @@ public class RobotContainer {
                 hopper, intake);
     }
 
-   /** DO-ALL-THE-THINGS SHOOTER COMMAND
-    * While held: first sets shooter SPINNING_UP, waits until flywheel is at target speed (within 5%),
-    * then runs shooter SHOOTING + hopper FEEDING. Tracks target and positions hood for the entire duration.
-    * On release: stop feeder, shooter INACTIVE, intake EXTENDED_IDLE.
-    */
-    private Command shootCommand() {
-        DoubleSupplier targetDistance = () -> drivetrain.getRobotToPointTranslation(
-                Constants.FieldConstants.getTargetForPose(drivetrain.getLocalizer().getPose())).getNorm();
+    /**
+     * Aim (rotate + hood), then shoot. Runs aim first, then shootForTeleopCommand while trigger held.
+     */
+    private Command aimThenShootCommand() {
+        return aimCommand().andThen(shootForTeleopCommand());
+    }
 
+    /** Auto shoot: feed phase runs for 6 seconds. */
+    private Command shootForAutoCommand() {
+        return shootSequenceCommand(6.0);
+    }
+
+    /** Teleop shoot: feed phase runs until trigger released. */
+    private Command shootForTeleopCommand() {
+        return shootSequenceCommand(null);
+    }
+
+
+    /**
+     * Don't use this command directly. Use either shootForAutoCommand() or shootForTeleopCommand() instead.
+     */
+    private Command shootSequenceCommand(Double feedTimeoutSeconds) {
         Command jiggleSequence = Commands.sequence(
                 Commands.waitSeconds(1.0),
                 Commands.sequence(
@@ -308,40 +329,120 @@ public class RobotContainer {
                         shooter, hopper, intake),
                 jiggleSequence);
 
-        Command shootSequence = Commands.sequence(
-                Commands.runOnce(() -> shooter.setState(Shooter.State.SPINNING_UP), shooter),
-                Commands.waitUntil(shooter::isAtTargetSpeed),
-                feedPhase)
-                .finallyDo((interrupted) -> shooter.setState(Shooter.State.INACTIVE));
+        Command feedPhaseWithDuration = feedTimeoutSeconds != null
+                ? feedPhase.withTimeout(feedTimeoutSeconds)
+                : feedPhase;
 
-        // Hood positioning without shooter requirement to avoid parallel subsystem conflict
-        Command positionHood = Commands.run(() -> {
-            double distance = targetDistance.getAsDouble();
-            double hoodTarget = TrajectoryManager.getHoodPositionForDistance(distance);
-            double current = shooter.getHoodEncoderRotations();
-            double tolerance = Constants.ShooterConstants.HOOD_TRACKING_TOLERANCE_ROTATIONS;
-            if (hoodTarget > current + tolerance) {
-                shooter.runHoodUp();
-            } else if (hoodTarget < current - tolerance) {
-                shooter.runHoodDown();
-            } else {
-                shooter.stopHood();
-            }
-        }).finallyDo(shooter::stopHood);
-
-        //return shootSequence;
-
-        return Commands.parallel(
-                positionHood,
-                poseManager.trackTargetCommand(driverX, driverY),
-                Commands.waitSeconds(2),
-                shootSequence)
-                
-                .finallyDo((interrupted) -> CommandScheduler.getInstance().schedule(
-                        shooter.hoodToRotationsCommand(Constants.ShooterConstants.POSITION_HOOD_MIN)));
+        return Commands.sequence(
+                        Commands.runOnce(() -> shooter.setState(Shooter.State.SPINNING_UP), shooter),
+                        Commands.waitUntil(shooter::isAtTargetSpeed),
+                        feedPhaseWithDuration)
+                .finallyDo((interrupted) -> {
+                    hopper.setState(Hopper.State.INACTIVE);
+                    shooter.setState(Shooter.State.INACTIVE);
+                    intake.setState(Intake.State.EXTENDED_IDLE);
+                    CommandScheduler.getInstance().schedule(
+                            shooter.hoodToRotationsCommand(Constants.ShooterConstants.POSITION_HOOD_MIN));
+                });
     }
 
-    
+
+
+
+
+   /** DO-ALL-THE-THINGS SHOOTER COMMAND
+    * While held: first sets shooter SPINNING_UP, waits until flywheel is at target speed (within 5%),
+    * then runs shooter SHOOTING + hopper FEEDING. Tracks target and positions hood for the entire duration.
+    * On release: stop feeder, shooter INACTIVE, intake EXTENDED_IDLE.
+    */
+    // private Command shootCommand() {
+    //     DoubleSupplier targetDistance = () -> drivetrain.getRobotToPointTranslation(
+    //             Constants.FieldConstants.getTargetForPose(drivetrain.getLocalizer().getPose())).getNorm();
+
+    //     Command jiggleSequence = Commands.sequence(
+    //             Commands.waitSeconds(1.0),
+    //             Commands.sequence(
+    //                     Commands.runOnce(() -> intake.setState(Intake.State.FEED_JIGGLE_LOW)),
+    //                     Commands.waitSeconds(0.3),
+    //                     Commands.runOnce(() -> intake.setState(Intake.State.FEED_JIGGLE_HIGH)),
+    //                     Commands.waitSeconds(0.3))
+    //                     .repeatedly()
+    //                     .until(() -> hopper.state != Hopper.State.FEEDING));
+
+    //     Command feedPhase = Commands.parallel(
+    //             Commands.startEnd(
+    //                     () -> {
+    //                         shooter.setState(Shooter.State.SHOOTING);
+    //                         hopper.setState(Hopper.State.FEEDING);
+    //                     },
+    //                     () -> {
+    //                         hopper.setState(Hopper.State.INACTIVE);
+    //                         shooter.setState(Shooter.State.INACTIVE);
+    //                         intake.setState(Intake.State.EXTENDED_IDLE);
+    //                     },
+    //                     shooter, hopper, intake),
+    //             jiggleSequence);
+
+    //     Command shootSequence = Commands.sequence(
+    //             Commands.runOnce(() -> shooter.setState(Shooter.State.SPINNING_UP), shooter),
+    //             Commands.waitUntil(shooter::isAtTargetSpeed),
+    //             feedPhase)
+    //             .finallyDo((interrupted) -> shooter.setState(Shooter.State.INACTIVE));
+
+    //     // Hood positioning without shooter requirement to avoid parallel subsystem conflict
+    //     Command positionHood = Commands.run(() -> {
+    //         double distance = targetDistance.getAsDouble();
+    //         double hoodTarget = TrajectoryManager.getHoodPositionForDistance(distance);
+    //         double current = shooter.getHoodEncoderRotations();
+    //         double tolerance = Constants.ShooterConstants.HOOD_TRACKING_TOLERANCE_ROTATIONS;
+    //         if (hoodTarget > current + tolerance) {
+    //             shooter.runHoodUp();
+    //         } else if (hoodTarget < current - tolerance) {
+    //             shooter.runHoodDown();
+    //         } else {
+    //             shooter.stopHood();
+    //         }
+    //     }).finallyDo(shooter::stopHood);
+
+    //     //return shootSequence;
+
+    //     return Commands.parallel(
+    //             positionHood,
+    //             poseManager.trackTargetCommand(driverX, driverY),
+    //             Commands.waitSeconds(2),
+    //             shootSequence)
+                
+    //             .finallyDo((interrupted) -> CommandScheduler.getInstance().schedule(
+    //                     shooter.hoodToRotationsCommand(Constants.ShooterConstants.POSITION_HOOD_MIN)));
+    // }
+
+
+    /**
+     * One-time aim: rotate to face target and position hood for distance. Both run in parallel until complete.
+     */
+    private Command aimCommand() {
+        return Commands.defer(() -> {
+            Pose2d pose = drivetrain.getLocalizer().getPose();
+            Translation2d target = Constants.FieldConstants.getTargetForPose(pose);
+            double distance = drivetrain.getRobotToPointTranslation(target).getNorm();
+            double hoodTarget = TrajectoryManager.getHoodPositionForDistance(distance);
+
+            Command rotateCmd = poseManager.rotateToPointCommand(target);
+            Command hoodCmd = shooter.hoodToRotationsCommand(hoodTarget);
+
+            return Commands.parallel(rotateCmd, hoodCmd);
+        }, Set.of(drivetrain, shooter));
+    }
+
+    /**
+     * Positions hood based on distance to target for current pose. Distance is re-evaluated each cycle.
+     * Uses getTargetForPose(pose) to determine target, then delegates to shooter.
+     */
+    public Command positionHoodForTargetCommand() {
+        return shooter.positionHoodForTargetCommand(() ->
+                drivetrain.getRobotToPointTranslation(
+                        Constants.FieldConstants.getTargetForPose(drivetrain.getLocalizer().getPose())).getNorm());
+    }
 
     public Drivetrain getDrivetrain() {
         return drivetrain;

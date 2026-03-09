@@ -517,9 +517,9 @@ public class Vision extends SubsystemBase {
 
         // Fused pose (odometry + vision): X, Y, yaw - always log for dashboard
         if (fusedPose != null) {
-            BreakerLog.log("Vision/FusedPose/X", fusedPose.getX());
-            BreakerLog.log("Vision/FusedPose/Y", fusedPose.getY());
-            BreakerLog.log("Vision/FusedPose/YawDeg", fusedPose.getRotation().getDegrees());
+            BreakerLog.log("Vision/FusedPose/X", fusedPose.getX(), true);
+            BreakerLog.log("Vision/FusedPose/Y", fusedPose.getY(), true);
+            BreakerLog.log("Vision/FusedPose/YawDeg", fusedPose.getRotation().getDegrees(), true);
         }
 
         double phoenixNow = Utils.getCurrentTimeSeconds();
@@ -585,25 +585,25 @@ public class Vision extends SubsystemBase {
             BreakerLog.log("Vision/FrontCamera/Pose", frontPoseStr);
             BreakerLog.log("Vision/FrontCamera/TrustScore", frontTrustScore);
             BreakerLog.log("Vision/FrontCamera/DistToFusedM", frontDistToFused);
-            BreakerLog.log("Vision/FrontCamera/Status", frontCameraStatus);
             BreakerLog.log("Vision/FrontCamera/LastRejection", frontCameraLastRejection);
 
             BreakerLog.log("Vision/BackLeftCamera/Tags", backLeftTagsStr);
             BreakerLog.log("Vision/BackLeftCamera/Pose", backLeftPoseStr);
             BreakerLog.log("Vision/BackLeftCamera/TrustScore", backLeftTrustScore);
             BreakerLog.log("Vision/BackLeftCamera/DistToFusedM", backLeftDistToFused);
-            BreakerLog.log("Vision/BackLeftCamera/Status", backLeftCameraStatus);
             BreakerLog.log("Vision/BackLeftCamera/LastRejection", backLeftCameraLastRejection);
 
             BreakerLog.log("Vision/BackRightCamera/Tags", backRightTagsStr);
             BreakerLog.log("Vision/BackRightCamera/Pose", backRightPoseStr);
             BreakerLog.log("Vision/BackRightCamera/TrustScore", backRightTrustScore);
             BreakerLog.log("Vision/BackRightCamera/DistToFusedM", backRightDistToFused);
-            BreakerLog.log("Vision/BackRightCamera/Status", backRightCameraStatus);
             BreakerLog.log("Vision/BackRightCamera/LastRejection", backRightCameraLastRejection);
-
-            BreakerLog.log("Vision/FusedPose/Pose", fusedPoseStr);
         }
+
+        BreakerLog.log("Vision/FrontCamera/Status", frontCameraStatus, true);
+        BreakerLog.log("Vision/BackLeftCamera/Status", backLeftCameraStatus, true);
+        BreakerLog.log("Vision/BackRightCamera/Status", backRightCameraStatus, true);
+        BreakerLog.log("Vision/FusedPose/Pose", fusedPoseStr, true);
 
         double imuYawForLog = Double.NaN;
         try {
