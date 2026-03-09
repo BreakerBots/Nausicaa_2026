@@ -75,6 +75,9 @@ public class Shooter extends SubsystemBase {
                 .withStatorCurrentLimit(Constants.ShooterConstants.HOOD_STATOR_CURRENT_LIMIT)
                 .withStatorCurrentLimitEnable(true);
         hoodMotor.getConfigurator().apply(hoodConfig);
+        slot0.kP = Constants.ShooterConstants.SHOOTER_kP;
+        slot0.kI = Constants.ShooterConstants.SHOOTER_kI;
+        slot0.kD = Constants.ShooterConstants.SHOOTER_kD;
     }
 
 

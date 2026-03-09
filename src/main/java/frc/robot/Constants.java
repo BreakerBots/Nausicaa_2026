@@ -290,7 +290,7 @@ public final class Constants {
         public static final int HOOD_ENCODER_ID = 35;
 
         /** CANcoder: offset so position reads POSITION_HOOD_DOWN when hood is physically down. Calibrate via Phoenix Tuner. */
-        public static final double HOOD_ENCODER_OFFSET_ROTATIONS = 0.417236328125;
+        public static final double HOOD_ENCODER_OFFSET_ROTATIONS = 0.417236328125; //0.423095703125
         /** CANcoder: 0.5 = ±180° range. Set so discontinuity is outside mechanism travel. */
         public static final double HOOD_ENCODER_DISCONTINUITY = 0.5;
 
@@ -313,8 +313,9 @@ public final class Constants {
         public static final double SPEED_HOOD_UP = -0.2; //-0.2
         public static final double SPEED_HOOD_DOWN = 0.3; // 0.3
         public static final double AUTO_SPEED_HOOD_DOWN = -0.3;
-        public static final double POSITION_HOOD_MIN = -0.002197; //-0.002197
+        public static final double POSITION_HOOD_MIN = -0.005859; //-0.002197
         public static final double POSITION_HOOD_MAX = 0.477295; //0.477295
+        public static final double POSITION_HOOD_LATCH = 0.210205;
         /** Deadband (rotations) for hood tracking; prevents oscillation when near target. */
         public static final double HOOD_TRACKING_TOLERANCE_ROTATIONS = 0.005;
 
@@ -460,6 +461,8 @@ public final class Constants {
         public static final double NAVIGATE_TO_POSE_MAX_DISTANCE_METERS = 5.0;
 
         public static final double RANGE_TO_TARGET_TOLERANCE = 0.1; // Close enough to target distance, meters
+        /** Time (s) to track target before allowing spin-up in shootCommand. */
+        public static final double TRACK_BEFORE_SHOOT_TIMEOUT = 1.0;
         public static final double RANGE_TO_TARGET_MAX_DISTANCE = 5.0; // Maximum distance to target, meters
         /** Proportional gain for range-to-target: position error (m) → velocity (m/s). Matches PathPlanner translation for consistency. */
         public static final double RANGE_TO_TARGET_KP = 2.0;

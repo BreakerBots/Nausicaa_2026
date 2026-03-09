@@ -169,13 +169,13 @@ public class RobotContainer {
             drivetrain.setDefaultCommand(drivetrain.getTeleopControlCommand(driverX, driverY, driverOmega, Constants.DriveConstants.TELEOP_CONTROL_CONFIG));
         
             // LEFT TRIGGER --> Track hub center; driver keeps X/Y, rotation follows hub; hood tracks distance
-            DoubleSupplier targetDistance = () -> drivetrain.getRobotToPointTranslation(
-                    Constants.FieldConstants.getTargetForPose(drivetrain.getLocalizer().getPose())).getNorm();
-            controller.getLeftTrigger().whileTrue(
-                //drivetrain.getLocalizer().resetPose(new Pose2d(0,0, Rotation2d.fromRotations(0.0))))
-                    //  .andThen(poseManager.trackLeftTriggerTargetCommand(driverX, driverY)
-                poseManager.trackTargetCommand(driverX, driverY)
-                    .alongWith(shooter.positionHoodForTargetCommand(targetDistance)));
+            // DoubleSupplier targetDistance = () -> drivetrain.getRobotToPointTranslation(
+            //         Constants.FieldConstants.getTargetForPose(drivetrain.getLocalizer().getPose())).getNorm();
+            // controller.getLeftTrigger().whileTrue(
+            //     //drivetrain.getLocalizer().resetPose(new Pose2d(0,0, Rotation2d.fromRotations(0.0))))
+            //         //  .andThen(poseManager.trackLeftTriggerTargetCommand(driverX, driverY)
+            //     poseManager.trackTargetCommand(driverX, driverY)
+            //         .alongWith(shooter.positionHoodForTargetCommand(targetDistance)));
         }
 
 
@@ -371,8 +371,8 @@ public class RobotContainer {
         shooter.setState(Shooter.State.INACTIVE);
         hopper.setState(Hopper.State.INACTIVE);
         // Make sure we drop the hood immediately so that the hopper extends
-        //CommandScheduler.getInstance().schedule(
-        //        shooter.hoodToRotationsCommand(Constants.ShooterConstants.POSITION_HOOD_SETPOINT_HOME));
+        CommandScheduler.getInstance().schedule(
+                shooter.hoodToRotationsCommand(Constants.ShooterConstants.POSITION_HOOD_MIN));
     }
 
     /** Called once when the robot enters teleop. */
@@ -382,7 +382,12 @@ public class RobotContainer {
         shooter.setState(Shooter.State.INACTIVE);
         hopper.setState(Hopper.State.INACTIVE);
         CommandScheduler.getInstance().schedule(
-                shooter.hoodToRotationsCommand(Constants.ShooterConstants.POSITION_HOOD_MIN));
+           shooter.hoodToRotationsCommand(Constants.ShooterConstants.POSITION_HOOD_MIN));
+    }
+
+    public void disabledInit() {
+        CommandScheduler.getInstance().schedule(
+            shooter.hoodToRotationsCommand(Constants.ShooterConstants.POSITION_HOOD_LATCH));
     }
 
 }
