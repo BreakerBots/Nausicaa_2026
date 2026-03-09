@@ -17,6 +17,7 @@ import com.ctre.phoenix6.controls.VelocityVoltage;
 
 import java.util.function.DoubleSupplier;
 
+import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
@@ -216,15 +217,18 @@ public class Shooter extends SubsystemBase {
     }
 
     public Command hoodToRotationsCommand(double targetRotations) {
-    return Commands.either(
-        Commands.run(this::runHoodUp, this)
-            .until(() -> getHoodEncoderRotations() >= targetRotations)
-            .andThen(Commands.runOnce(this::stopHood, this)),
-        Commands.run(this::runHoodDown, this)
-            .until(() -> getHoodEncoderRotations() <= targetRotations)
-            .andThen(Commands.runOnce(this::stopHood, this)),
-        () -> targetRotations > getHoodEncoderRotations()  
-        );
+        double clamped = MathUtil.clamp(targetRotations,
+                Constants.ShooterConstants.POSITION_HOOD_MIN,
+                Constants.ShooterConstants.POSITION_HOOD_MAX);
+        double tolerance = Constants.ShooterConstants.HOOD_TRACKING_TOLERANCE_ROTATIONS;
+        double kP = Constants.ShooterConstants.HOOD_kP;
+        return Commands.run(() -> {
+            double error = clamped - getHoodEncoderRotations();
+            double output = MathUtil.clamp(-kP * error, -1.0, 1.0);
+            hoodMotor.setControl(new DutyCycleOut(output));
+        }, this)
+                .until(() -> Math.abs(getHoodEncoderRotations() - clamped) <= tolerance)
+                .finallyDo(this::stopHood);
     }
 
     

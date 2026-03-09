@@ -318,6 +318,8 @@ public final class Constants {
         public static final double POSITION_HOOD_LATCH = 0.210205;
         /** Deadband (rotations) for hood tracking; prevents oscillation when near target. */
         public static final double HOOD_TRACKING_TOLERANCE_ROTATIONS = 0.005;
+        /** Hood P gain for hoodToRotationsCommand (output = kP * error, clamped to duty cycle). */
+        public static final double HOOD_kP = 2.0;
 
         
         /** Stator current limit (A) for flywheels – protects during spin-up. */
