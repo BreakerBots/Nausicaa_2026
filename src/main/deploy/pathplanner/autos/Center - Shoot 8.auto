@@ -7,37 +7,19 @@
         {
           "type": "path",
           "data": {
-            "pathName": "shoot 8 left"
+            "pathName": "Center - Shoot 8"
           }
         },
         {
           "type": "named",
           "data": {
-            "name": "consolidatePose"
+            "name": "hoodDown"
           }
         },
         {
           "type": "named",
           "data": {
-            "name": "rotateToHub"
-          }
-        },
-        {
-          "type": "named",
-          "data": {
-            "name": "rangeToHub"
-          }
-        },
-        {
-          "type": "named",
-          "data": {
-            "name": "spinUp"
-          }
-        },
-        {
-          "type": "wait",
-          "data": {
-            "waitTime": 2.0
+            "name": "aim"
           }
         },
         {

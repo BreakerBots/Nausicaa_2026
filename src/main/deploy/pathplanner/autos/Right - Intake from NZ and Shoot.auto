@@ -7,31 +7,13 @@
         {
           "type": "path",
           "data": {
-            "pathName": "go to depo 1"
+            "pathName": "Right - Intake from NZ and Shoot"
           }
         },
         {
           "type": "named",
           "data": {
-            "name": "rotateToHub"
-          }
-        },
-        {
-          "type": "named",
-          "data": {
-            "name": "rangeToHub"
-          }
-        },
-        {
-          "type": "named",
-          "data": {
-            "name": "spinUp"
-          }
-        },
-        {
-          "type": "wait",
-          "data": {
-            "waitTime": 2.0
+            "name": "aim"
           }
         },
         {
