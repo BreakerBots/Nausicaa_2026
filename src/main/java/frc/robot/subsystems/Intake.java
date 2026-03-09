@@ -162,16 +162,19 @@ public class Intake extends SubsystemBase {
         double rollerVelocity = rollerMotor.getVelocity().getValueAsDouble();
         String statusMessage = String.format("state=%s pivot=%.3frot tgt=%.3f %.1fvel roller=%.2fcmd %.1fvel",
                 state, pivotPosition, targetPivotRotations, pivotVelocity, state.getSpeed(), rollerVelocity);
-        BreakerLog.log("Intake/Status", statusMessage);
-        BreakerLog.log("Intake/EncoderPosition", pivotEncoder.getAbsolutePosition().getValueAsDouble());
-        // System.out.println("Intake pivot encoder offset:" + pivotEncoder.getAbsolutePosition().getValueAsDouble());
-        BreakerLog.log("Electrical/Intake/roller", rollerMotor);
-        BreakerLog.log("Electrical/Intake/pivot", pivotMotor);
+        BreakerLog.log("Intake/Status", statusMessage, true);
+        BreakerLog.log("Intake/EncoderPosition", pivotEncoder.getAbsolutePosition().getValueAsDouble(), true);
+        if (BreakerLog.isVerboseLogging()) {
+            BreakerLog.log("Electrical/Intake/roller", rollerMotor);
+            BreakerLog.log("Electrical/Intake/pivot", pivotMotor);
+        }
     }
 
     private void setIntakePosition(double positionRotations) {
         targetPivotRotations = positionRotations;
-        BreakerLog.log("Intake/Status", "Setting intake position to " + targetPivotRotations + " rotations");
+        if (BreakerLog.isVerboseLogging()) {
+            BreakerLog.log("Intake/Status", "Setting intake position to " + targetPivotRotations + " rotations");
+        }
         pivotMotor.setControl(new MotionMagicDutyCycle(targetPivotRotations));
     }
 

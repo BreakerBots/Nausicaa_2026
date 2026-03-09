@@ -296,8 +296,10 @@ public class Climb extends SubsystemBase {
         double position = getEncoderRotations();
         double velocity = climbMotor.getVelocity().getValueAsDouble();
         String line = String.format("state=%s pos=%.2f tgt=%.2f %.1fvel", state, position, targetSetpoint, velocity);
-        BreakerLog.log("Climb/Status", line);
-        BreakerLog.log("Electrical/Climb/climb", climbMotor);
-        BreakerLog.log("Climb/Homing", detectHome());
+        BreakerLog.log("Climb/Status", line, true);
+        if (BreakerLog.isVerboseLogging()) {
+            BreakerLog.log("Electrical/Climb/climb", climbMotor);
+            BreakerLog.log("Climb/Homing", detectHome());
+        }
     }
 }

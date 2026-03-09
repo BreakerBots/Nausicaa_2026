@@ -243,10 +243,10 @@ public class Shooter extends SubsystemBase {
         double hoodVel = hoodMotor.getVelocity().getValueAsDouble();
         String line = String.format("state=%s f1=%.1f f2=%.1f f3=%.1fvel hood=%.2frot %.1fvel",
                 state, v1, v2, v3, hoodPos, hoodVel);
-        BreakerLog.log("Shooter/Status", line);
-        BreakerLog.log("Shooter/HoodPosition", hoodPos);
-        BreakerLog.log("Shooter/HoodEncoderPosition", hoodEncoder.getPosition().getValueAsDouble());
-        BreakerLog.log("Shooter/Flywheel1Speed", v1);
+        BreakerLog.log("Shooter/Status", line, true);
+        BreakerLog.log("Shooter/HoodPosition", hoodPos, true);
+        BreakerLog.log("Shooter/HoodEncoderPosition", hoodEncoder.getPosition().getValueAsDouble(), true);
+        BreakerLog.log("Shooter/Flywheel1Speed", v1, true);
         BreakerLog.log("Shooter/Flywheel2Speed", v2);
         BreakerLog.log("Shooter/Flywheel3Speed", v3);
         BreakerLog.log("Electrical/Shooter/flywheel1", shooterFlywheel1Motor);

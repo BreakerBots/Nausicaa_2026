@@ -41,10 +41,10 @@ public final class MatchTimer {
 
         MatchPhase phase = getMatchPhase(matchTime);
 
-        BreakerLog.log("MatchTimer/Time", (double) displaySeconds);
-        BreakerLog.log("MatchTimer/matchTime", matchTime);
-        BreakerLog.log("MatchTimer/Phase", getDriverLabel(phase));
-        BreakerLog.log("MatchTimer/TransitionWarning", getTransitionWarning(phase, displaySeconds));
+        BreakerLog.log("MatchTimer/Time", (double) displaySeconds, true);
+        BreakerLog.log("MatchTimer/Phase", getDriverLabel(phase), true);
+        BreakerLog.log("MatchTimer/matchTime", matchTime, true);
+        BreakerLog.log("MatchTimer/TransitionWarning", getTransitionWarning(phase, displaySeconds), true);
     }
 
     public static MatchPhase getMatchPhase(double matchTime) {

@@ -349,12 +349,12 @@ public class RobotContainer {
 
 
     public void logPeriodic() {
-        BreakerLog.log("SwerveDrivetrain/SafetyMode", safetyMode);
-        BreakerLog.log("SwerveDrivetrain/SlowMode", slowMode);
+        BreakerLog.log("SwerveDrivetrain/SafetyMode", safetyMode, true);
+        BreakerLog.log("SwerveDrivetrain/SlowMode", slowMode, true);
         BreakerLog.log("DistanceToTarget", drivetrain.getRobotToPointTranslation(
-                Constants.FieldConstants.getTargetForPose(drivetrain.getLocalizer().getPose())).getNorm());
+                Constants.FieldConstants.getTargetForPose(drivetrain.getLocalizer().getPose())).getNorm(), true);
         BreakerLog.log("DistanceFromRobotFrontToTarget", drivetrain.getRobotToPointTranslation(
-                Constants.FieldConstants.getTargetForPose(drivetrain.getLocalizer().getPose())).getNorm() - 0.39878);
+                Constants.FieldConstants.getTargetForPose(drivetrain.getLocalizer().getPose())).getNorm() - 0.39878, true);
         MatchTimer.update();
     }
 

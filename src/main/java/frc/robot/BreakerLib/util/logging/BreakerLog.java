@@ -5,6 +5,8 @@
 package frc.robot.BreakerLib.util.logging;
 
 import java.util.ArrayList;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import com.ctre.phoenix6.CANBus;
 import com.ctre.phoenix6.CANBus.CANBusStatus;
@@ -26,6 +28,7 @@ import edu.wpi.first.math.util.Units;
 import edu.wpi.first.units.Measure;
 import edu.wpi.first.wpilibj.Alert;
 import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.util.WPILibVersion;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.Subsystem;
@@ -54,12 +57,20 @@ import frc.robot.BreakerLib.util.BreakerLibVersion;
 * - When false: Reduces noise from frequent telemetry (joysticks, sensors, etc.)
 * - When true: Enables detailed debugging information
 * - Default: false (set in RobotContainer based on match status)
+*
+* THROTTLED LOGGING:
+* - Use log(key, value, true) to throttle high-frequency logs to twice per second
+* - When the throttle flag is true, only the first log per key per 0.5s is forwarded
 */
 public class BreakerLog extends DogLog implements Subsystem {
     private static ArrayList<CANBus> loggedCANBuses = new ArrayList<>();
 
     /** Global verbose logging control - when false, high-frequency logging is disabled */
     private static boolean verboseLogging = true;
+
+    /** Interval (seconds) for throttled logs - limits to 2 Hz per key */
+    private static final double THROTTLE_INTERVAL_SEC = 0.5;
+    private static final Map<String, Double> lastThrottledLogTime = new ConcurrentHashMap<>();
 
     private BreakerLog() {
         CommandScheduler.getInstance().registerSubsystem(this);
@@ -86,6 +97,34 @@ public class BreakerLog extends DogLog implements Subsystem {
         log(level.name() + "/" + key, message);
     }
 
+    /**
+     * Log a value with optional throttling. When throttle is true, only logs at most twice per second per key.
+     * Use for high-frequency periodic logs (e.g. subsystem status) to reduce dashboard load.
+     */
+    public static void log(String key, Object value, boolean throttle) {
+        if (!throttle) {
+            logToParent(key, value);
+            return;
+        }
+        double now = Timer.getFPGATimestamp();
+        Double last = lastThrottledLogTime.get(key);
+        if (last == null || now - last >= THROTTLE_INTERVAL_SEC) {
+            lastThrottledLogTime.put(key, now);
+            logToParent(key, value);
+        }
+    }
+
+    private static void logToParent(String key, Object value) {
+        if (value instanceof String s) {
+            DogLog.log(key, s);
+        } else if (value instanceof Boolean b) {
+            DogLog.log(key, b);
+        } else if (value instanceof Number n) {
+            DogLog.log(key, n.doubleValue());
+        } else {
+            DogLog.log(key, value == null ? "null" : value.toString());
+        }
+    }
 
     public static void log(String key, Measure<?> value) {
         log(key + "/Value", value.magnitude());
