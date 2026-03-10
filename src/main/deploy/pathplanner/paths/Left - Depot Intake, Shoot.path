@@ -8,24 +8,24 @@
       },
       "prevControl": null,
       "nextControl": {
-        "x": 3.3533095577746077,
-        "y": 5.684679029957205
+        "x": 2.7367894392912437,
+        "y": 5.9272209778311185
       },
       "isLocked": false,
       "linkedName": null
     },
     {
       "anchor": {
-        "x": 0.933,
+        "x": 0.7,
         "y": 5.943452211126962
       },
       "prevControl": {
-        "x": -0.06699999999999995,
-        "y": 5.943452211126962
+        "x": 0.2074156735432141,
+        "y": 5.983567209282403
       },
       "nextControl": {
-        "x": 1.932999999999999,
-        "y": 5.943452211126962
+        "x": 1.393527598906097,
+        "y": 5.886972829107271
       },
       "isLocked": false,
       "linkedName": null
@@ -36,24 +36,24 @@
         "y": 5.658801711840229
       },
       "prevControl": {
-        "x": 1.9143839858919187,
-        "y": 5.985002604692959
+        "x": 1.3807494074707214,
+        "y": 6.1470126453883305
       },
       "nextControl": {
-        "x": 2.6158059914407987,
-        "y": 5.283580599144082
+        "x": 3.081433942352729,
+        "y": 5.181371180032865
       },
       "isLocked": false,
       "linkedName": null
     },
     {
       "anchor": {
-        "x": 2.654621968616262,
-        "y": 4.080285306704707
+        "x": 3.075363636363636,
+        "y": 5.220284090909091
       },
       "prevControl": {
-        "x": 2.404945539731115,
-        "y": 4.093000685549247
+        "x": 2.451035465466318,
+        "y": 5.414266185250184
       },
       "nextControl": null,
       "isLocked": false,
@@ -73,8 +73,8 @@
   "constraintZones": [
     {
       "name": "Constraints Zone",
-      "minWaypointRelativePos": 0.4591492234976473,
-      "maxWaypointRelativePos": 1.7015530047265095,
+      "minWaypointRelativePos": 0.5975935828877006,
+      "maxWaypointRelativePos": 0.8983957219251303,
       "constraints": {
         "maxVelocity": 0.6,
         "maxAcceleration": 1.0,
@@ -109,7 +109,7 @@
   },
   "goalEndState": {
     "velocity": 0,
-    "rotation": 0.0
+    "rotation": -36.55461953304679
   },
   "reversed": false,
   "folder": "2026 - Rebuilt",

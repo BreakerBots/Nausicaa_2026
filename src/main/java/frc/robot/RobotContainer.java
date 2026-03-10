@@ -80,7 +80,8 @@ public class RobotContainer {
         //NamedCommands.registerCommand("rangeToHub", Commands.defer(() -> poseManager.rangeToPointCommand(Constants.FieldConstants.getTargetHubCenter(), 2.0), Set.of(drivetrain)));
         NamedCommands.registerCommand("wait", Commands.waitSeconds(1.0));
         NamedCommands.registerCommand("spinUp", Commands.defer(() -> shooter.setStateCommand(Shooter.State.SPINNING_UP), Set.of(shooter)));
-        NamedCommands.registerCommand("aim", Commands.defer(() -> aimCommand(), Set.of(drivetrain, shooter)));
+        // Use aimCommand() directly; it already uses Commands.defer internally.
+        NamedCommands.registerCommand("aim", aimCommand());
         NamedCommands.registerCommand("shoot", Commands.defer(() -> shootForAutoCommand(), Set.of(shooter, hopper, intake)));
         //NamedCommands.registerCommand("stopShoot", Commands.defer(() -> shooter.setStateCommand(Shooter.State.INACTIVE), Set.of(shooter)));
         NamedCommands.registerCommand("intake", Commands.defer(() -> intake.setStateCommand(Intake.State.EXTENDED_INTAKING), Set.of(intake)));
@@ -340,9 +341,11 @@ public class RobotContainer {
                 ? feedPhase.withTimeout(feedTimeoutSeconds)
                 : feedPhase;
 
+        // Spin up, but don't wait forever for flywheels to reach target speed.
+        // If they aren't at speed within the timeout, we proceed anyway.
         return Commands.sequence(
                         Commands.runOnce(() -> shooter.setState(Shooter.State.SPINNING_UP), shooter),
-                        Commands.waitUntil(shooter::isAtTargetSpeed),
+                        Commands.waitUntil(shooter::isAtTargetSpeed).withTimeout(2.0),
                         feedPhaseWithDuration)
                 .finallyDo((interrupted) -> {
                     hopper.setState(Hopper.State.INACTIVE);
@@ -438,7 +441,7 @@ public class RobotContainer {
             Command hoodCmd = shooter.hoodToRotationsCommand(hoodTarget);
 
             return Commands.parallel(rotateCmd, hoodCmd);
-        }, Set.of(drivetrain, shooter));
+        }, Set.of(drivetrain, shooter)).withTimeout(2.0);
     }
 
     /**

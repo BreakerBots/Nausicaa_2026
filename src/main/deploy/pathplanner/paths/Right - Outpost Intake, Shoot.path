@@ -8,23 +8,23 @@
       },
       "prevControl": null,
       "nextControl": {
-        "x": 2.4476034236804565,
-        "y": 0.5997860199714709
+        "x": 2.447427979069878,
+        "y": 0.6199999999999999
       },
       "isLocked": false,
       "linkedName": null
     },
     {
       "anchor": {
-        "x": 0.933,
+        "x": 1.034613636363639,
         "y": 0.62
       },
       "prevControl": {
-        "x": -0.06699999999999995,
+        "x": 0.0346136363636389,
         "y": 0.6200000000000001
       },
       "nextControl": {
-        "x": 1.932999999999999,
+        "x": 2.0346136363636376,
         "y": 0.62
       },
       "isLocked": false,
@@ -46,21 +46,17 @@
   ],
   "rotationTargets": [
     {
-      "waypointRelativePos": 0.17484008528785058,
-      "rotationDegrees": 180.0
-    },
-    {
-      "waypointRelativePos": 1.5735607675905783,
+      "waypointRelativePos": 0.7,
       "rotationDegrees": 180.0
     }
   ],
   "constraintZones": [
     {
       "name": "Constraints Zone",
-      "minWaypointRelativePos": 0.4591492234976473,
-      "maxWaypointRelativePos": 1.7,
+      "minWaypointRelativePos": 0.5855614973262033,
+      "maxWaypointRelativePos": 0.8716577540106922,
       "constraints": {
-        "maxVelocity": 1.5,
+        "maxVelocity": 0.6,
         "maxAcceleration": 1.0,
         "maxAngularVelocity": 540.0,
         "maxAngularAcceleration": 720.0,
@@ -73,18 +69,7 @@
   "eventMarkers": [
     {
       "name": "wait",
-      "waypointRelativePos": 0.6563133018230858,
-      "endWaypointRelativePos": null,
-      "command": {
-        "type": "named",
-        "data": {
-          "name": "wait"
-        }
-      }
-    },
-    {
-      "name": "wait",
-      "waypointRelativePos": 0.6644159351789273,
+      "waypointRelativePos": 0.7,
       "endWaypointRelativePos": null,
       "command": {
         "type": "named",
@@ -104,13 +89,13 @@
   },
   "goalEndState": {
     "velocity": 0,
-    "rotation": 0.0
+    "rotation": 42.73134770593227
   },
   "reversed": false,
   "folder": "2026 - Rebuilt",
   "idealStartingState": {
     "velocity": 0,
-    "rotation": 0.0
+    "rotation": -179.36480849789174
   },
   "useDefaultConstraints": true
 }

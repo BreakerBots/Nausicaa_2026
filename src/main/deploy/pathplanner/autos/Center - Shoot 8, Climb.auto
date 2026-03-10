@@ -13,12 +13,6 @@
         {
           "type": "named",
           "data": {
-            "name": "hoodDown"
-          }
-        },
-        {
-          "type": "named",
-          "data": {
             "name": "aim"
           }
         },
@@ -31,7 +25,7 @@
         {
           "type": "path",
           "data": {
-            "pathName": "Shoot 8 - Climb"
+            "pathName": "Center - Shoot 8 - Climb"
           }
         },
         {
