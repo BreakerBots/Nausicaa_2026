@@ -89,6 +89,13 @@ public class RobotContainer {
         NamedCommands.registerCommand("hoodDown", Commands.defer(() -> shooter.hoodToRotationsCommand(Constants.ShooterConstants.POSITION_HOOD_MIN), Set.of(shooter)));
         NamedCommands.registerCommand("unclog", Commands.defer(() -> unclogCommand().withTimeout(3.0), Set.of(hopper, intake)));
         
+        // not tested yet...
+        NamedCommands.registerCommand("alignToClimb", Commands.defer(() -> poseManager.navigateToPoseCommand(Constants.FieldConstants.getTargetClimbingPose()), Set.of(drivetrain)));
+        NamedCommands.registerCommand("cExtend", Commands.defer(() -> climb.extend(), Set.of(climb)));
+        NamedCommands.registerCommand("cRetract", Commands.defer(() -> climb.retract(), Set.of(climb)));
+        NamedCommands.registerCommand("cAscend", Commands.defer(() -> climb.ascend(), Set.of(climb)));
+        NamedCommands.registerCommand("cDescend", Commands.defer(() -> climb.descend(), Set.of(climb)));
+
         // Set up our auto-chooser    
         if (AutoBuilder.isConfigured()) {
             // Looks for autos in /src/main/deploy/pathplanner/autos/

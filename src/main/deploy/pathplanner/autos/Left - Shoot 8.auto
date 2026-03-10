@@ -9,11 +9,23 @@
           "data": {
             "pathName": "Left - Shoot 8"
           }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "aim"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "shoot"
+          }
         }
       ]
     }
   },
   "resetOdom": true,
-  "folder": null,
+  "folder": "2026 - Rebuilt",
   "choreoAuto": false
 }

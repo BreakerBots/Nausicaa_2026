@@ -192,6 +192,14 @@ public final class Constants {
             }
         }
 
+        public static Pose2d getTargetClimbingPose() {
+            if (isRedAlliance()) {
+                return POSE_CLIMBING_RED_TOWER_LEFT;
+            } else {
+                return POSE_CLIMBING_BLUE_TOWER_LEFT;
+            }
+        }
+
         /** Returns the tracking target for the based on robot pose and alliance.
         * In alliance zone: hub center. Outside AZ: left/right AZ target based on Y. */
         public static Translation2d getTargetForPose(Pose2d pose) {
