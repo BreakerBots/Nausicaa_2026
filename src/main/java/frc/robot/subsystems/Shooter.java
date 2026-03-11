@@ -217,6 +217,7 @@ public class Shooter extends SubsystemBase {
     }
 
     public Command hoodToRotationsCommand(double targetRotations) {
+        System.out.println("Ran hoodToRotations!");
         double clamped = MathUtil.clamp(targetRotations,
                 Constants.ShooterConstants.POSITION_HOOD_MIN,
                 Constants.ShooterConstants.POSITION_HOOD_MAX);

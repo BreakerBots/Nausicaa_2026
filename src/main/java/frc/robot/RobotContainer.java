@@ -236,7 +236,7 @@ public class RobotContainer {
 
         // X/Y --> Hood all the way down/up
         controller.getButtonX().onTrue(shooter.hoodToRotationsCommand(Constants.ShooterConstants.POSITION_HOOD_MIN));
-        controller.getButtonY().onTrue(shooter.hoodToRotationsCommand(Constants.ShooterConstants.POSITION_HOOD_MAX));
+        controller.getButtonY().onTrue(shooter.hoodToRotationsCommand(Constants.ShooterConstants.POSITION_HOOD_LATCH));
         
         //controller.getButtonA().whileTrue(
             //Commands.run(hopper::runIndexerCommand, hopper).finallyDo(hopper::stopIndexerCommand));
@@ -300,7 +300,7 @@ public class RobotContainer {
 
     /** Auto shoot: feed phase runs for 6 seconds. */
     private Command shootForAutoCommand() {
-        return shootSequenceCommand(6.0);
+        return shootSequenceCommand(3.0);
     }
 
     /** Teleop shoot: feed phase runs until trigger released. */
@@ -496,9 +496,10 @@ public class RobotContainer {
            shooter.hoodToRotationsCommand(Constants.ShooterConstants.POSITION_HOOD_MIN));
     }
 
-    public void disabledInit() {
-        CommandScheduler.getInstance().schedule(
-            shooter.hoodToRotationsCommand(Constants.ShooterConstants.POSITION_HOOD_LATCH));
-    }
+    // public void disabledInit() {
+    //     System.out.println("Disabled Init!");
+    //     CommandScheduler.getInstance().schedule(
+    //         shooter.hoodToRotationsCommand(Constants.ShooterConstants.POSITION_HOOD_LATCH).ignoringDisable(true));
+    // }
 
 }
