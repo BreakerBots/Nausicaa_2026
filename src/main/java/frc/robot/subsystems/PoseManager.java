@@ -147,81 +147,81 @@ public class PoseManager extends SubsystemBase {
      * Uses the field layout to get the tag's position, then delegates to rotateToPointCommand.
      * Works without vision (odometry-based); tag need not be visible.
      */
-    public Command rotateToTagCommand(int targetTagId) {
-        Translation2d tagPosition = vision.getTagPosition(targetTagId);
-        if (tagPosition == null) {
-            return Commands.none(); // Tag not in field layout
-        }
-        return rotateToPointCommand(tagPosition);
-    }
+    // public Command rotateToTagCommand(int targetTagId) {
+    //     Translation2d tagPosition = vision.getTagPosition(targetTagId);
+    //     if (tagPosition == null) {
+    //         return Commands.none(); // Tag not in field layout
+    //     }
+    //     return rotateToPointCommand(tagPosition);
+    // }
 
     // --------------- MAINTAIN HEADING TO ---------------
 
     /**
      * While run: driver keeps X/Y; rotation is overridden to face the target point (odometry-based).
      */
-    public Command trackPointCommand(Translation2d targetPoint, DoubleSupplier vx, DoubleSupplier vy) {
-        return trackPointCommand(() -> targetPoint, vx, vy);
-    }
+    // public Command trackPointCommand(Translation2d targetPoint, DoubleSupplier vx, DoubleSupplier vy) {
+    //     return trackPointCommand(() -> targetPoint, vx, vy);
+    // }
 
    /**
     * Adjust rotation to always face target AprilTag. The supplier allows us to continually reevaluate this each cycle.
     */
-    public Command trackPointCommand(Supplier<Translation2d> targetSupplier, DoubleSupplier vx, DoubleSupplier vy) {
-        final var request = new SwerveRequest.FieldCentric().withDriveRequestType(DriveRequestType.Velocity);
-        PIDController rotationPID = new PIDController(9, 0.0, 0.1);
-        rotationPID.enableContinuousInput(-Math.PI, Math.PI);
-        double maxRotRate = Constants.DriveConstants.MAXIMUM_ROTATIONAL_VELOCITY.in(Units.RadiansPerSecond);
+    // public Command trackPointCommand(Supplier<Translation2d> targetSupplier, DoubleSupplier vx, DoubleSupplier vy) {
+    //     final var request = new SwerveRequest.FieldCentric().withDriveRequestType(DriveRequestType.Velocity);
+    //     PIDController rotationPID = new PIDController(9, 0.0, 0.1);
+    //     rotationPID.enableContinuousInput(-Math.PI, Math.PI);
+    //     double maxRotRate = Constants.DriveConstants.MAXIMUM_ROTATIONAL_VELOCITY.in(Units.RadiansPerSecond);
 
-        return Commands.run(() -> {
-            Translation2d targetPoint = targetSupplier.get();
-            Translation2d toTarget = drivetrain.getRobotToPointTranslation(targetPoint);
-            double desiredHeading = Math.atan2(toTarget.getY(), toTarget.getX());
-            double currentHeading = drivetrain.getLocalizer().getPose().getRotation().getRadians();
-            double angleError = Math.IEEEremainder(desiredHeading - currentHeading, 2.0 * Math.PI);
-            double omega = rotationPID.calculate(0.0, angleError);
-            omega = Math.max(-maxRotRate, Math.min(maxRotRate, omega));
-            drivetrain.setControl(request
-                .withVelocityX(vx.getAsDouble())
-                .withVelocityY(vy.getAsDouble())
-                .withRotationalRate(omega));
-        }, drivetrain)
-        .finallyDo(() -> {
-            rotationPID.reset();
-            rotationPID.close();
-        });
-    }
+    //     return Commands.run(() -> {
+    //         Translation2d targetPoint = targetSupplier.get();
+    //         Translation2d toTarget = drivetrain.getRobotToPointTranslation(targetPoint);
+    //         double desiredHeading = Math.atan2(toTarget.getY(), toTarget.getX());
+    //         double currentHeading = drivetrain.getLocalizer().getPose().getRotation().getRadians();
+    //         double angleError = Math.IEEEremainder(desiredHeading - currentHeading, 2.0 * Math.PI);
+    //         double omega = rotationPID.calculate(0.0, angleError);
+    //         omega = Math.max(-maxRotRate, Math.min(maxRotRate, omega));
+    //         drivetrain.setControl(request
+    //             .withVelocityX(vx.getAsDouble())
+    //             .withVelocityY(vy.getAsDouble())
+    //             .withRotationalRate(omega));
+    //     }, drivetrain)
+    //     .finallyDo(() -> {
+    //         rotationPID.reset();
+    //         rotationPID.close();
+    //     });
+    // }
 
     /**
       * When in our AZ, track the hub. When outside, track one of two passing targets.
       */
-    public Command trackTargetCommand(DoubleSupplier vx, DoubleSupplier vy) {
-        return trackPointCommand(() -> {
-            Pose2d pose = drivetrain.getLocalizer().getPose();
-               Translation2d target = Constants.FieldConstants.getTargetForPose(pose);
-               BreakerLog.log("PoseManager/TargetForPose", target);
-               return target;
-        },
-        vx, vy);
-    }
+    // public Command trackTargetCommand(DoubleSupplier vx, DoubleSupplier vy) {
+    //     return trackPointCommand(() -> {
+    //         Pose2d pose = drivetrain.getLocalizer().getPose();
+    //            Translation2d target = Constants.FieldConstants.getTargetForPose(pose);
+    //            BreakerLog.log("PoseManager/TargetForPose", target);
+    //            return target;
+    //     },
+    //     vx, vy);
+    // }
 
     /**
      * Adjust rotation to always face target AprilTag.
      */
-    public Command trackTargetCommand(int targetTagId, DoubleSupplier vx, DoubleSupplier vy) {
-        Translation2d tagPosition = vision.getTagPosition(targetTagId);
-        if (tagPosition == null) {
-            return Commands.none(); // Tag not in field layout
-        }
-        return trackPointCommand(tagPosition, vx, vy);
-    }
+    // public Command trackTargetCommand(int targetTagId, DoubleSupplier vx, DoubleSupplier vy) {
+    //     Translation2d tagPosition = vision.getTagPosition(targetTagId);
+    //     if (tagPosition == null) {
+    //         return Commands.none(); // Tag not in field layout
+    //     }
+    //     return trackPointCommand(tagPosition, vx, vy);
+    // }
 
     /**
      * Adjust rotation to always face our Hub.
      */
-    public Command trackHubCenterCommand(DoubleSupplier vx, DoubleSupplier vy) {
-        return trackPointCommand(Constants.FieldConstants.getTargetHubCenter(), vx, vy);
-    }
+    // public Command trackHubCenterCommand(DoubleSupplier vx, DoubleSupplier vy) {
+    //     return trackPointCommand(Constants.FieldConstants.getTargetHubCenter(), vx, vy);
+    // }
 
     // --------------- RANGE TO ---------------
 
@@ -233,25 +233,14 @@ public class PoseManager extends SubsystemBase {
         final double kP = Constants.DriveConstants.RANGE_TO_TARGET_KP;
         final double maxVelocity = Constants.DriveConstants.MAXIMUM_TRANSLATIONAL_VELOCITY.in(Units.MetersPerSecond);
         final var request = new SwerveRequest.FieldCentric().withDriveRequestType(DriveRequestType.Velocity);
-        final boolean[] hasLogged = {false};
 
         return Commands.run(() -> {
-            if (!hasLogged[0]) {
-                var allianceOpt = edu.wpi.first.wpilibj.DriverStation.getAlliance();
-                String allianceRaw = allianceOpt.isPresent() ? allianceOpt.get().toString() : "EMPTY";
-                BreakerLog.log("RangeToPoint/alliance", Constants.FieldConstants.isRedAlliance() ? "RED" : "BLUE");
-                BreakerLog.log("RangeToPoint/allianceRaw", allianceRaw);
-                BreakerLog.log("RangeToPoint/targetPoint", targetPoint.toString());
-                BreakerLog.log("RangeToPoint/targetDistanceMeters", targetDistanceMeters);
-                BreakerLog.log("RangeToPoint/robotPose", drivetrain.getLocalizer().getPose().toString());
-                hasLogged[0] = true;
-            }
             Translation2d toTarget = drivetrain.getRobotToPointTranslation(targetPoint);
             double currentDistanceMeters = toTarget.getNorm();
             double remainingMeters = currentDistanceMeters - targetDistanceMeters;
             double velocityMagnitude = Math.max(-maxVelocity, Math.min(maxVelocity, kP * remainingMeters));
-            // Counteract operator perspective (180° for red): 
-            // drivetrain rotates field-centric velocities by operator perspective, 
+            // Counteract operator perspective (180° for red):
+            // drivetrain rotates field-centric velocities by operator perspective,
             // which would invert our direction on red alliance.
             double allianceSignFlip = Constants.FieldConstants.isRedAlliance() ? -1 : 1;
             double velocityX;
@@ -278,85 +267,85 @@ public class PoseManager extends SubsystemBase {
     /**
      * Drives to target distance from the AprilTag. Uses field layout for tag position, delegates to rangeToPointCommand.
      */
-    public Command rangeToTagCommand(int targetTagId, double targetDistanceMeters) {
-        Translation2d tagPosition = vision.getTagPosition(targetTagId);
-        if (tagPosition == null) {
-            return Commands.none(); // Tag not in field layout
-        }
-        return rangeToPointCommand(tagPosition, targetDistanceMeters);
-    }
+    // public Command rangeToTagCommand(int targetTagId, double targetDistanceMeters) {
+    //     Translation2d tagPosition = vision.getTagPosition(targetTagId);
+    //     if (tagPosition == null) {
+    //         return Commands.none(); // Tag not in field layout
+    //     }
+    //     return rangeToPointCommand(tagPosition, targetDistanceMeters);
+    // }
 
     // --------------- COMBINATIONS: ROTATE AND RANGE ---------------
 
     /**
      * Drives to target distance from a point while maintaining heading toward the point.
      */
-    public Command trackAndRangeToPointCommand(Translation2d targetPoint, double targetDistanceMeters) {
-        final double toleranceMeters = Constants.DriveConstants.RANGE_TO_TARGET_TOLERANCE;
-        final double kP = Constants.DriveConstants.RANGE_TO_TARGET_KP;
-        final double maxVelocity = Constants.DriveConstants.MAXIMUM_TRANSLATIONAL_VELOCITY.in(Units.MetersPerSecond);
-        final double maxRotRate = Constants.DriveConstants.MAXIMUM_ROTATIONAL_VELOCITY.in(Units.RadiansPerSecond);
-        final var request = new SwerveRequest.FieldCentric().withDriveRequestType(DriveRequestType.Velocity);
+    // public Command trackAndRangeToPointCommand(Translation2d targetPoint, double targetDistanceMeters) {
+    //     final double toleranceMeters = Constants.DriveConstants.RANGE_TO_TARGET_TOLERANCE;
+    //     final double kP = Constants.DriveConstants.RANGE_TO_TARGET_KP;
+    //     final double maxVelocity = Constants.DriveConstants.MAXIMUM_TRANSLATIONAL_VELOCITY.in(Units.MetersPerSecond);
+    //     final double maxRotRate = Constants.DriveConstants.MAXIMUM_ROTATIONAL_VELOCITY.in(Units.RadiansPerSecond);
+    //     final var request = new SwerveRequest.FieldCentric().withDriveRequestType(DriveRequestType.Velocity);
 
-        PIDController rotationPID = new PIDController(9, 0.0, 0.1);
-        rotationPID.enableContinuousInput(-Math.PI, Math.PI);
+    //     PIDController rotationPID = new PIDController(9, 0.0, 0.1);
+    //     rotationPID.enableContinuousInput(-Math.PI, Math.PI);
 
-        return Commands.run(() -> {
-            Pose2d pose = drivetrain.getLocalizer().getPose();
-            Translation2d toTarget = drivetrain.getRobotToPointTranslation(targetPoint);
-            double currentDistanceMeters = toTarget.getNorm();
-            double remainingMeters = currentDistanceMeters - targetDistanceMeters;
-            double velocityMagnitude = Math.max(-maxVelocity, Math.min(maxVelocity, kP * remainingMeters));
+    //     return Commands.run(() -> {
+    //         Pose2d pose = drivetrain.getLocalizer().getPose();
+    //         Translation2d toTarget = drivetrain.getRobotToPointTranslation(targetPoint);
+    //         double currentDistanceMeters = toTarget.getNorm();
+    //         double remainingMeters = currentDistanceMeters - targetDistanceMeters;
+    //         double velocityMagnitude = Math.max(-maxVelocity, Math.min(maxVelocity, kP * remainingMeters));
 
-            double velocityX;
-            double velocityY;
-            double omega;
-            if (currentDistanceMeters > 1e-6) {
-                velocityX = (toTarget.getX() / currentDistanceMeters) * velocityMagnitude;
-                velocityY = (toTarget.getY() / currentDistanceMeters) * velocityMagnitude;
-                double desiredHeading = Math.atan2(toTarget.getY(), toTarget.getX());
-                double currentHeading = pose.getRotation().getRadians();
-                double angleError = Math.IEEEremainder(desiredHeading - currentHeading, 2.0 * Math.PI);
-                omega = rotationPID.calculate(0.0, angleError);
-            } else {
-                // At target: drive in robot's heading to escape
-                double heading = pose.getRotation().getRadians();
-                velocityX = Math.cos(heading) * velocityMagnitude;
-                velocityY = Math.sin(heading) * velocityMagnitude;
-                omega = 0.0;
-            }
-            omega = Math.max(-maxRotRate, Math.min(maxRotRate, omega));
-            drivetrain.setControl(request.withVelocityX(velocityX).withVelocityY(velocityY).withRotationalRate(omega));
-        }, drivetrain)
-        .until(() -> {
-            double currentDistanceMeters = drivetrain.getRobotToPointTranslation(targetPoint).getNorm();
-            return Math.abs(currentDistanceMeters - targetDistanceMeters) <= toleranceMeters;
-        })
-        .withTimeout(5.0)
-        .finallyDo((interrupted) -> {
-            rotationPID.reset();
-            rotationPID.close();
-            drivetrain.setControl(request.withVelocityX(0.0).withVelocityY(0.0).withRotationalRate(0.0));
-        });
-    }
+    //         double velocityX;
+    //         double velocityY;
+    //         double omega;
+    //         if (currentDistanceMeters > 1e-6) {
+    //             velocityX = (toTarget.getX() / currentDistanceMeters) * velocityMagnitude;
+    //             velocityY = (toTarget.getY() / currentDistanceMeters) * velocityMagnitude;
+    //             double desiredHeading = Math.atan2(toTarget.getY(), toTarget.getX());
+    //             double currentHeading = pose.getRotation().getRadians();
+    //             double angleError = Math.IEEEremainder(desiredHeading - currentHeading, 2.0 * Math.PI);
+    //             omega = rotationPID.calculate(0.0, angleError);
+    //         } else {
+    //             // At target: drive in robot's heading to escape
+    //             double heading = pose.getRotation().getRadians();
+    //             velocityX = Math.cos(heading) * velocityMagnitude;
+    //             velocityY = Math.sin(heading) * velocityMagnitude;
+    //             omega = 0.0;
+    //         }
+    //         omega = Math.max(-maxRotRate, Math.min(maxRotRate, omega));
+    //         drivetrain.setControl(request.withVelocityX(velocityX).withVelocityY(velocityY).withRotationalRate(omega));
+    //     }, drivetrain)
+    //     .until(() -> {
+    //         double currentDistanceMeters = drivetrain.getRobotToPointTranslation(targetPoint).getNorm();
+    //         return Math.abs(currentDistanceMeters - targetDistanceMeters) <= toleranceMeters;
+    //     })
+    //     .withTimeout(5.0)
+    //     .finallyDo((interrupted) -> {
+    //         rotationPID.reset();
+    //         rotationPID.close();
+    //         drivetrain.setControl(request.withVelocityX(0.0).withVelocityY(0.0).withRotationalRate(0.0));
+    //     });
+    // }
 
     /**
      * Drives to target distance from the AprilTag while maintaining heading toward the tag.
      */
-    public Command trackAndRangeToTagCommand(int targetTagId, double targetDistanceMeters) {
-        Translation2d tagPosition = vision.getTagPosition(targetTagId);
-        if (tagPosition == null) {
-            return Commands.none(); // Tag not in field layout
-        }
-        return trackAndRangeToPointCommand(tagPosition, targetDistanceMeters);
-    }
+    // public Command trackAndRangeToTagCommand(int targetTagId, double targetDistanceMeters) {
+    //     Translation2d tagPosition = vision.getTagPosition(targetTagId);
+    //     if (tagPosition == null) {
+    //         return Commands.none(); // Tag not in field layout
+    //     }
+    //     return trackAndRangeToPointCommand(tagPosition, targetDistanceMeters);
+    // }
 
     /**
      * Rotates to face the tag, then drives to target distance.
      */
-    public Command rotateAndRangeToTagCommand(int targetTagId, double targetDistanceMeters) {
-        return Commands.sequence(
-            rotateToTagCommand(targetTagId),
-            rangeToTagCommand(targetTagId, targetDistanceMeters));
-    }
+    // public Command rotateAndRangeToTagCommand(int targetTagId, double targetDistanceMeters) {
+    //     return Commands.sequence(
+    //         rotateToTagCommand(targetTagId),
+    //         rangeToTagCommand(targetTagId, targetDistanceMeters));
+    // }
 }
