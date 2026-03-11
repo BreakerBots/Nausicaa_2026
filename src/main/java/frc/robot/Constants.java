@@ -291,6 +291,9 @@ public final class Constants {
     // --------------- SHOOTER --------------
 
     public static class ShooterConstants {
+        /** Shooter center offset from robot center: 3" to the right. In robot frame +Y is left, so right = -Y. */
+        public static final double SHOOTER_OFFSET_RIGHT_METERS = 3.0 * 0.0254;
+
         public static final int SHOOTER_FLYWHEEL_1_MOTOR_ID = 30;
         public static final int SHOOTER_FLYWHEEL_2_MOTOR_ID = 31;
         public static final int SHOOTER_FLYWHEEL_3_MOTOR_ID = 32;

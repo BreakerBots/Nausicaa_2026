@@ -343,7 +343,7 @@ public class RobotContainer {
 
         // Spin up, but don't wait forever for flywheels to reach target speed.
         // If they aren't at speed within the timeout, we proceed anyway.
-        return Commands.sequence(
+        Command shootSequence = Commands.sequence(
                         Commands.runOnce(() -> shooter.setState(Shooter.State.SPINNING_UP), shooter),
                         Commands.waitUntil(shooter::isAtTargetSpeed).withTimeout(2.0),
                         feedPhaseWithDuration)
@@ -354,6 +354,10 @@ public class RobotContainer {
                     CommandScheduler.getInstance().schedule(
                             shooter.hoodToRotationsCommand(Constants.ShooterConstants.POSITION_HOOD_MIN));
                 });
+            // Comment this in to test wheel locking 
+            // Will lock wheels at start of shoot; any drivetrain command (e.g. aim) will unlock.
+            //return drivetrain.lockWheelsCommand().raceWith(shootSequence);
+            return shootSequence;
     }
 
 

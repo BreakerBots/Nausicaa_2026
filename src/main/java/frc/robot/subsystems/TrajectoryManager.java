@@ -90,8 +90,9 @@ public class TrajectoryManager extends SubsystemBase {
 
     /**
      * Returns hood position in encoder rotations for the given distance to target in meters.
-     * Uses linear interpolation through HOOD_DISTANCE_ANGLE_TABLE. Distance is clamped to the
-     * table range to avoid extrapolation.
+     * Uses linear interpolation through HOOD_DISTANCE_ANGLE_TABLE. Extrapolates only for
+     * distances beyond the table max (long shots); below-min distances use the table min.
+     * Result is clamped to mechanical limits.
      */
     public static double getHoodPositionForDistance(double distanceToTargetMeters) {
         if (hoodLookup.isEmpty()) {
@@ -99,9 +100,19 @@ public class TrajectoryManager extends SubsystemBase {
         }
         double dMin = Collections.min(hoodLookup.keySet());
         double dMax = Collections.max(hoodLookup.keySet());
-        double clampedDist = MathUtil.clamp(distanceToTargetMeters, dMin, dMax);
-        BreakerInterpolableDouble result = hoodLookup.getInterpolatedValue(clampedDist);
-        double raw = result != null ? result.getValue() : Constants.ShooterConstants.POSITION_HOOD_MIN;
+
+        double raw;
+        int tableLen = HOOD_DISTANCE_ANGLE_TABLE.length;
+        // If we're beyond the max distance, extrapolate using the last two points in the table.
+        if (distanceToTargetMeters >= dMax && tableLen >= 2) {
+            Translation2d p0 = HOOD_DISTANCE_ANGLE_TABLE[tableLen - 2];
+            Translation2d p1 = HOOD_DISTANCE_ANGLE_TABLE[tableLen - 1];
+            double slope = (p1.getY() - p0.getY()) / (p1.getX() - p0.getX());
+            raw = p1.getY() + slope * (distanceToTargetMeters - p1.getX());
+        } else {
+            BreakerInterpolableDouble result = hoodLookup.getInterpolatedValue(distanceToTargetMeters);
+            raw = result != null ? result.getValue() : Constants.ShooterConstants.POSITION_HOOD_MIN;
+        }
         return MathUtil.clamp(raw, Constants.ShooterConstants.POSITION_HOOD_MIN, Constants.ShooterConstants.POSITION_HOOD_MAX);
     }
     
