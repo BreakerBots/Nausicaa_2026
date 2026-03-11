@@ -232,7 +232,7 @@ public class RobotContainer {
         controller.getButtonA().onTrue(aimCommand());
 
         // Y --> Unclog: run feeder, indexer, and intake in reverse at 20% speed (while held)
-        controller.getButtonY().whileTrue(unclogCommand());
+        //controller.getButtonY().whileTrue(unclogCommand());
 
         // X/Y --> Hood all the way down/up
         controller.getButtonX().onTrue(shooter.hoodToRotationsCommand(Constants.ShooterConstants.POSITION_HOOD_MIN));

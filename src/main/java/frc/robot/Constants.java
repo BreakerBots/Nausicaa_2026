@@ -237,13 +237,13 @@ public final class Constants {
         /** CANcoder: offset so position reads POSITION_STOWED when pivot is physically stowed. 
          * Determine the raw value via Phoenix Tuner.
          * offset = desiredValue - rawValue = 0 - 0.25 = -0.25. */
-        public static final double PIVOT_ENCODER_OFFSET_ROTATIONS = -0.271240234375; // this was a direct copy-paste from mag offsets
+        public static final double PIVOT_ENCODER_OFFSET_ROTATIONS = -0.258544921875; // this was a direct copy-paste from mag offsets
         /** Choose a value safely beyond the mechanism's travel 
          * 0.5 is safe for an arm that rotates less than 180 degrees. */
         public static final double PIVOT_ENCODER_DISCONTINUITY = 0.5;
 
         /** Pivot angles (rotations) – placeholders until tuned. */
-        public static final Rotation2d POSITION_STOWED = Rotation2d.fromRotations(-0.025);
+        public static final Rotation2d POSITION_STOWED = Rotation2d.fromRotations(-0.025);  //0.009766
         public static final Rotation2d POSITION_EXTENDED = Rotation2d.fromRotations(-0.33); // Need to Tune
         public static final Rotation2d POSITION_JIGGLE_HIGH = Rotation2d.fromRotations(-0.2);
         public static final Rotation2d POSITION_JIGGLE_LOW = Rotation2d.fromRotations(-0.33);
