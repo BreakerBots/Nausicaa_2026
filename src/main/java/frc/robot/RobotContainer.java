@@ -128,14 +128,17 @@ public class RobotContainer {
         // ---------- CONTROLLER 1 - DRIVER ----------
         // ---------------------------------------------
 
-        // RIGHT BUMPER --> SLOW MODE
-        controller.getRightBumper().onTrue(Commands.runOnce(() -> slowMode = !slowMode));
-
+        // LEFT/RIGHT THUMBSTICK HOLD --> SLOW MODE
+        controller.getLeftThumbstick().getJoystickButton().whileTrue(
+            Commands.startEnd(() -> slowMode = true, () -> slowMode = false));
         controller.getRightThumbstick().getJoystickButton().whileTrue(
             Commands.startEnd(() -> slowMode = true, () -> slowMode = false));
 
         // LEFT BUMPER --> RESET LOCALIZER'S POSE
         controller.getLeftBumper().onTrue(Commands.runOnce(() -> drivetrain.getLocalizer().resetPose(new Pose2d(0,0, Rotation2d.fromRotations(0.0)))));
+
+        // RIGHT BUMPER --> Open?
+        //controller.getRightBumper().onTrue(Commands.runOnce(() -> slowMode = !slowMode));
 
         // ---------------- SWERVE DRIVE ----------------
 
