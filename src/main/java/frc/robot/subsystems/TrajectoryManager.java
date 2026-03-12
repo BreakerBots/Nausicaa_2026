@@ -130,8 +130,11 @@ public class TrajectoryManager extends SubsystemBase {
             ShootEntry p1 = SHOOT_LOOKUP_TABLE[tableLen - 1];
             double denom = p1.distanceM() - p0.distanceM();
             double t = denom != 0 ? (distanceToTargetMeters - p0.distanceM()) / denom : 1;
-            result = new BreakerVector2(p0.hoodRot(), p0.flywheelSpeed())
-                .interpolate(new BreakerVector2(p1.hoodRot(), p1.flywheelSpeed()), t);
+            // Use linear extrapolation: start + t*(end - start). Do NOT use interpolate() -
+            // MathUtil.interpolate clamps t to [0,1], which would cap us at the last table entry.
+            double hood = p0.hoodRot() + t * (p1.hoodRot() - p0.hoodRot());
+            double flywheel = p0.flywheelSpeed() + t * (p1.flywheelSpeed() - p0.flywheelSpeed());
+            result = new BreakerVector2(hood, flywheel);
         } else {
             result = shootLookup.getInterpolatedValue(distanceToTargetMeters);
         }
