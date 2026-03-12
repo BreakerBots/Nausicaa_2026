@@ -40,45 +40,68 @@ public class PoseManager extends SubsystemBase {
 
     /**
      * Pathfind from current pose to the given target pose, avoiding fixed obstacles.
-     * Refuses to run if robot is farther than NAVIGATE_TO_POSE_MAX_DISTANCE_METERS from target
-     * (intended for short finishing moves, not long-distance drives).
+     * Uses the default maximum distance from constants.
      */
     public Command navigateToPoseCommand(Pose2d target) {
+        return navigateToPoseCommand(target, Constants.DriveConstants.NAVIGATE_TO_POSE_MAX_DISTANCE_METERS);
+    }
+
+    /**
+     * Pathfind from current pose to the given target pose, avoiding fixed obstacles.
+     * Refuses to run if robot is farther than maxDistanceMeters from target
+     * (intended for short finishing moves, not long-distance drives).
+     */
+    public Command navigateToPoseCommand(Pose2d target, double maxDistanceMeters) {
         return Commands.defer(() -> {
             if (!AutoBuilder.isConfigured()) {
                 return Commands.none();
             }
-            double distanceMeters = drivetrain.getLocalizer().getPose().getTranslation().getDistance(target.getTranslation());
-            String statusMessage = "navigateToPoseCommand: Robot " + String.format("%.1f", distanceMeters) + 
-                " m from target: " + target.toString();
-            if (distanceMeters > Constants.DriveConstants.NAVIGATE_TO_POSE_MAX_DISTANCE_METERS) {
-                statusMessage = statusMessage + " - ABORT (we're too far away)";
+            double distanceMeters = drivetrain.getLocalizer()
+                    .getPose()
+                    .getTranslation()
+                    .getDistance(target.getTranslation());
+            String statusMessage = "navigateToPoseCommand: Robot " + String.format("%.1f", distanceMeters) +
+                    " m from target: " + target.toString();
+            if (distanceMeters > maxDistanceMeters) {
+                statusMessage = statusMessage + " - ABORT (too far; max=" + maxDistanceMeters + " m)";
                 BreakerLog.log("PoseManager/Status", statusMessage);
-                System.out.println(statusMessage);   
+                System.out.println(statusMessage);
                 return Commands.none();
             }
             BreakerLog.log("PoseManager/Status", statusMessage);
-            System.out.println(statusMessage);      
-            
-            //drivetrain.getLocalizer().resetPose(new Pose2d(0,0, Rotation2d.fromRotations(0.0)));
+            System.out.println(statusMessage);
 
             PathConstraints constraints = new PathConstraints(
-                Constants.DriveConstants.MAXIMUM_TRANSLATIONAL_VELOCITY.magnitude(),
-                2.0,
-                Constants.DriveConstants.MAXIMUM_ROTATIONAL_VELOCITY.magnitude(),
-                4.0,
-                12.0,
-                false);
+                    Constants.DriveConstants.MAXIMUM_TRANSLATIONAL_VELOCITY.magnitude(),
+                    2.0,
+                    Constants.DriveConstants.MAXIMUM_ROTATIONAL_VELOCITY.magnitude(),
+                    4.0,
+                    12.0,
+                    false);
             Command pathfind = AutoBuilder.pathfindToPose(target, constraints, 0.0);
 
-            // At close distance, PathPlanner won't get us all the way there
-            // So we use this rto refine our pose
-            Command refinePosition = rangeToPointCommand(target.getTranslation(), 0.0);
-            Translation2d pointAhead = target.getTranslation().plus(
-               new Translation2d(target.getRotation().getCos(), target.getRotation().getSin()));
-            Command refineRotation = rotateToPointCommand(pointAhead);
-            
-            return pathfind.andThen(refineRotation).andThen(refinePosition);
+            return pathfind;
+
+        }, Set.of(drivetrain));
+    }
+
+    /**
+     * Navigate from current pose to a trench exit pose, with two protections:
+     * - Do nothing if we are currently in the neutral zone.
+     * - Delegate to navigateToPoseCommand with a standard max distance from FieldConstants.
+     */
+    public Command navigateToTrench(Pose2d trenchPose) {
+        return Commands.defer(() -> {
+            Pose2d currentPose = drivetrain.getLocalizer().getPose();
+            if (Constants.FieldConstants.inNZ(currentPose)) {
+                String msg = "navigateToTrench: ABORT (currently in NZ), target=" + trenchPose;
+                BreakerLog.log("PoseManager/Status", msg);
+                System.out.println(msg);
+                return Commands.none();
+            }
+            return navigateToPoseCommand(
+                trenchPose,
+                Constants.FieldConstants.NAVIGATE_TO_TRENCH_MAX_DISTANCE_METERS);
         }, Set.of(drivetrain));
     }
 
