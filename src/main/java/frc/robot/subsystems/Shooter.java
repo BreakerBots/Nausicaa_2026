@@ -110,7 +110,6 @@ public class Shooter extends SubsystemBase {
         State previousState = state;
         state = newState;
         setFlywheelSpeed(state.getFlywheelSpeed());
-        // Flywheels 2 and 3 follow flywheel 1 via Follower control in constructor
 
         BreakerLog.log("Shooter/State/Previous", previousState.toString());
         BreakerLog.log("Shooter/State/Current", state.toString());
@@ -241,7 +240,6 @@ public class Shooter extends SubsystemBase {
         } else {
             shooterFlywheel1Motor.setControl(new VelocityVoltage(speed).withAcceleration(400)); // 15
         }
-        
     }
 
 }

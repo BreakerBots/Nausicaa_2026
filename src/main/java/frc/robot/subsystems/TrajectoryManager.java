@@ -7,7 +7,7 @@ import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
-import frc.robot.BreakerLib.util.math.interpolation.BreakerInterpolableDouble;
+import frc.robot.BreakerLib.physics.BreakerVector2;
 import frc.robot.BreakerLib.util.math.interpolation.maps.BreakerInterpolatingTreeMap;
 
 /**
@@ -16,30 +16,22 @@ import frc.robot.BreakerLib.util.math.interpolation.maps.BreakerInterpolatingTre
 public class TrajectoryManager extends SubsystemBase {
 
     /**
-     * Hood position vs distance from hub: (distance m, hood position rotations).
-     * Tune through testing – add/remove/adjust pairs as needed.
-     * 
-     * Hood postition must stay between POSITION_HOOD_MIN and POSITION_HOOD_MAX!
-     * 
-     * Distance from robot center to chasis front edge = 15.7" (0.39878 meters)
-     * 
-     * Position Mark + 23.5" 
-     * 
-     * 12 + 23.5" --> m
-     * 
-     * 
+     * Distance, hood position, and flywheel speed. Tune through testing – add/remove/adjust as needed.
+     * Hood position must stay between POSITION_HOOD_MIN and POSITION_HOOD_MAX.
      */
-    private static final Translation2d[] HOOD_DISTANCE_ANGLE_TABLE = {
-        new Translation2d(1.2192, 0.02),        // 4 ft
-        new Translation2d(1.524, 0.06),         // 5 ft
-        new Translation2d(1.8288, 0.115),       // 6 ft
-        new Translation2d(2.1336, 0.14),        // 7 ft
-        new Translation2d(2.4384, 0.172119),    // 8 ft
-        new Translation2d(2.7432, 0.212891),    // 9 ft
-        new Translation2d(3.05, 0.2459),        //10 ft
+    private record ShootEntry(double distanceM, double hoodRot, double flywheelSpeed) {}
+
+    private static final ShootEntry[] SHOOT_LOOKUP_TABLE = {
+        new ShootEntry(1.2192, 0.02, 60),        // 4 ft
+        new ShootEntry(1.524, 0.06, 60),        // 5 ft
+        new ShootEntry(1.8288, 0.115, 60),      // 6 ft
+        new ShootEntry(2.1336, 0.14, 60),       // 7 ft
+        new ShootEntry(2.4384, 0.172119, 60),  // 8 ft
+        new ShootEntry(2.7432, 0.212891, 60),   // 9 ft
+        new ShootEntry(3.05, 0.2459, 60),       // 10 ft
     };
 
-    private static final BreakerInterpolatingTreeMap<Double, BreakerInterpolableDouble> hoodLookup = buildHoodLookup();
+    private static final BreakerInterpolatingTreeMap<Double, BreakerVector2> shootLookup = buildShootLookup();
 
     private final Drivetrain drivetrain;
 
@@ -47,14 +39,10 @@ public class TrajectoryManager extends SubsystemBase {
         this.drivetrain = drivetrain;
     }
 
-    private static BreakerInterpolatingTreeMap<Double, BreakerInterpolableDouble> buildHoodLookup() {
-        BreakerInterpolatingTreeMap<Double, BreakerInterpolableDouble> map =
-            new BreakerInterpolatingTreeMap<>();
-        Translation2d[] table = HOOD_DISTANCE_ANGLE_TABLE;
-        if (table != null) {
-            for (Translation2d pt : table) {
-                map.put(pt.getX(), new BreakerInterpolableDouble(pt.getY()));
-            }
+    private static BreakerInterpolatingTreeMap<Double, BreakerVector2> buildShootLookup() {
+        BreakerInterpolatingTreeMap<Double, BreakerVector2> map = new BreakerInterpolatingTreeMap<>();
+        for (ShootEntry e : SHOOT_LOOKUP_TABLE) {
+            map.put(e.distanceM(), new BreakerVector2(e.hoodRot(), e.flywheelSpeed()));
         }
         return map;
     }
@@ -90,30 +78,42 @@ public class TrajectoryManager extends SubsystemBase {
 
     /**
      * Returns hood position in encoder rotations for the given distance to target in meters.
-     * Uses linear interpolation through HOOD_DISTANCE_ANGLE_TABLE. Extrapolates only for
+     * Uses linear interpolation through SHOOT_LOOKUP_TABLE. Extrapolates only for
      * distances beyond the table max (long shots); below-min distances use the table min.
      * Result is clamped to mechanical limits.
      */
     public static double getHoodPositionForDistance(double distanceToTargetMeters) {
-        if (hoodLookup.isEmpty()) {
-            return Constants.ShooterConstants.POSITION_HOOD_MIN;
-        }
-        double dMin = Collections.min(hoodLookup.keySet());
-        double dMax = Collections.max(hoodLookup.keySet());
+        BreakerVector2 vals = getShootValuesForDistance(distanceToTargetMeters);
+        if (vals == null) return Constants.ShooterConstants.POSITION_HOOD_MIN;
+        return MathUtil.clamp(vals.getX(), Constants.ShooterConstants.POSITION_HOOD_MIN, Constants.ShooterConstants.POSITION_HOOD_MAX);
+    }
 
-        double raw;
-        int tableLen = HOOD_DISTANCE_ANGLE_TABLE.length;
-        // If we're beyond the max distance, extrapolate using the last two points in the table.
+    /**
+     * Returns flywheel speed (rotations/sec) for the given distance to target in meters.
+     */
+    public static double getFlywheelSpeedForDistance(double distanceToTargetMeters) {
+        BreakerVector2 vals = getShootValuesForDistance(distanceToTargetMeters);
+        return vals != null ? vals.getY() : Constants.ShooterConstants.SPEED_FLYWHEEL_ACTIVE;
+    }
+
+    /** Returns (hood, flywheel) for the given distance; null if lookup empty. */
+    private static BreakerVector2 getShootValuesForDistance(double distanceToTargetMeters) {
+        if (shootLookup.isEmpty()) return null;
+        double dMax = Collections.max(shootLookup.keySet());
+        int tableLen = SHOOT_LOOKUP_TABLE.length;
+
+        BreakerVector2 result;
         if (distanceToTargetMeters >= dMax && tableLen >= 2) {
-            Translation2d p0 = HOOD_DISTANCE_ANGLE_TABLE[tableLen - 2];
-            Translation2d p1 = HOOD_DISTANCE_ANGLE_TABLE[tableLen - 1];
-            double slope = (p1.getY() - p0.getY()) / (p1.getX() - p0.getX());
-            raw = p1.getY() + slope * (distanceToTargetMeters - p1.getX());
+            ShootEntry p0 = SHOOT_LOOKUP_TABLE[tableLen - 2];
+            ShootEntry p1 = SHOOT_LOOKUP_TABLE[tableLen - 1];
+            double denom = p1.distanceM() - p0.distanceM();
+            double t = denom != 0 ? (distanceToTargetMeters - p0.distanceM()) / denom : 1;
+            result = new BreakerVector2(p0.hoodRot(), p0.flywheelSpeed())
+                .interpolate(new BreakerVector2(p1.hoodRot(), p1.flywheelSpeed()), t);
         } else {
-            BreakerInterpolableDouble result = hoodLookup.getInterpolatedValue(distanceToTargetMeters);
-            raw = result != null ? result.getValue() : Constants.ShooterConstants.POSITION_HOOD_MIN;
+            result = shootLookup.getInterpolatedValue(distanceToTargetMeters);
         }
-        return MathUtil.clamp(raw, Constants.ShooterConstants.POSITION_HOOD_MIN, Constants.ShooterConstants.POSITION_HOOD_MAX);
+        return result;
     }
     
 }
