@@ -237,14 +237,14 @@ public final class Constants {
         /** CANcoder: offset so position reads POSITION_STOWED when pivot is physically stowed. 
          * Determine the raw value via Phoenix Tuner.
          * offset = desiredValue - rawValue = 0 - 0.25 = -0.25. */
-        public static final double PIVOT_ENCODER_OFFSET_ROTATIONS = -0.258544921875; // this was a direct copy-paste from mag offsets
+        public static final double PIVOT_ENCODER_OFFSET_ROTATIONS = -0.10009765625; // this was a direct copy-paste from mag offsets
         /** Choose a value safely beyond the mechanism's travel 
          * 0.5 is safe for an arm that rotates less than 180 degrees. */
         public static final double PIVOT_ENCODER_DISCONTINUITY = 0.5;
 
         /** Pivot angles (rotations) – placeholders until tuned. */
-        public static final Rotation2d POSITION_STOWED = Rotation2d.fromRotations(-0.025);  //0.009766
-        public static final Rotation2d POSITION_EXTENDED = Rotation2d.fromRotations(-0.33); // Need to Tune
+        public static final Rotation2d POSITION_STOWED = Rotation2d.fromRotations(-0.015);  //-0.025
+        public static final Rotation2d POSITION_EXTENDED = Rotation2d.fromRotations(-0.25); // Need to Tune
         public static final Rotation2d POSITION_JIGGLE_HIGH = Rotation2d.fromRotations(-0.2);
         public static final Rotation2d POSITION_JIGGLE_LOW = Rotation2d.fromRotations(-0.33);
 
@@ -255,7 +255,7 @@ public final class Constants {
 
         /** Feedforward (Slot0) for pivot motor. */
          public static final double PIVOT_kS = 0.08;
-         public static final double PIVOT_kG = 0.08;
+         public static final double PIVOT_kG = 0.00;
          public static final double PIVOT_kV = 0.12;
          public static final double PIVOT_kA = 0.01;
 
@@ -466,8 +466,8 @@ public final class Constants {
         //public static final AngularVelocity MAXIMUM_MODULE_AZIMUTH_SPEED = Units.DegreesPerSecond.of(720);
         //public static final SetpointGenerationConfig SETPOINT_GENERATION_CONFIG = new SetpointGenerationConfig(MAXIMUM_MODULE_AZIMUTH_SPEED);
 
-        public static final TeleopControlConfig TELEOP_CONTROL_CONFIG = new TeleopControlConfig();
-            // .withHeadingCompensation(HEADING_COMPENSATION_CONFIG);
+        public static final TeleopControlConfig TELEOP_CONTROL_CONFIG = new TeleopControlConfig()
+            .withHeadingCompensation(HEADING_COMPENSATION_CONFIG);
             // .withSetpointGeneration(SETPOINT_GENERATION_CONFIG);
 
         /** Max distance (m) for navigateToPose – refuse to pathfind if robot is farther. Prevents accidental long drives. */
