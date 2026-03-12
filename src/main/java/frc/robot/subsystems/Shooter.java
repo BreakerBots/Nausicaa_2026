@@ -74,7 +74,9 @@ public class Shooter extends SubsystemBase {
         hoodConfig.MotorOutput.NeutralMode = NeutralModeValue.Brake;
         hoodConfig.CurrentLimits = new CurrentLimitsConfigs()
                 .withStatorCurrentLimit(Constants.ShooterConstants.HOOD_STATOR_CURRENT_LIMIT)
-                .withStatorCurrentLimitEnable(true);
+                .withStatorCurrentLimitEnable(true)
+                .withSupplyCurrentLimit(Constants.ShooterConstants.HOOD_SUPPLY_CURRENT_LIMIT)
+                .withSupplyCurrentLimitEnable(true);
         hoodMotor.getConfigurator().apply(hoodConfig);
         slot0.kP = Constants.ShooterConstants.SHOOTER_kP;
         slot0.kI = Constants.ShooterConstants.SHOOTER_kI;
@@ -158,35 +160,6 @@ public class Shooter extends SubsystemBase {
     /** Stop the hood motor. */
     public void stopHood() {
         hoodMotor.setControl(new DutyCycleOut(0.0));
-    }
-
-    /**
-     * Command: move hood toward physical bottom until stall detected, then zero encoder to POSITION_HOOD_SETPOINT_HOME.
-     * Use when encoder position is unknown (e.g. after power cycle) to establish the DOWN reference.
-     */
-    public Command homeHood() {
-        return Commands.sequence(
-            Commands.runOnce(() -> BreakerLog.log("Shooter/Hood/Homing", "Starting"), this),
-            Commands.run(() -> hoodMotor.setControl(
-                new VoltageOut(Constants.ShooterConstants.HOOD_HOMING_VOLTAGE)), this)
-                .raceWith(new TimedWaitUntilCommand(this::detectHoodHome,
-                    Constants.ShooterConstants.HOOD_HOMING_STALL_TIME_SECONDS)
-                    .raceWith(Commands.waitSeconds(Constants.ShooterConstants.HOOD_HOMING_TIMEOUT_SECONDS))),
-            Commands.runOnce(() -> {
-                hoodMotor.setControl(new VoltageOut(0.0));
-            }, this),
-            Commands.waitSeconds(0.2),
-            Commands.runOnce(() -> {
-                hoodEncoder.setPosition(Constants.ShooterConstants.POSITION_HOOD_MIN);
-                BreakerLog.log("Shooter/Hood/Homing", "CANcoder zeroed to POSITION_HOOD_SETPOINT_HOME");
-            }, this))
-            .finallyDo((interrupted) -> BreakerLog.log("Shooter/Hood/Homing", "Finished (interrupted=" + interrupted + ")"));
-    }
-
-    /** Detect stall at hood physical bottom. */
-    private boolean detectHoodHome() {
-        return Math.abs(hoodMotor.getSupplyCurrent().getValueAsDouble())
-                >= Constants.ShooterConstants.HOOD_HOMING_DETECT_CURRENT_THRESHOLD;
     }
 
 

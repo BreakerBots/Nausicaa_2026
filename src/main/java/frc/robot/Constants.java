@@ -297,14 +297,7 @@ public final class Constants {
         public static final int SHOOTER_FLYWHEEL_1_MOTOR_ID = 30;
         public static final int SHOOTER_FLYWHEEL_2_MOTOR_ID = 31;
         public static final int SHOOTER_FLYWHEEL_3_MOTOR_ID = 32;
-        public static final int HOOD_MOTOR_ID = 33;
-        public static final int HOOD_ENCODER_ID = 35;
-
-        /** CANcoder: offset so position reads POSITION_HOOD_DOWN when hood is physically down. Calibrate via Phoenix Tuner. */
-        public static final double HOOD_ENCODER_OFFSET_ROTATIONS = 0.417236328125; //0.423095703125
-        /** CANcoder: 0.5 = ±180° range. Set so discontinuity is outside mechanism travel. */
-        public static final double HOOD_ENCODER_DISCONTINUITY = 0.5;
-
+        
         /** Feedforward */
         public static final double SHOOTER_kS = 0.1;
         public static final double SHOOTER_kV = 0.12;
@@ -320,35 +313,36 @@ public final class Constants {
         public static final double SPEED_IDLE = 0;
         public static final double SPEED_FLYWHEEL_ACTIVE = 60.0;
 
+        public static final int FLYWHEEL_STATOR_CURRENT_LIMIT = 80; // 40
+        public static final int FLYWHEEL_SUPPLY_CURRENT_LIMIT = 50; // 25
+
+        // --------------- HOOD --------------
+
+        public static final int HOOD_MOTOR_ID = 33;
+        public static final int HOOD_ENCODER_ID = 35;
+
+        /** CANcoder: offset so position reads POSITION_HOOD_DOWN when hood is physically down. Calibrate via Phoenix Tuner. */
+        public static final double HOOD_ENCODER_OFFSET_ROTATIONS = 0.417236328125; //0.423095703125
+        /** CANcoder: 0.5 = ±180° range. Set so discontinuity is outside mechanism travel. */
+        public static final double HOOD_ENCODER_DISCONTINUITY = 0.5;
+
         /** Hood: external encoder; command takes target rotations. */
         public static final double SPEED_HOOD_UP = -0.2; //-0.2
         public static final double SPEED_HOOD_DOWN = 0.3; // 0.3
         public static final double AUTO_SPEED_HOOD_DOWN = -0.3;
+        
         public static final double POSITION_HOOD_MIN = -0.005859; //-0.002197
         public static final double POSITION_HOOD_MAX = 0.477295; //0.477295
         public static final double POSITION_HOOD_LATCH = 0.210205;
+       
         /** Deadband (rotations) for hood tracking; prevents oscillation when near target. */
         public static final double HOOD_TRACKING_TOLERANCE_ROTATIONS = 0.005;
+        
         /** Hood P gain for hoodToRotationsCommand (output = kP * error, clamped to duty cycle). */
         public static final double HOOD_kP = 2.0;
 
-        
-        /** Stator current limit (A) for flywheels – protects during spin-up. */
-        public static final int FLYWHEEL_STATOR_CURRENT_LIMIT = 80; // 40
-        /** Supply current limit (A) per flywheel – 3 motors draw heavily during spin-up; helps prevent brownouts. */
-        public static final int FLYWHEEL_SUPPLY_CURRENT_LIMIT = 50; // 25
-        /** Stator current limit (A) for hood – protects against mechanical limits. */
         public static final int HOOD_STATOR_CURRENT_LIMIT = 50;
-        // public static final int HOOD_SUPPLY_CURRENT_LIMIT = 50;
-
-        /** Hood homing: voltage to move toward physical bottom (negative = down). */
-        public static final double HOOD_HOMING_VOLTAGE = -0.3;
-        /** Supply current threshold (A) to detect stall at mechanical limit. Tune: must be above running current. */
-        public static final double HOOD_HOMING_DETECT_CURRENT_THRESHOLD = 8.0;
-        /** Time (s) current must stay above threshold before accepting stall. */
-        public static final double HOOD_HOMING_STALL_TIME_SECONDS = 0.5;
-        /** Homing timeout (s) – bail if stall not detected. */
-        public static final double HOOD_HOMING_TIMEOUT_SECONDS = 3.0;
+        public static final int HOOD_SUPPLY_CURRENT_LIMIT = 50;
     }
 
     // --------------- HOPPER --------------
@@ -357,10 +351,12 @@ public final class Constants {
         public static final int HOPPER_MOTOR_ID = 40;
         public static final int FEEDER_MOTOR_ID = 41;
         /** Stator current limit (A) for indexer and feeder – protects against jams. Matches other robot end effector rollers. */
+        
         public static final int INDEXER_STATOR_CURRENT_LIMIT = 90;
-        //public static final int INDEXER_SUPPLY_CURRENT_LIMIT = 70;
+        public static final int INDEXER_SUPPLY_CURRENT_LIMIT = 70;
         public static final int FEEDER_STATOR_CURRENT_LIMIT = 90;
-        //public static final int FEEDER_SUPPLY_CURRENT_LIMIT = 70;
+        public static final int FEEDER_SUPPLY_CURRENT_LIMIT = 70;
+        
         public static final double SPEED_INACTIVE = 0;
         public static final double SPEED_INDEXING = 0.5; // need to tune
         public static final double SPEED_FEEDING = 0.6; // need to tune
@@ -443,7 +439,6 @@ public final class Constants {
 
     public static class DriveConstants {
         
-        
         /** ROBOT-LEVEL MAXIMUM SPEEDS - How fast can the robot drive and rotate (currently reduced for testing)
          * Translational = forward/backward and left/right movement (X and Y on the field)
          * Rotational = spinning in place (turning) */
@@ -513,21 +508,28 @@ public final class Constants {
         // al configs for the drive and steer motors and the CANcoder; these cannot be null.
         // Some configs will be overwritten; check the `with*InitialConfigs()` API documentation.
         // Neutral mode = what happens when motor receives 0% power (Brake = stops, Coast = free-spins)
-        /** Stator current limit (A) for drive motors. Lowered for brownout mitigation. */
-        private static final int DRIVE_STATOR_CURRENT_LIMIT = 50;
-        // TUNING: Current limits = adjust if motors brown out (lower) or need more power (higher, but watch for brownouts)
+
+        // Current limits = adjust if motors brown out (lower) or need more power (higher)
+        private static final int DRIVE_STATOR_CURRENT_LIMIT = 90;
+        private static final int DRIVE_SUPPLY_CURRENT_LIMIT = 80;
+        private static final int STEER_STATOR_CURRENT_LIMIT = 60;
+        private static final int STEER_SUPPLY_CURRENT_LIMIT = 50;
+        
         private static final TalonFXConfiguration driveInitialConfigs = new TalonFXConfiguration()
             .withMotorOutput(new MotorOutputConfigs().withNeutralMode(NeutralModeValue.Brake))
             .withCurrentLimits(
                 new CurrentLimitsConfigs()
                     .withStatorCurrentLimit(DRIVE_STATOR_CURRENT_LIMIT)
-                    .withStatorCurrentLimitEnable(true));
+                    .withStatorCurrentLimitEnable(true)
+                    .withSupplyCurrentLimit(DRIVE_SUPPLY_CURRENT_LIMIT)
+                    .withSupplyCurrentLimitEnable(true));
         private static final TalonFXConfiguration steerInitialConfigs = new TalonFXConfiguration()
             .withCurrentLimits(
                 new CurrentLimitsConfigs()
-                    // Lowered for brownout mitigation.
-                    .withStatorCurrentLimit(60)
-                    .withStatorCurrentLimitEnable(true));
+                    .withStatorCurrentLimit(STEER_STATOR_CURRENT_LIMIT)
+                    .withStatorCurrentLimitEnable(true)
+                    .withSupplyCurrentLimit(STEER_SUPPLY_CURRENT_LIMIT)
+                    .withSupplyCurrentLimitEnable(true));
         // CANcoder = absolute encoder that tells us the exact rotation angle of each swerve module
         private static final CANcoderConfiguration cancoderInitialConfigs = new CANcoderConfiguration();
 

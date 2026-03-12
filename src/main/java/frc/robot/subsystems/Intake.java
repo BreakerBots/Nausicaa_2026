@@ -45,8 +45,9 @@ public class Intake extends SubsystemBase {
         pivotConfig.MotorOutput.NeutralMode = NeutralModeValue.Brake;
         pivotConfig.CurrentLimits = new CurrentLimitsConfigs()
                 .withStatorCurrentLimit(Constants.IntakeConstants.PIVOT_STATOR_CURRENT_LIMIT)
+                .withStatorCurrentLimitEnable(true)
                 .withSupplyCurrentLimit(Constants.IntakeConstants.PIVOT_SUPPLY_CURRENT_LIMIT)
-                .withStatorCurrentLimitEnable(true);
+                .withSupplyCurrentLimitEnable(true);
                 
         pivotConfig.Feedback.withRemoteCANcoder(pivotEncoder);
 
@@ -75,8 +76,8 @@ public class Intake extends SubsystemBase {
         rollerConfig.MotorOutput.NeutralMode = NeutralModeValue.Brake;
         rollerConfig.CurrentLimits = new CurrentLimitsConfigs()
                 .withStatorCurrentLimit(Constants.IntakeConstants.ROLLER_STATOR_CURRENT_LIMIT)
-                .withStatorCurrentLimit(Constants.IntakeConstants.ROLLER_SUPPLY_CURRENT_LIMIT)
                 .withStatorCurrentLimitEnable(true)
+                .withSupplyCurrentLimit(Constants.IntakeConstants.ROLLER_SUPPLY_CURRENT_LIMIT)
                 .withSupplyCurrentLimitEnable(true);
 
         Slot0Configs rollerSlot0 = rollerConfig.Slot0;

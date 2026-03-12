@@ -24,14 +24,18 @@ public class Hopper extends SubsystemBase {
         indexerConfig.MotorOutput.NeutralMode = NeutralModeValue.Brake;
         indexerConfig.CurrentLimits = new CurrentLimitsConfigs()
                 .withStatorCurrentLimit(Constants.HopperConstants.INDEXER_STATOR_CURRENT_LIMIT)
-                .withStatorCurrentLimitEnable(true);
+                .withStatorCurrentLimitEnable(true)
+                .withSupplyCurrentLimit(Constants.HopperConstants.INDEXER_SUPPLY_CURRENT_LIMIT)
+                .withSupplyCurrentLimitEnable(true);
         indexerMotor.getConfigurator().apply(indexerConfig);
 
         TalonFXConfiguration feederConfig = new TalonFXConfiguration();
         feederConfig.MotorOutput.NeutralMode = NeutralModeValue.Brake;
         feederConfig.CurrentLimits = new CurrentLimitsConfigs()
                 .withStatorCurrentLimit(Constants.HopperConstants.FEEDER_STATOR_CURRENT_LIMIT)
-                .withStatorCurrentLimitEnable(true);
+                .withStatorCurrentLimitEnable(true)
+                .withSupplyCurrentLimit(Constants.HopperConstants.FEEDER_SUPPLY_CURRENT_LIMIT)
+                .withSupplyCurrentLimitEnable(true);
         feederMotor.getConfigurator().apply(feederConfig);
     }
 

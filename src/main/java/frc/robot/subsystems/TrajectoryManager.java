@@ -30,10 +30,10 @@ public class TrajectoryManager extends SubsystemBase {
      * 
      */
     private static final Translation2d[] HOOD_DISTANCE_ANGLE_TABLE = {
-        new Translation2d(1.2192, 0.02),        //4ft
-        new Translation2d(1.524, 0.06),         // 5ft
+        new Translation2d(1.2192, 0.02),        // 4 ft
+        new Translation2d(1.524, 0.06),         // 5 ft
         new Translation2d(1.8288, 0.115),       // 6 ft
-        new Translation2d(2.1336, 0.14),        // 7ft
+        new Translation2d(2.1336, 0.14),        // 7 ft
         new Translation2d(2.4384, 0.172119),    // 8 ft
         new Translation2d(2.7432, 0.212891),    // 9 ft
         new Translation2d(3.05, 0.2459),        //10 ft
