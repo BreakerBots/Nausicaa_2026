@@ -86,34 +86,25 @@ public class Shooter extends SubsystemBase {
 
     public State state = State.INACTIVE;
 
-    /** Shooter states: flywheel speeds (inactive vs shooting). */
-    public enum State {
-        
-        INACTIVE(Constants.ShooterConstants.SPEED_IDLE),
-        SPINNING_UP(Constants.ShooterConstants.SPEED_FLYWHEEL_ACTIVE),
-        SHOOTING(Constants.ShooterConstants.SPEED_FLYWHEEL_ACTIVE);
+    /** Shooter states (flywheel speed is separate, via getFlywheelSpeed). */
+    public enum State { INACTIVE, SPINNING_UP, SHOOTING }
 
-
-
-        private double flywheelSpeed;
-
-        private State(double flywheelSpeed) {
-             this.flywheelSpeed = flywheelSpeed;
-        }
-
-        public double getFlywheelSpeed() {
-          return flywheelSpeed;
-        }
+    /** Returns the flywheel speed (rotations/sec) for the given state. */
+    public static double getFlywheelSpeed(State state) {
+        return switch (state) {
+            case INACTIVE -> Constants.ShooterConstants.SPEED_IDLE;
+            case SPINNING_UP, SHOOTING -> Constants.ShooterConstants.SPEED_FLYWHEEL_ACTIVE;
+        };
     }
 
     public void setState(State newState) {
         State previousState = state;
         state = newState;
-        setFlywheelSpeed(state.getFlywheelSpeed());
+        setFlywheelSpeed(getFlywheelSpeed(state));
 
         BreakerLog.log("Shooter/State/Previous", previousState.toString());
         BreakerLog.log("Shooter/State/Current", state.toString());
-        BreakerLog.log("Shooter/State/TargetFlywheelSpeed", state.getFlywheelSpeed());
+        BreakerLog.log("Shooter/State/TargetFlywheelSpeed", getFlywheelSpeed(state));
     }
 
     public Command setStateCommand(State newState) {
@@ -123,7 +114,7 @@ public class Shooter extends SubsystemBase {
     /** Returns true when flywheel velocity is within tolerance of the active target speed. */
     public boolean isAtTargetSpeed() {
         double current = shooterFlywheel1Motor.getVelocity().getValueAsDouble();
-        double target = Constants.ShooterConstants.SPEED_FLYWHEEL_ACTIVE;
+        double target = getFlywheelSpeed(state);
         if (target == 0) return true;
         double tolerance = Math.abs(target) * Constants.ShooterConstants.FLYWHEEL_SPEED_TOLERANCE;
         return Math.abs(current - target) <= tolerance;
