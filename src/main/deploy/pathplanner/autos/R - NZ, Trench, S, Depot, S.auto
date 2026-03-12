@@ -7,7 +7,25 @@
         {
           "type": "path",
           "data": {
-            "pathName": "Left - Shoot 8"
+            "pathName": "L - NZ, Trench, S"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "aim"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "shoot"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "L - (2) Depot, S"
           }
         },
         {
