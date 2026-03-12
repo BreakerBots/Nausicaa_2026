@@ -146,10 +146,25 @@ public final class Constants {
 
     public static class FieldConstants {
 
+        public static final double NZ_MIN_X = 4.625594;
+        public static final double NZ_MAX_X = 11.915394;
+        public static final double MIDPOINT_Y = 4.034536;
+
+        /** Max distance (m) we allow for driver-initiated navigate-to-trench moves. */
+        public static final double NAVIGATE_TO_TRENCH_MAX_DISTANCE_METERS = 3.0;
+
         // Target pose for tele-op "navigateToPoint" commands (via PathPlanner on-the-fly).
         
-        public static final Pose2d POSE_CLIMBING_BLUE_TOWER_LEFT = new Pose2d(1.05, 4.75, Rotation2d.fromDegrees(180));
-        public static final Pose2d POSE_CLIMBING_RED_TOWER_LEFT = new Pose2d(15.49, 3.32, Rotation2d.fromDegrees(0));
+        public static final Pose2d POSE_BLUE_LEFT_CLIMBING_TOWER = new Pose2d(1.05, 4.75, Rotation2d.fromDegrees(180));
+        public static final Pose2d POSE_RED_LEFT_CLIMBING_TOWER = new Pose2d(15.49, 3.32, Rotation2d.fromDegrees(0));
+        
+        public static final Pose2d POSE_BLUE_LEFT_EXIT_AZ_VIA_TRENCH = new Pose2d(3.3, 7.408, Rotation2d.fromDegrees(0));
+        public static final Pose2d POSE_BLUE_RIGHT_EXIT_AZ_VIA_TRENCH = new Pose2d(3.3, 0.634, Rotation2d.fromDegrees(0));
+        
+        // We may not need these -- PathPlanner might automatically flip them
+        //public static final Pose2d POSE_RED_LEFT_EXIT_AZ_VIA_TRENCH = new Pose2d(13.24, 0.634, Rotation2d.fromDegrees(180));
+        //public static final Pose2d POSE_RED_RIGHT_EXIT_AZ_VIA_TRENCH = new Pose2d(13.24, 7.408, Rotation2d.fromDegrees(180));
+
 
         // Targets to aim at for shooting/passing.
 
@@ -194,9 +209,9 @@ public final class Constants {
 
         public static Pose2d getTargetClimbingPose() {
             if (isRedAlliance()) {
-                return POSE_CLIMBING_RED_TOWER_LEFT;
+                return POSE_RED_LEFT_CLIMBING_TOWER;
             } else {
-                return POSE_CLIMBING_BLUE_TOWER_LEFT;
+                return POSE_BLUE_LEFT_CLIMBING_TOWER;
             }
         }
 
@@ -206,11 +221,11 @@ public final class Constants {
             double x = pose.getX();
             double y = pose.getY();
             if (isRedAlliance()) {
-                if (x >= 12.0) return getTargetHubCenter();
-                return y > 4.0 ? TARGET_RED_AZ_RIGHT : TARGET_RED_AZ_LEFT;
+                if (x >= NZ_MAX_X) return getTargetHubCenter();
+                return y > MIDPOINT_Y ? TARGET_RED_AZ_RIGHT : TARGET_RED_AZ_LEFT;
             } else {
-                if (x <= 4.5) return getTargetHubCenter();
-                return y > 4.0 ? TARGET_BLUE_AZ_LEFT : TARGET_BLUE_AZ_RIGHT;
+                if (x <= NZ_MIN_X) return getTargetHubCenter();
+                return y > MIDPOINT_Y ? TARGET_BLUE_AZ_LEFT : TARGET_BLUE_AZ_RIGHT;
             }
         }
 
@@ -224,6 +239,11 @@ public final class Constants {
             return alliance.isPresent() && alliance.get() == Alliance.Red;
         }
 
+        /** Returns true if the pose's X coordinate is inside the neutral zone range. */
+        public static boolean inNZ(Pose2d pose) {
+            double xMeters = pose.getX();
+            return xMeters > NZ_MIN_X && xMeters < NZ_MAX_X;
+        }
     }
 
 
