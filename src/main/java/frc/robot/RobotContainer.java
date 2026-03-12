@@ -131,15 +131,11 @@ public class RobotContainer {
         // RIGHT BUMPER --> SLOW MODE
         controller.getRightBumper().onTrue(Commands.runOnce(() -> slowMode = !slowMode));
 
+        controller.getRightThumbstick().getJoystickButton().whileTrue(
+            Commands.startEnd(() -> slowMode = true, () -> slowMode = false));
+
         // LEFT BUMPER --> RESET LOCALIZER'S POSE
         controller.getLeftBumper().onTrue(Commands.runOnce(() -> drivetrain.getLocalizer().resetPose(new Pose2d(0,0, Rotation2d.fromRotations(0.0)))));
-
-        // RIGHT BUMPER --> Pathfind to pose (alternative: while held; current: X+RB = on press)
-        //controller.getRightBumper().whileTrue(poseManager.navigateToPoseCommand(Constants.FieldConstants.POSE_SHOOTING_BLUE_HUB_CENTER));
-
-        //controller.getButtonX().and(controller.getRightBumper()).onTrue(poseManager.navigateToPoseCommand(Constants.FieldConstants.POSE_SHOOTING_BLUE_HUB_CENTER));
-
-
 
         // ---------------- SWERVE DRIVE ----------------
 
@@ -178,6 +174,15 @@ public class RobotContainer {
         
             drivetrain.setDefaultCommand(drivetrain.getTeleopControlCommand(driverX, driverY, driverOmega, Constants.DriveConstants.TELEOP_CONTROL_CONFIG));
         
+
+            // X/B --> Short-range navigate-to-trench, with NZ + max-distance protection handled in PoseManager.
+            if (!safetyMode) {
+                controller.getButtonX().onTrue(
+                    poseManager.navigateToTrench(Constants.FieldConstants.POSE_BLUE_LEFT_EXIT_AZ_VIA_TRENCH));
+                controller.getButtonB().onTrue(
+                    poseManager.navigateToTrench(Constants.FieldConstants.POSE_BLUE_RIGHT_EXIT_AZ_VIA_TRENCH));
+            }
+
             // LEFT TRIGGER --> Track hub center; driver keeps X/Y, rotation follows hub; hood tracks distance
             // DoubleSupplier targetDistance = () -> drivetrain.getRobotToPointTranslation(
             //         Constants.FieldConstants.getTargetForPose(drivetrain.getLocalizer().getPose())).getNorm();
@@ -200,6 +205,26 @@ public class RobotContainer {
 
         // RIGHT TRIGGER --> Aim (rotate + hood), then shoot while held
         controller.getRightTrigger().whileTrue(aimThenShootCommand());
+
+        // A --> Aim
+        //controller.getButtonA().onTrue(aimCommand());
+        
+        // Y --> Unclog: run feeder, indexer, and intake in reverse at 20% speed (while held)
+        //controller.getButtonY().whileTrue(unclogCommand());
+
+        // X --> Hood to Latch Position
+        //controller.getButtonX().onTrue(shooter.hoodToRotationsCommand(Constants.ShooterConstants.POSITION_HOOD_LATCH));
+
+        // B --> Open?
+
+
+        // -- FOR RECORDING SHOOTER DATA --
+
+        // Y --> Hood to setpoint
+        controller.getButtonY().onTrue(shooter.hoodToRotationsCommand(Constants.ShooterConstants.POSITION_HOOD_MAX));
+        // A --> Hood all the way down
+        controller.getButtonA().onTrue(shooter.hoodToRotationsCommand(Constants.ShooterConstants.POSITION_HOOD_MIN));
+        
 
 
         // D-PAD RIGHT --> Hood up (while held; stop when released)
@@ -224,20 +249,9 @@ public class RobotContainer {
 
 
         // ---------------------------------------------
-        // ---------- CONTROLLER 2 - TESTING ----------
+        // ---------- OLD ----------
         // ---------------------------------------------
 
-
-        // A --> Hood all the way down
-        controller.getButtonA().onTrue(aimCommand());
-
-        // Y --> Unclog: run feeder, indexer, and intake in reverse at 20% speed (while held)
-        //controller.getButtonY().whileTrue(unclogCommand());
-
-        // X/Y --> Hood all the way down/up
-        controller.getButtonX().onTrue(shooter.hoodToRotationsCommand(Constants.ShooterConstants.POSITION_HOOD_MIN));
-        controller.getButtonY().onTrue(shooter.hoodToRotationsCommand(Constants.ShooterConstants.POSITION_HOOD_LATCH));
-        
         //controller.getButtonA().whileTrue(
             //Commands.run(hopper::runIndexerCommand, hopper).finallyDo(hopper::stopIndexerCommand));
         // controller.getButtonA().whileTrue(hopper.runFeederCommand().alongWith(hopper.runIndexerCommand()));

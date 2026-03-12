@@ -22,7 +22,6 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
-import frc.robot.BreakerLib.util.commands.TimedWaitUntilCommand;
 import frc.robot.BreakerLib.util.factory.BreakerCANCoderFactory;
 import frc.robot.BreakerLib.util.logging.BreakerLog;
 
@@ -63,9 +62,9 @@ public class Shooter extends SubsystemBase {
         slot0.kI = Constants.ShooterConstants.SHOOTER_kI;
         slot0.kD = Constants.ShooterConstants.SHOOTER_kD;
 
-         shooterFlywheel1Motor.getConfigurator().apply(flywheelConfig);
-         shooterFlywheel2Motor.getConfigurator().apply(flywheelConfig);
-         shooterFlywheel3Motor.getConfigurator().apply(flywheelConfig);
+        shooterFlywheel1Motor.getConfigurator().apply(flywheelConfig);
+        shooterFlywheel2Motor.getConfigurator().apply(flywheelConfig);
+        shooterFlywheel3Motor.getConfigurator().apply(flywheelConfig);
 
         int leaderId = Constants.ShooterConstants.SHOOTER_FLYWHEEL_1_MOTOR_ID;
         shooterFlywheel2Motor.setControl(new Follower(leaderId, MotorAlignmentValue.Aligned));
@@ -79,9 +78,6 @@ public class Shooter extends SubsystemBase {
                 .withSupplyCurrentLimit(Constants.ShooterConstants.HOOD_SUPPLY_CURRENT_LIMIT)
                 .withSupplyCurrentLimitEnable(true);
         hoodMotor.getConfigurator().apply(hoodConfig);
-        slot0.kP = Constants.ShooterConstants.SHOOTER_kP;
-        slot0.kI = Constants.ShooterConstants.SHOOTER_kI;
-        slot0.kD = Constants.ShooterConstants.SHOOTER_kD;
     }
 
 
