@@ -243,9 +243,9 @@ public final class Constants {
         public static final double PIVOT_ENCODER_DISCONTINUITY = 0.5;
 
         /** Pivot angles (rotations) – placeholders until tuned. */
-        public static final Rotation2d POSITION_STOWED = Rotation2d.fromRotations(-0.015);  //-0.025
-        public static final Rotation2d POSITION_EXTENDED = Rotation2d.fromRotations(-0.25); // Need to Tune
-        public static final Rotation2d POSITION_JIGGLE_HIGH = Rotation2d.fromRotations(-0.2);
+        public static final Rotation2d POSITION_STOWED = Rotation2d.fromRotations(0.0);  //-0.025
+        public static final Rotation2d POSITION_EXTENDED = Rotation2d.fromRotations(-0.28); // Need to Tune
+        public static final Rotation2d POSITION_JIGGLE_HIGH = Rotation2d.fromRotations(-0.14);
         public static final Rotation2d POSITION_JIGGLE_LOW = Rotation2d.fromRotations(-0.33);
 
         /** Motion Magic (rotations/s, rotations/s², rotations/s³). */

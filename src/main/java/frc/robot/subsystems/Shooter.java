@@ -218,6 +218,7 @@ public class Shooter extends SubsystemBase {
 
     public Command hoodToRotationsCommand(double targetRotations) {
         System.out.println("Ran hoodToRotations!");
+        BreakerLog.log("Shooter/hoodPosition", targetRotations);
         double clamped = MathUtil.clamp(targetRotations,
                 Constants.ShooterConstants.POSITION_HOOD_MIN,
                 Constants.ShooterConstants.POSITION_HOOD_MAX);
@@ -265,7 +266,7 @@ public class Shooter extends SubsystemBase {
             // This makes sure the flywheel is coasting to a stop, not braking to a stop
             shooterFlywheel1Motor.setControl(new DutyCycleOut(0).withOverrideBrakeDurNeutral(false));
         } else {
-            shooterFlywheel1Motor.setControl(new VelocityVoltage(speed).withAcceleration(40)); // 15
+            shooterFlywheel1Motor.setControl(new VelocityVoltage(speed).withAcceleration(400)); // 15
         }
         
     }
