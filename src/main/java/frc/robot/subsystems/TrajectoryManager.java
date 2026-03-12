@@ -52,6 +52,11 @@ public class TrajectoryManager extends SubsystemBase {
         return drivetrain.getRobotToPointTranslation(targetPoint).getNorm();
     }
 
+    /** Returns the distance in meters from the robot to the current shooting target (hub for pose). */
+    public double getDistanceToTarget() {
+        return getDistanceToPoint(Constants.FieldConstants.getTargetForPose(drivetrain.getLocalizer().getPose()));
+    }
+
     /**
      * Returns the predefined hood position (rotations) for the given shooting pose.
      * L1/C1/R1 → POSITION_HOOD_SETPOINT_1, L2/C2/R2/HUB_CENTER → POSITION_HOOD_SETPOINT_2, L3/R3 → POSITION_HOOD_SETPOINT_3.
@@ -92,8 +97,25 @@ public class TrajectoryManager extends SubsystemBase {
      * Returns flywheel speed (rotations/sec) for the given distance to target in meters.
      */
     public static double getFlywheelSpeedForDistance(double distanceToTargetMeters) {
-        BreakerVector2 vals = getShootValuesForDistance(distanceToTargetMeters);
-        return vals != null ? vals.getY() : Constants.ShooterConstants.SPEED_FLYWHEEL_ACTIVE;
+        BreakerVector2 shootValues = getShootValuesForDistance(distanceToTargetMeters);
+        if (shootValues != null) {
+            return shootValues.getY();
+        } else {
+            return Constants.ShooterConstants.SPEED_FLYWHEEL_ACTIVE;
+        }
+    }
+
+    /** Returns flywheel speed for current distance to target (via getDistanceToTarget). Falls back to constant if distance invalid. */
+    public double getFlywheelSpeedForDistance() {
+        double distance = getDistanceToTarget();
+        // If the distance is bogus, just use our default speed
+        if (Double.isNaN(distance) || 
+            distance < Constants.ShooterConstants.SHOOTER_RANGE_MIN || 
+            distance > Constants.ShooterConstants.SHOOTER_RANGE_MAX) {
+            return Constants.ShooterConstants.SPEED_FLYWHEEL_ACTIVE;
+        } else {
+            return getFlywheelSpeedForDistance(distance);
+        }
     }
 
     /** Returns (hood, flywheel) for the given distance; null if lookup empty. */

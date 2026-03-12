@@ -49,10 +49,10 @@ public class RobotContainer {
     private final Drivetrain drivetrain = new Drivetrain();
     private final Vision vision = new Vision(drivetrain);
     private final PoseManager poseManager = new PoseManager(drivetrain, vision);
-    //private final TrajectoryManager trajectoryManager = new TrajectoryManager(drivetrain);
+    private final TrajectoryManager trajectoryManager = new TrajectoryManager(drivetrain);
     private final Intake intake = new Intake();
     private final Climb climb = new Climb();
-    private final Shooter shooter = new Shooter();
+    private final Shooter shooter = new Shooter(trajectoryManager);
     private final Hopper hopper = new Hopper();
     
     private BreakerInputStream driverX, driverY, driverOmega;
@@ -466,10 +466,10 @@ public class RobotContainer {
     public void logPeriodic() {
         BreakerLog.log("SwerveDrivetrain/SafetyMode", safetyMode, true);
         BreakerLog.log("SwerveDrivetrain/SlowMode", slowMode, true);
-        BreakerLog.log("DistanceToTarget", drivetrain.getRobotToPointTranslation(
-                Constants.FieldConstants.getTargetForPose(drivetrain.getLocalizer().getPose())).getNorm(), true);
-        BreakerLog.log("DistanceFromRobotFrontToTarget", drivetrain.getRobotToPointTranslation(
-                Constants.FieldConstants.getTargetForPose(drivetrain.getLocalizer().getPose())).getNorm() - 0.39878, true);
+        // BreakerLog.log("DistanceToTarget", drivetrain.getRobotToPointTranslation(
+        //         Constants.FieldConstants.getTargetForPose(drivetrain.getLocalizer().getPose())).getNorm(), true);
+        // BreakerLog.log("DistanceFromRobotFrontToTarget", drivetrain.getRobotToPointTranslation(
+        //         Constants.FieldConstants.getTargetForPose(drivetrain.getLocalizer().getPose())).getNorm() - 0.39878, true);
         MatchTimer.update();
     }
 

@@ -44,7 +44,8 @@ public class Shooter extends SubsystemBase {
             Rotations.of(Constants.ShooterConstants.HOOD_ENCODER_OFFSET_ROTATIONS),
             SensorDirectionValue.CounterClockwise_Positive);
 
-    public Shooter() {
+    public Shooter(TrajectoryManager trajectoryManager) {
+        this.trajectoryManager = trajectoryManager;
         // Flywheels 2 and 3 follow flywheel 1 (same direction)
         TalonFXConfiguration flywheelConfig = new TalonFXConfiguration();
         flywheelConfig.MotorOutput.NeutralMode = NeutralModeValue.Coast;
@@ -86,15 +87,22 @@ public class Shooter extends SubsystemBase {
 
     public State state = State.INACTIVE;
 
+    private final TrajectoryManager trajectoryManager;
+
     /** Shooter states (flywheel speed is separate, via getFlywheelSpeed). */
     public enum State { INACTIVE, SPINNING_UP, SHOOTING }
 
-    /** Returns the flywheel speed (rotations/sec) for the given state. */
-    public static double getFlywheelSpeed(State state) {
-        return switch (state) {
-            case INACTIVE -> Constants.ShooterConstants.SPEED_IDLE;
-            case SPINNING_UP, SHOOTING -> Constants.ShooterConstants.SPEED_FLYWHEEL_ACTIVE;
-        };
+    /** Returns the flywheel speed (rotations/sec) for the given state. Uses TrajectoryManager for distance lookup. */
+    public double getFlywheelSpeed(State state) {
+        if (state == State.INACTIVE) {
+            return Constants.ShooterConstants.SPEED_IDLE;
+        } else {
+            return trajectoryManager.getFlywheelSpeedForDistance();
+        }
+        // return switch (state) {
+        //     case INACTIVE -> Constants.ShooterConstants.SPEED_IDLE;
+        //     case SPINNING_UP, SHOOTING -> Constants.ShooterConstants.SPEED_FLYWHEEL_ACTIVE;
+        // };
     }
 
     public void setState(State newState) {
@@ -104,7 +112,6 @@ public class Shooter extends SubsystemBase {
 
         BreakerLog.log("Shooter/State/Previous", previousState.toString());
         BreakerLog.log("Shooter/State/Current", state.toString());
-        BreakerLog.log("Shooter/State/TargetFlywheelSpeed", getFlywheelSpeed(state));
     }
 
     public Command setStateCommand(State newState) {
@@ -180,8 +187,7 @@ public class Shooter extends SubsystemBase {
     }
 
     public Command hoodToRotationsCommand(double targetRotations) {
-        System.out.println("Ran hoodToRotations!");
-        BreakerLog.log("Shooter/hoodPosition", targetRotations);
+        //BreakerLog.log("Shooter/HoodPosition", targetRotations);
         double clamped = MathUtil.clamp(targetRotations,
                 Constants.ShooterConstants.POSITION_HOOD_MIN,
                 Constants.ShooterConstants.POSITION_HOOD_MAX);
@@ -210,18 +216,25 @@ public class Shooter extends SubsystemBase {
         double v3 = shooterFlywheel3Motor.getVelocity().getValueAsDouble();
         double hoodPos = getHoodEncoderRotations();
         double hoodVel = hoodMotor.getVelocity().getValueAsDouble();
+        double distanceToTarget = trajectoryManager.getDistanceToTarget();
+        double targetFlywheelSpeed = getFlywheelSpeed(state);
+        double hoodTarget = TrajectoryManager.getHoodPositionForDistance(distanceToTarget);
         String line = String.format("state=%s f1=%.1f f2=%.1f f3=%.1fvel hood=%.2frot %.1fvel",
                 state, v1, v2, v3, hoodPos, hoodVel);
         BreakerLog.log("Shooter/Status", line, true);
+        BreakerLog.log("Shooter/DistanceToTarget", distanceToTarget, true);
+        BreakerLog.log("Shooter/HoodTarget", hoodTarget, true);
         BreakerLog.log("Shooter/HoodPosition", hoodPos, true);
-        BreakerLog.log("Shooter/HoodEncoderPosition", hoodEncoder.getPosition().getValueAsDouble(), true);
+        BreakerLog.log("Shooter/FlywheelTargetSpeed", targetFlywheelSpeed, true);
         BreakerLog.log("Shooter/Flywheel1Speed", v1, true);
-        BreakerLog.log("Shooter/Flywheel2Speed", v2);
-        BreakerLog.log("Shooter/Flywheel3Speed", v3);
-        BreakerLog.log("Electrical/Shooter/flywheel1", shooterFlywheel1Motor);
-        BreakerLog.log("Electrical/Shooter/flywheel2", shooterFlywheel2Motor);
-        BreakerLog.log("Electrical/Shooter/flywheel3", shooterFlywheel3Motor);
-        BreakerLog.log("Electrical/Shooter/hood", hoodMotor);
+        if (BreakerLog.isVerboseLogging()) {
+            BreakerLog.log("Shooter/Flywheel2Speed", v2);
+            BreakerLog.log("Shooter/Flywheel3Speed", v3);
+            BreakerLog.log("Electrical/Shooter/flywheel1", shooterFlywheel1Motor);
+            BreakerLog.log("Electrical/Shooter/flywheel2", shooterFlywheel2Motor);
+            BreakerLog.log("Electrical/Shooter/flywheel3", shooterFlywheel3Motor);
+            BreakerLog.log("Electrical/Shooter/hood", hoodMotor);
+        }
     }
 
     private void setFlywheelSpeed(double speed) {

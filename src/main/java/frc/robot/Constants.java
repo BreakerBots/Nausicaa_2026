@@ -313,6 +313,10 @@ public final class Constants {
         public static final double SPEED_IDLE = 0;
         public static final double SPEED_FLYWHEEL_ACTIVE = 60.0;
 
+        /** Valid distance range (m) for TrajectoryManager lookup; outside this falls back to SPEED_FLYWHEEL_ACTIVE. */
+        public static final double SHOOTER_RANGE_MIN = 0.25;
+        public static final double SHOOTER_RANGE_MAX = 15.0;
+
         public static final int FLYWHEEL_STATOR_CURRENT_LIMIT = 80; // 40
         public static final int FLYWHEEL_SUPPLY_CURRENT_LIMIT = 50; // 25
 
