@@ -162,8 +162,8 @@ public final class Constants {
         public static final Pose2d POSE_BLUE_RIGHT_EXIT_AZ_VIA_TRENCH = new Pose2d(3.3, 0.634, Rotation2d.fromDegrees(0));
         
         // We may not need these -- PathPlanner might automatically flip them
-        //public static final Pose2d POSE_RED_LEFT_EXIT_AZ_VIA_TRENCH = new Pose2d(13.24, 0.634, Rotation2d.fromDegrees(180));
-        //public static final Pose2d POSE_RED_RIGHT_EXIT_AZ_VIA_TRENCH = new Pose2d(13.24, 7.408, Rotation2d.fromDegrees(180));
+        public static final Pose2d POSE_RED_LEFT_EXIT_AZ_VIA_TRENCH = new Pose2d(13.24, 0.634, Rotation2d.fromDegrees(180));
+        public static final Pose2d POSE_RED_RIGHT_EXIT_AZ_VIA_TRENCH = new Pose2d(13.24, 7.408, Rotation2d.fromDegrees(180));
 
 
         // Targets to aim at for shooting/passing.
@@ -212,6 +212,22 @@ public final class Constants {
                 return POSE_RED_LEFT_CLIMBING_TOWER;
             } else {
                 return POSE_BLUE_LEFT_CLIMBING_TOWER;
+            }
+        }
+
+        public static Pose2d getTrenchLeftExitPose() {
+            if (isRedAlliance()) {
+                return POSE_RED_LEFT_EXIT_AZ_VIA_TRENCH;
+            } else {
+                return POSE_BLUE_LEFT_EXIT_AZ_VIA_TRENCH;
+            }
+        }
+
+        public static Pose2d getTrenchRightExitPose() {
+            if (isRedAlliance()) {
+                return POSE_RED_RIGHT_EXIT_AZ_VIA_TRENCH;
+            } else {
+                return POSE_BLUE_RIGHT_EXIT_AZ_VIA_TRENCH;
             }
         }
 
@@ -312,7 +328,7 @@ public final class Constants {
 
     public static class ShooterConstants {
         /** Shooter center offset from robot center: 3" to the right. In robot frame +Y is left, so right = -Y. */
-        public static final double SHOOTER_OFFSET_RIGHT_METERS = 3.0 * 0.0254;
+        public static final double SHOOTER_OFFSET_RIGHT_METERS = 4.0 * 0.0254;
 
         public static final int SHOOTER_FLYWHEEL_1_MOTOR_ID = 30;
         public static final int SHOOTER_FLYWHEEL_2_MOTOR_ID = 31;
@@ -331,7 +347,7 @@ public final class Constants {
         public static final double FLYWHEEL_SPEED_TOLERANCE = 0.05;
 
         public static final double SPEED_IDLE = 0;
-        public static final double SPEED_FLYWHEEL_ACTIVE = 60.0;
+        public static final double SPEED_FLYWHEEL_ACTIVE = 68.0;
 
         /** Valid distance range (m) for TrajectoryManager lookup; outside this falls back to SPEED_FLYWHEEL_ACTIVE. */
         public static final double SHOOTER_RANGE_MIN = 0.25;
@@ -355,9 +371,9 @@ public final class Constants {
         public static final double SPEED_HOOD_DOWN = 0.3; // 0.3
         public static final double AUTO_SPEED_HOOD_DOWN = -0.3;
         
-        public static final double POSITION_HOOD_MIN = -0.005859; //-0.002197
+        public static final double POSITION_HOOD_MIN = 0.071533; //-0.002197
         public static final double POSITION_HOOD_MAX = 0.477295; //0.477295
-        public static final double POSITION_HOOD_LATCH = 0.210205;
+        public static final double POSITION_HOOD_LATCH = 0.3;
        
         /** Deadband (rotations) for hood tracking; prevents oscillation when near target. */
         public static final double HOOD_TRACKING_TOLERANCE_ROTATIONS = 0.005;

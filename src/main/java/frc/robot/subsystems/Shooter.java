@@ -90,11 +90,11 @@ public class Shooter extends SubsystemBase {
 
     /** Returns the flywheel speed (rotations/sec) for the given state. Uses TrajectoryManager for distance lookup. */
     public double getFlywheelSpeed(State state) {
-        if (state == State.INACTIVE) {
-            return Constants.ShooterConstants.SPEED_IDLE;
-        } else {
-            return trajectoryManager.getFlywheelSpeedForDistance();
-        }
+         if (state == State.INACTIVE) {
+             return Constants.ShooterConstants.SPEED_IDLE;
+         } else {
+             return trajectoryManager.getFlywheelSpeedForDistance();
+         }
         // return switch (state) {
         //     case INACTIVE -> Constants.ShooterConstants.SPEED_IDLE;
         //     case SPINNING_UP, SHOOTING -> Constants.ShooterConstants.SPEED_FLYWHEEL_ACTIVE;

@@ -21,14 +21,17 @@ public class TrajectoryManager extends SubsystemBase {
      */
     private record ShootEntry(double distanceM, double hoodRot, double flywheelSpeed) {}
 
+
+    // for MHS only: add 33.23401872 inches to each measurement (corner to center of hub)
     private static final ShootEntry[] SHOOT_LOOKUP_TABLE = {
-        new ShootEntry(1.2192, 0.02, 60),        // 4 ft
-        new ShootEntry(1.524, 0.06, 60),        // 5 ft
-        new ShootEntry(1.8288, 0.115, 60),      // 6 ft
-        new ShootEntry(2.1336, 0.14, 60),       // 7 ft
-        new ShootEntry(2.4384, 0.172119, 60),  // 8 ft
-        new ShootEntry(2.7432, 0.212891, 60),   // 9 ft
-        new ShootEntry(3.05, 0.2459, 60),       // 10 ft
+        new ShootEntry(1.5902686, 0.04, 52),        
+        new ShootEntry(1.8950686, 0.07, 54),       
+        new ShootEntry(2.1998686, 0.1, 56),      
+        
+        new ShootEntry(3.1143686, 0.19, 60),       // 7 ft
+        new ShootEntry(4.0286686, 0.26, 64),  // 8 ft
+        new ShootEntry(4.9430686, 0.3, 68),   // 9 ft
+        //new ShootEntry(3.05, 0.2459, 60),       // 10 ft
     };
 
     private static final BreakerInterpolatingTreeMap<Double, BreakerVector2> shootLookup = buildShootLookup();

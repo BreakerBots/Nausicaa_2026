@@ -73,10 +73,10 @@
   "constraintZones": [
     {
       "name": "Constraints Zone",
-      "minWaypointRelativePos": 0.5975935828877006,
-      "maxWaypointRelativePos": 0.8983957219251303,
+      "minWaypointRelativePos": 0.6644159351789369,
+      "maxWaypointRelativePos": 1.6529372045914923,
       "constraints": {
-        "maxVelocity": 0.6,
+        "maxVelocity": 0.4,
         "maxAcceleration": 1.0,
         "maxAngularVelocity": 540.0,
         "maxAngularAcceleration": 720.0,
@@ -89,7 +89,7 @@
   "eventMarkers": [
     {
       "name": "intake",
-      "waypointRelativePos": 0.5590817015529865,
+      "waypointRelativePos": 0.0,
       "endWaypointRelativePos": 1.29,
       "command": {
         "type": "named",
@@ -115,7 +115,7 @@
   "folder": "2026 - Rebuilt",
   "idealStartingState": {
     "velocity": 0,
-    "rotation": 0.0
+    "rotation": 180.0
   },
   "useDefaultConstraints": true
 }
