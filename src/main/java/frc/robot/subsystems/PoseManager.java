@@ -112,7 +112,7 @@ public class PoseManager extends SubsystemBase {
      * Stops when heading is within tolerance or timeout.
      */
     public Command rotateToPointCommand(Translation2d targetPoint) {
-        final double toleranceRad = Math.toRadians(1.0);
+        final double toleranceRad = Math.toRadians(1.5);
         final var request = new SwerveRequest.FieldCentric().withDriveRequestType(DriveRequestType.Velocity);
 
         PIDController rotationPID = new PIDController(7, 0.0, 0.2);
