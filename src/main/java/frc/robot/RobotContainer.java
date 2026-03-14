@@ -213,10 +213,11 @@ public class RobotContainer {
         controller.getRightTrigger().whileTrue(aimThenShootCommand());
 
         // A --> Aim
-        controller.getButtonA().onTrue(aimCommand());
+        //controller.getButtonA().onTrue(aimCommand());
+        controller.getButtonA().onTrue(shootForTeleopCommand());
         
         // Y --> Unclog: run feeder, indexer, and intake in reverse at 20% speed (while held)
-        //controller.getButtonY().whileTrue(unclogCommand());
+        controller.getButtonY().whileTrue(unclogCommand());
 
         // X --> Hood to Latch Position
         //controller.getButtonX().onTrue(shooter.hoodToRotationsCommand(Constants.ShooterConstants.POSITION_HOOD_LATCH));
@@ -227,7 +228,8 @@ public class RobotContainer {
         // -- FOR RECORDING SHOOTER DATA --
 
         // Y --> Hood to setpoint
-        controller.getButtonY().onTrue(shooter.hoodToRotationsCommand(Constants.ShooterConstants.POSITION_HOOD_LATCH));
+        //controller.getButtonY().onTrue(shooter.hoodToRotationsCommand(Constants.ShooterConstants.POSITION_HOOD_LATCH));
+        //controller.getButtonA().onTrue(intake.setStateCommand(Intake.State.STOWED));
         // A --> Hood all the way down
         //controller.getButtonA().onTrue(shooter.hoodToRotationsCommand(Constants.ShooterConstants.POSITION_HOOD_MIN));
         
@@ -513,7 +515,7 @@ public class RobotContainer {
 
     /** Called once when the robot enters teleop. */
     public void teleopInit() {
-        //intake.setState(Intake.State.STOWED);
+        intake.setState(Intake.State.STOWED);
         climb.setState(Climb.State.INACTIVE);
         shooter.setState(Shooter.State.INACTIVE);
         hopper.setState(Hopper.State.INACTIVE);
