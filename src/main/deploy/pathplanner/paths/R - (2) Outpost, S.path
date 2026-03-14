@@ -8,24 +8,24 @@
       },
       "prevControl": null,
       "nextControl": {
-        "x": 2.4864194008559197,
-        "y": 2.4370756062767476
+        "x": 2.035427979069878,
+        "y": 2.8999999999999995
       },
       "isLocked": false,
       "linkedName": null
     },
     {
       "anchor": {
-        "x": 0.7526390870185449,
-        "y": 0.71623395149786
+        "x": 1.135,
+        "y": 0.7
       },
       "prevControl": {
-        "x": 0.23814333159101975,
-        "y": -0.14125897421468303
+        "x": 0.135,
+        "y": 0.7000000000000001
       },
       "nextControl": {
-        "x": 0.9855349500713266,
-        "y": 1.1043937232524967
+        "x": 2.134999999999999,
+        "y": 0.7
       },
       "isLocked": false,
       "linkedName": null
@@ -36,8 +36,8 @@
         "y": 2.9
       },
       "prevControl": {
-        "x": 2.564051355206847,
-        "y": 2.3076890156918695
+        "x": 3.0475900882263236,
+        "y": 2.4645861006019922
       },
       "nextControl": null,
       "isLocked": false,
@@ -46,17 +46,21 @@
   ],
   "rotationTargets": [
     {
-      "waypointRelativePos": 0.7,
+      "waypointRelativePos": 0.5799573560767624,
+      "rotationDegrees": 180.0
+    },
+    {
+      "waypointRelativePos": 1.108742004264385,
       "rotationDegrees": 180.0
     }
   ],
   "constraintZones": [
     {
       "name": "Constraints Zone",
-      "minWaypointRelativePos": 0.5855614973262033,
-      "maxWaypointRelativePos": 0.8716577540106922,
+      "minWaypointRelativePos": 0.7238352464550891,
+      "maxWaypointRelativePos": 0.9507089804186298,
       "constraints": {
-        "maxVelocity": 0.6,
+        "maxVelocity": 0.2,
         "maxAcceleration": 1.0,
         "maxAngularVelocity": 540.0,
         "maxAngularAcceleration": 720.0,
@@ -66,19 +70,7 @@
     }
   ],
   "pointTowardsZones": [],
-  "eventMarkers": [
-    {
-      "name": "wait",
-      "waypointRelativePos": 0.8048615800135044,
-      "endWaypointRelativePos": null,
-      "command": {
-        "type": "named",
-        "data": {
-          "name": "wait"
-        }
-      }
-    }
-  ],
+  "eventMarkers": [],
   "globalConstraints": {
     "maxVelocity": 4.5,
     "maxAcceleration": 3.0,
@@ -89,13 +81,13 @@
   },
   "goalEndState": {
     "velocity": 0,
-    "rotation": 42.731
+    "rotation": 42.73134770593227
   },
   "reversed": false,
   "folder": "2026 - Rebuilt",
   "idealStartingState": {
     "velocity": 0,
-    "rotation": 42.731
+    "rotation": 42.73
   },
   "useDefaultConstraints": true
 }
