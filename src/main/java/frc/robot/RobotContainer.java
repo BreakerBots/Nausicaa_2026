@@ -511,11 +511,18 @@ public class RobotContainer {
         // Make sure we drop the hood immediately so that the hopper extends
         CommandScheduler.getInstance().schedule(
                 shooter.hoodToRotationsCommand(Constants.ShooterConstants.POSITION_HOOD_MIN));
-    }
+    }                           
 
     /** Called once when the robot enters teleop. */
     public void teleopInit() {
-        intake.setState(Intake.State.EXTENDED_IDLE);
+        
+        if (intake.state != Intake.State.STOWED) {
+            intake.setState(Intake.State.EXTENDED_IDLE);
+        }
+        else {
+            intake.setState(Intake.State.STOWED);
+        }
+        
         climb.setState(Climb.State.INACTIVE);
         shooter.setState(Shooter.State.INACTIVE);
         hopper.setState(Hopper.State.INACTIVE);
