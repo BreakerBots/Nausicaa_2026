@@ -182,12 +182,12 @@ public class RobotContainer {
         
 
             // X/B --> Short-range navigate-to-trench, with NZ + max-distance protection handled in PoseManager.
-            if (!safetyMode) {
-                controller.getButtonX().onTrue(
-                    poseManager.navigateToTrench(Constants.FieldConstants.getTrenchLeftExitPose()));
-                controller.getButtonB().onTrue(
-                    poseManager.navigateToTrench(Constants.FieldConstants.getTrenchRightExitPose()));
-            }
+            // if (!safetyMode) {
+            //     controller.getButtonX().onTrue(
+            //         poseManager.navigateToTrench(Constants.FieldConstants.getTrenchLeftExitPose()));
+            //     controller.getButtonB().onTrue(
+            //         poseManager.navigateToTrench(Constants.FieldConstants.getTrenchRightExitPose()));
+            // }
 
             // LEFT TRIGGER --> Track hub center; driver keeps X/Y, rotation follows hub; hood tracks distance
             // DoubleSupplier targetDistance = () -> drivetrain.getRobotToPointTranslation(
@@ -229,7 +229,7 @@ public class RobotContainer {
 
         // Y --> Hood to setpoint
         //controller.getButtonY().onTrue(shooter.hoodToRotationsCommand(Constants.ShooterConstants.POSITION_HOOD_LATCH));
-        //controller.getButtonA().onTrue(intake.setStateCommand(Intake.State.STOWED));
+        controller.getButtonX().onTrue(intake.setStateCommand(Intake.State.STOWED));
         // A --> Hood all the way down
         //controller.getButtonA().onTrue(shooter.hoodToRotationsCommand(Constants.ShooterConstants.POSITION_HOOD_MIN));
         

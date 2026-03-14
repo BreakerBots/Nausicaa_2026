@@ -418,6 +418,7 @@ public final class Constants {
         public static final double SETPOINT_UP = -1.788125;
         public static final double SETPOINT_CLIMBED = -0.5;
         public static final double SETPOINT_DOWN = 0.1;
+        
 
         /**
          * DOWN:
@@ -436,7 +437,7 @@ public final class Constants {
         public static final double SETPOINT_TOLERANCE = 0.1;
 
         /** Faster speeds for extending/retracting. */
-        public static final double SPEED_EXTENDING = 0.2; // need to tune
+        public static final double SPEED_EXTENDING = 0.5; // need to tune
         public static final double SPEED_RETRACTING = -0.2; // need to tune
         
         /** Slower speeds for ascending/descending (0.2 = 20% motor power) */
@@ -482,9 +483,9 @@ public final class Constants {
         /** ROBOT-LEVEL MAXIMUM SPEEDS - How fast can the robot drive and rotate (currently reduced for testing)
          * Translational = forward/backward and left/right movement (X and Y on the field)
          * Rotational = spinning in place (turning) */
-        public static final LinearVelocity MAXIMUM_TRANSLATIONAL_VELOCITY = Units.MetersPerSecond.of(2);
+        public static final LinearVelocity MAXIMUM_TRANSLATIONAL_VELOCITY = Units.MetersPerSecond.of(2.5);
         public static final LinearVelocity ALIGN_MODE_MAXIMUM_TRANSLATIONAL_VELOCITY = Units.MetersPerSecond.of(0.4);
-        public static final AngularVelocity MAXIMUM_ROTATIONAL_VELOCITY = Units.RadiansPerSecond.of(4);
+        public static final AngularVelocity MAXIMUM_ROTATIONAL_VELOCITY = Units.RadiansPerSecond.of(5);
         public static final AngularVelocity ALIGN_MODE_MAXIMUM_ROTATIONAL_VELOCITY = Units.RadiansPerSecond.of(0.8);
         //public static final LinearVelocity MAXIMUM_TRANSLATIONAL_VELOCITY = Units.MetersPerSecond.of(4.5);
         //public static final AngularVelocity MAXIMUM_ROTATIONAL_VELOCITY = Units.RadiansPerSecond.of(9.5);
