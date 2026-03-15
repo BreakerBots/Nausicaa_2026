@@ -145,7 +145,7 @@ public class PoseManager extends SubsystemBase {
             double angleError = Math.IEEEremainder(desiredHeading - currentHeading, 2.0 * Math.PI);
             return Math.abs(angleError) <= toleranceRad;
         })
-        .withTimeout(3.0)
+        .withTimeout(1.0)
         .finallyDo(() -> {
             rotationPID.reset();
             rotationPID.close();
