@@ -52,8 +52,12 @@ public class Drivetrain extends BreakerSwerveDrivetrain {
     /** Locks wheels in X pattern (brake) to resist motion during shooting. Unlock by running any drivetrain command. */
 
     public Command lockWheelsCommand() {
-        return Commands.run(() -> setControl(new SwerveRequest.SwerveDriveBrake()), this);
+        //return Commands.run(() -> setControl(new SwerveRequest.SwerveDriveBrake()), this);
+        return Commands.run(() -> setControl(new SwerveRequest.SwerveDriveBrake()
+            .withDriveRequestType(DriveRequestType.OpenLoopVoltage)), this);    
     }  
+
+
 
     // public Command lockWheelsCommand() {
     //     // X pattern from forward: FL +45° CCW, FR -45° CW, BL -45° CW, BR +45° CCW.
