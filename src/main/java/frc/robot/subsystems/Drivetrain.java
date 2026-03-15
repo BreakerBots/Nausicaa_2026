@@ -10,9 +10,12 @@ import static frc.robot.Constants.DriveConstants.DRIVETRAIN_CONSTANTS;
 import static frc.robot.Constants.DriveConstants.FrontLeft;
 import static frc.robot.Constants.DriveConstants.FrontRight;
 
-import com.ctre.phoenix6.swerve.SwerveRequest;
+import com.ctre.phoenix6.swerve.SwerveModule.DriveRequestType;
+import com.ctre.phoenix6.swerve.SwerveModule.ModuleRequest;
 
 import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.math.geometry.Translation2d;
 import frc.robot.Constants;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -47,6 +50,22 @@ public class Drivetrain extends BreakerSwerveDrivetrain {
 
     /** Locks wheels in X pattern (brake) to resist motion during shooting. Unlock by running any drivetrain command. */
     public Command lockWheelsCommand() {
-        return Commands.run(() -> setControl(new SwerveRequest.SwerveDriveBrake()), this);
-    }    
+        // X pattern from forward: FL +45° CCW, FR -45° CW, BL -45° CW, BR +45° CCW.
+        // OpenLoopVoltage with 0 engages brake on all 4 drive motors (NeutralMode.Brake in config).
+        final Rotation2d angleCcw = Rotation2d.fromDegrees(45);
+        final Rotation2d angleCw = Rotation2d.fromDegrees(-45);
+        final SwerveModuleState[] lockStates = {
+            new SwerveModuleState(0, angleCcw),  // FrontLeft: 45° CCW
+            new SwerveModuleState(0, angleCw),   // FrontRight: 45° CW
+            new SwerveModuleState(0, angleCw),   // BackLeft: 45° CW
+            new SwerveModuleState(0, angleCcw),  // BackRight: 45° CCW
+        };
+        return Commands.run(() -> {
+            for (int i = 0; i < 4; i++) {
+                getModule(i).apply(new ModuleRequest()
+                    .withDriveRequest(DriveRequestType.OpenLoopVoltage)
+                    .withState(lockStates[i]));
+            }
+        }, this);
+    }
 }
