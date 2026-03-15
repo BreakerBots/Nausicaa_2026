@@ -379,8 +379,8 @@ public class RobotContainer {
                 });
             // Comment this in to test wheel locking 
             // Will lock wheels at start of shoot; any drivetrain command (e.g. aim) will unlock.
-            //return drivetrain.lockWheelsCommand().raceWith(shootSequence);
-            return shootSequence;
+            return drivetrain.lockWheelsCommand().raceWith(shootSequence);
+            //return shootSequence;
     }
 
 
