@@ -340,9 +340,9 @@ public class RobotContainer {
                 Commands.waitSeconds(1.0),
                 Commands.sequence(
                         Commands.runOnce(() -> intake.setState(Intake.State.FEED_JIGGLE_LOW)),
-                        Commands.waitSeconds(0.2),
+                        Commands.waitSeconds(0.3),
                         Commands.runOnce(() -> intake.setState(Intake.State.FEED_JIGGLE_HIGH)),
-                        Commands.waitSeconds(0.2))
+                        Commands.waitSeconds(0.3))
                         .repeatedly()
                         .until(() -> hopper.state != Hopper.State.FEEDING));
 
