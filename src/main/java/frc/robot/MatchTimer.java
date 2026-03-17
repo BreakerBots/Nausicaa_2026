@@ -1,8 +1,8 @@
 package frc.robot;
 
+import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Timer;
-import frc.robot.BreakerLib.util.logging.BreakerLog;
 
 public final class MatchTimer {
     private MatchTimer() {}
@@ -10,6 +10,9 @@ public final class MatchTimer {
     // When we're not connected to an FMS, we simulate
     private static double simStartTime = -1.0;
     private static double simDuration = 160.0;
+
+    private static final double THROTTLE_INTERVAL_SEC = 0.5;
+    private static double lastPublishTime = -1.0;
 
     public enum MatchPhase {
         DISABLED,
@@ -40,11 +43,20 @@ public final class MatchTimer {
         int displaySeconds = validTime ? (int) Math.round(matchTime) : 0;
 
         MatchPhase phase = getMatchPhase(matchTime);
+        String phaseLabel = getDriverLabel(phase);
+        String transitionWarning = getTransitionWarning(phase, displaySeconds);
 
-        BreakerLog.log("MatchTimer/Time", (double) displaySeconds, true);
-        BreakerLog.log("MatchTimer/Phase", getDriverLabel(phase), true);
-        BreakerLog.log("MatchTimer/matchTime", matchTime, true);
-        BreakerLog.log("MatchTimer/TransitionWarning", getTransitionWarning(phase, displaySeconds), true);
+        // Publish directly to NetworkTables so dashboard works when FMS is connected
+        // (BreakerLog disables NT publishing during matches to conserve bandwidth)
+        double now = Timer.getFPGATimestamp();
+        if (lastPublishTime < 0 || now - lastPublishTime >= THROTTLE_INTERVAL_SEC) {
+            lastPublishTime = now;
+            var table = NetworkTableInstance.getDefault().getTable("Robot").getSubTable("MatchTimer");
+            table.getEntry("Time").setDouble(displaySeconds);
+            table.getEntry("Phase").setString(phaseLabel);
+            table.getEntry("matchTime").setDouble(matchTime);
+            table.getEntry("TransitionWarning").setString(transitionWarning);
+        }
     }
 
     public static MatchPhase getMatchPhase(double matchTime) {
