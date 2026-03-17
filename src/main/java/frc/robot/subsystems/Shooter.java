@@ -202,6 +202,10 @@ public class Shooter extends SubsystemBase {
 
     @Override
     public void periodic() {
+        // Update the flywheel speed continuously based on our distance to target
+        // if (state == State.SPINNING_UP || state == State.SHOOTING) {
+        //     setFlywheelSpeed(getFlywheelSpeed(state));
+        // }
         logStatus();
     }
 

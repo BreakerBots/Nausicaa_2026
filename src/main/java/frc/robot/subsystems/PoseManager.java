@@ -183,37 +183,42 @@ public class PoseManager extends SubsystemBase {
     /**
      * While run: driver keeps X/Y; rotation is overridden to face the target point (odometry-based).
      */
-    // public Command trackPointCommand(Translation2d targetPoint, DoubleSupplier vx, DoubleSupplier vy) {
-    //     return trackPointCommand(() -> targetPoint, vx, vy);
-    // }
+    public Command trackPointCommand(Translation2d targetPoint, DoubleSupplier vx, DoubleSupplier vy) {
+        return trackPointCommand(() -> targetPoint, vx, vy);
+    }
 
    /**
     * Adjust rotation to always face target AprilTag. The supplier allows us to continually reevaluate this each cycle.
     */
-    // public Command trackPointCommand(Supplier<Translation2d> targetSupplier, DoubleSupplier vx, DoubleSupplier vy) {
-    //     final var request = new SwerveRequest.FieldCentric().withDriveRequestType(DriveRequestType.Velocity);
-    //     PIDController rotationPID = new PIDController(9, 0.0, 0.1);
-    //     rotationPID.enableContinuousInput(-Math.PI, Math.PI);
-    //     double maxRotRate = Constants.DriveConstants.MAXIMUM_ROTATIONAL_VELOCITY.in(Units.RadiansPerSecond);
+    public Command trackPointCommand(Supplier<Translation2d> targetSupplier, DoubleSupplier vx, DoubleSupplier vy) {
+        final var request = new SwerveRequest.FieldCentric().withDriveRequestType(DriveRequestType.Velocity);
+        PIDController rotationPID = new PIDController(7, 0.0, 0.1);
+        rotationPID.enableContinuousInput(-Math.PI, Math.PI);
+        double maxRotRate = Constants.DriveConstants.MAXIMUM_ROTATIONAL_VELOCITY.in(Units.RadiansPerSecond);
 
-    //     return Commands.run(() -> {
-    //         Translation2d targetPoint = targetSupplier.get();
-    //         Translation2d toTarget = drivetrain.getRobotToPointTranslation(targetPoint);
-    //         double desiredHeading = Math.atan2(toTarget.getY(), toTarget.getX());
-    //         double currentHeading = drivetrain.getLocalizer().getPose().getRotation().getRadians();
-    //         double angleError = Math.IEEEremainder(desiredHeading - currentHeading, 2.0 * Math.PI);
-    //         double omega = rotationPID.calculate(0.0, angleError);
-    //         omega = Math.max(-maxRotRate, Math.min(maxRotRate, omega));
-    //         drivetrain.setControl(request
-    //             .withVelocityX(vx.getAsDouble())
-    //             .withVelocityY(vy.getAsDouble())
-    //             .withRotationalRate(omega));
-    //     }, drivetrain)
-    //     .finallyDo(() -> {
-    //         rotationPID.reset();
-    //         rotationPID.close();
-    //     });
-    // }
+        return Commands.run(() -> {
+            Translation2d targetPoint = targetSupplier.get();
+            //Translation2d toTarget = drivetrain.getShooterCenterToPointTranslation(targetPoint);
+            Translation2d toTarget = drivetrain.getRobotToPointTranslation(targetPoint);
+            double desiredHeading = Math.atan2(toTarget.getY(), toTarget.getX());
+            double currentHeading = drivetrain.getLocalizer().getPose().getRotation().getRadians();
+            double angleError = Math.IEEEremainder(desiredHeading - currentHeading, 2.0 * Math.PI);
+            double omega = rotationPID.calculate(0.0, angleError);
+            omega = Math.max(-maxRotRate, Math.min(maxRotRate, omega));
+            drivetrain.setControl(request
+                .withVelocityX(vx.getAsDouble())
+                .withVelocityY(vy.getAsDouble())
+                .withRotationalRate(omega));
+        }, drivetrain)
+        .finallyDo(() -> {
+            rotationPID.reset();
+            rotationPID.close();
+            drivetrain.setControl(request
+                .withVelocityX(0.0)
+                .withVelocityY(0.0)
+                .withRotationalRate(0.0));
+        });
+    }
 
     /**
       * When in our AZ, track the hub. When outside, track one of two passing targets.

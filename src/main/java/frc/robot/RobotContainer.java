@@ -210,8 +210,9 @@ public class RobotContainer {
 
         // ----------------- SHOOTER + HOPPER/FEEDER -------------
 
-        // RIGHT TRIGGER --> Aim (rotate + hood), then shoot while held
+        // RIGHT TRIGGER --> Continuously aim and shoot while held; both stop when released
         controller.getRightTrigger().whileTrue(aimThenShootCommand());
+        //controller.getRightTrigger().whileTrue(aimAndShootContinuouslyCommand());
 
         // A --> Aim
         //controller.getButtonA().onTrue(aimCommand());
@@ -322,6 +323,23 @@ public class RobotContainer {
         return aimCommand().andThen(shootForTeleopCommand());
     }
 
+    /**
+     * Aim and shoot simultaneously. Runs aimCommand and shootForTeleopCommand in parallel.
+     */
+    private Command aimAndShootCommand() {
+        return Commands.parallel(aimCommand(), shootForTeleopCommand());
+    }
+
+    /**
+     * Continuously aim and shoot while held. Runs aimContinuouslyCommand and shootForTeleopCommand in parallel.
+     * When trigger released, both stop and release control.
+     */
+    private Command aimAndShootContinuouslyCommand() {
+        return Commands.parallel(aimContinuouslyCommand(), shootForTeleopCommand());
+    }
+
+
+    
     /** Auto shoot: feed phase runs for 6 seconds. */
     private Command shootForAutoCommand() {
         return shootSequenceCommand(6.0);
@@ -493,6 +511,20 @@ public class RobotContainer {
                 BreakerLog.log("AimCommand/ElapsedSeconds", elapsed);
                 BreakerLog.log("AimCommand/Interrupted", interrupted);
             });
+    }
+
+    /**
+     * Continuously aim: track target heading and hood position. Runs until interrupted.
+     * Unlike aimCommand (one-shot), this keeps adjusting as the robot moves.
+     */
+    private Command aimContinuouslyCommand() {
+        return Commands.parallel(
+                // Rotation only, no translation
+                poseManager.trackPointCommand(
+                        () -> Constants.FieldConstants.getTargetForPose(drivetrain.getLocalizer().getPose()),
+                        () -> 0.0,
+                        () -> 0.0),
+                positionHoodForTargetCommand());
     }
 
     /**
