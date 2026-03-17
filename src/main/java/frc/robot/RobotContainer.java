@@ -15,6 +15,7 @@ import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.units.Units;
+import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -458,17 +459,40 @@ public class RobotContainer {
      * One-time aim: rotate to face target and position hood for distance. Both run in parallel until complete.
      */
     private Command aimCommand() {
+        double[] startTime = new double[1];
         return Commands.defer(() -> {
             Pose2d pose = drivetrain.getLocalizer().getPose();
             Translation2d target = Constants.FieldConstants.getTargetForPose(pose);
             double distance = drivetrain.getRobotToPointTranslation(target).getNorm();
             double hoodTarget = TrajectoryManager.getHoodPositionForDistance(distance);
 
-            Command rotateCmd = poseManager.rotateToPointCommand(target);
-            Command hoodCmd = shooter.hoodToRotationsCommand(hoodTarget);
+            double[] rotateStart = new double[1];
+            Command rotateCmd = poseManager.rotateToPointCommand(target)
+                .beforeStarting(() -> rotateStart[0] = Timer.getFPGATimestamp())
+                .finallyDo((interrupted) -> {
+                    double elapsed = Timer.getFPGATimestamp() - rotateStart[0];
+                    BreakerLog.log("AimCommand/RotateToPoint/ElapsedSeconds", elapsed);
+                    BreakerLog.log("AimCommand/RotateToPoint/Interrupted", interrupted);
+                });
+
+            double[] hoodStart = new double[1];
+            Command hoodCmd = shooter.hoodToRotationsCommand(hoodTarget)
+                .beforeStarting(() -> hoodStart[0] = Timer.getFPGATimestamp())
+                .finallyDo((interrupted) -> {
+                    double elapsed = Timer.getFPGATimestamp() - hoodStart[0];
+                    BreakerLog.log("AimCommand/HoodToRotations/ElapsedSeconds", elapsed);
+                    BreakerLog.log("AimCommand/HoodToRotations/Interrupted", interrupted);
+                });
 
             return Commands.parallel(rotateCmd, hoodCmd);
-        }, Set.of(drivetrain, shooter)).withTimeout(1.0);
+        }, Set.of(drivetrain, shooter))
+            .withTimeout(1.0)
+            .beforeStarting(() -> startTime[0] = Timer.getFPGATimestamp())
+            .finallyDo((interrupted) -> {
+                double elapsed = Timer.getFPGATimestamp() - startTime[0];
+                BreakerLog.log("AimCommand/ElapsedSeconds", elapsed);
+                BreakerLog.log("AimCommand/Interrupted", interrupted);
+            });
     }
 
     /**
