@@ -13,10 +13,17 @@ import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import frc.robot.BreakerLib.physics.BreakerVector2;
 import frc.robot.BreakerLib.physics.BreakerVector3;
 
-/** BreakerLib math util class. */
+/**
+ * Math utilities for FRC: geometry, interpolation, coordinate transforms, and
+ * input shaping.
+ * Use when WPILib's MathUtil or geometry classes don't cover your case (e.g.
+ * fixed-point conversion,
+ * Lagrange interpolation, pose mirroring for alliance flip, exponential input
+ * curves).
+ */
 public class BreakerMath {
 
-
+    /** Returns circumference from diameter (π × d). */
     public static double getCircumferenceFromDiameter(double diameter) {
         return diameter * Math.PI;
     }
@@ -70,19 +77,21 @@ public class BreakerMath {
     }
 
     // /**
-    //  * Checks if two numbers are sufficiently proximate.
-    //  * 
-    //  * @param val1         First number.
-    //  * @param val2         Second number.
-    //  * @param maxDeviation Absolute value difference between val1 and val2
-    //  * 
-    //  * @return true if within deviation, false otherwise.
-    //  */
-    // public static boolean epsilonEquals(double val1, double val2, double maxDeviation) {
-    //     return ((val1 <= (val2 + maxDeviation)) && (val1 >= (val2 - maxDeviation)));
-    //     MathUtil.isNear()
+    // * Checks if two numbers are sufficiently proximate.
+    // *
+    // * @param val1 First number.
+    // * @param val2 Second number.
+    // * @param maxDeviation Absolute value difference between val1 and val2
+    // *
+    // * @return true if within deviation, false otherwise.
+    // */
+    // public static boolean epsilonEquals(double val1, double val2, double
+    // maxDeviation) {
+    // return ((val1 <= (val2 + maxDeviation)) && (val1 >= (val2 - maxDeviation)));
+    // MathUtil.isNear()
     // }
 
+    /** Returns the angle from point1 to point2. */
     public static Rotation2d getPointAngleRelativeToOtherPoint(Translation2d point1, Translation2d point2) {
         double x1 = point1.getX();
         double y1 = point1.getY();
@@ -117,6 +126,10 @@ public class BreakerMath {
         return MathUtil.interpolate(lowY, highY, getLerpT(queryX, lowX, highX));
     }
 
+    /**
+     * Returns t in [0,1] for linear interpolation: t = (query - low) / (high -
+     * low).
+     */
     public static double getLerpT(double query, double low, double high) {
         return (query - low) / (high - low);
     }
@@ -144,6 +157,7 @@ public class BreakerMath {
         return result;
     }
 
+    /** Converts robot-relative chassis speeds to field-relative. */
     public static ChassisSpeeds fromRobotRelativeSpeeds(ChassisSpeeds robotRelativeSpeeds, Rotation2d robotAngle) {
         double cos = Math.cos(-robotAngle.getRadians());
         double sin = Math.sin(-robotAngle.getRadians());
@@ -153,6 +167,10 @@ public class BreakerMath {
                 robotRelativeSpeeds.omegaRadiansPerSecond);
     }
 
+    /**
+     * Returns weighted average of values; uses weight 1.0 when weights array is
+     * shorter.
+     */
     public static double getWeightedAvg(double[] valuesToAvg, double[] weights) {
         double numer = 0;
         double denom = 0;
@@ -169,6 +187,10 @@ public class BreakerMath {
         return numer / denom;
     }
 
+    /**
+     * Returns weighted average of values; uses weight 1.0 when weights list is
+     * shorter.
+     */
     public static double getWeightedAvg(List<Double> valuesToAvg, List<Double> weights) {
         double numer = 0;
         double denom = 0;
@@ -184,26 +206,33 @@ public class BreakerMath {
         return numer / denom;
     }
 
+    /** Returns the nth root of num (e.g. root(8, 3) = 2). */
     public static double root(double num, double root) {
         return Math.pow(num, 1.0 / root);
     }
 
+    /** Converts absolute angles to a continuous relative angle in degrees. */
     public static double absoluteAngleToContinuousRelativeAngleDegrees(double curRelativeAngle,
             Rotation2d curAbsoluteAngle, Rotation2d tgtAngle) {
         return curRelativeAngle + (tgtAngle.minus(curAbsoluteAngle).getDegrees());
     }
 
-    public static Pose2d mirrorPose(Pose2d pose, double translationalAxisOfSymetry, MirrorSymetryAxis2d translationMirrorType, MirrorSymetryAxis2d rotationMirrorType) {
-       return new Pose2d(mirrorTranslation(pose.getTranslation(), translationalAxisOfSymetry, translationMirrorType), mirrorRotation(pose.getRotation(), rotationMirrorType));
+    /** Mirrors a pose across the given axis (e.g. for alliance flip). */
+    public static Pose2d mirrorPose(Pose2d pose, double translationalAxisOfSymetry,
+            MirrorSymetryAxis2d translationMirrorType, MirrorSymetryAxis2d rotationMirrorType) {
+        return new Pose2d(mirrorTranslation(pose.getTranslation(), translationalAxisOfSymetry, translationMirrorType),
+                mirrorRotation(pose.getRotation(), rotationMirrorType));
     }
 
     public static enum MirrorSymetryAxis2d {
         X,
         Y,
         X_AND_Y
-    } 
+    }
 
-    public static Translation2d mirrorTranslation(Translation2d translation, double axisOfSymetry, MirrorSymetryAxis2d mirrorType) {
+    /** Mirrors a translation across the given axis. */
+    public static Translation2d mirrorTranslation(Translation2d translation, double axisOfSymetry,
+            MirrorSymetryAxis2d mirrorType) {
         if (mirrorType == MirrorSymetryAxis2d.Y) {
             double distance = axisOfSymetry - translation.getX();
             return new Translation2d(axisOfSymetry + distance, translation.getY());
@@ -216,6 +245,7 @@ public class BreakerMath {
         return new Translation2d(axisOfSymetry + distanceX, axisOfSymetry + distanceY);
     }
 
+    /** Mirrors a rotation across the given axis. */
     public static Rotation2d mirrorRotation(Rotation2d angle, MirrorSymetryAxis2d mirrorType) {
         if (mirrorType == MirrorSymetryAxis2d.Y) {
             return new Rotation2d(-angle.getCos(), angle.getSin());
@@ -223,29 +253,46 @@ public class BreakerMath {
             return new Rotation2d(angle.getCos(), -angle.getSin());
         }
         return new Rotation2d(-angle.getCos(), -angle.getSin());
-        
+
     }
 
+    /** Returns true if pose0 and pose1 are within maxDeviation of each other. */
     public static boolean epsilonEqualsPose2d(Pose2d pose0, Pose2d pose1, Pose2d maxDeviation) {
-        return MathUtil.isNear(pose0.getX(), pose1.getX(), maxDeviation.getX()) && 
-                MathUtil.isNear(pose0.getY(), pose1.getY(), maxDeviation.getY()) && 
-                MathUtil.isNear(pose0.getRotation().getRadians(), pose1.getRotation().getRadians(), maxDeviation.getRotation().getRadians());
+        return MathUtil.isNear(pose0.getX(), pose1.getX(), maxDeviation.getX()) &&
+                MathUtil.isNear(pose0.getY(), pose1.getY(), maxDeviation.getY()) &&
+                MathUtil.isNear(pose0.getRotation().getRadians(), pose1.getRotation().getRadians(),
+                        maxDeviation.getRotation().getRadians());
     }
 
-    public static boolean epsilonEqualsChassisSpeeds(ChassisSpeeds chassisSpeeds0, ChassisSpeeds chassisSpeeds1, ChassisSpeeds maxDeviation) {
-        return MathUtil.isNear(chassisSpeeds0.vxMetersPerSecond, chassisSpeeds1.vxMetersPerSecond, maxDeviation.vxMetersPerSecond) && 
-                MathUtil.isNear(chassisSpeeds0.vyMetersPerSecond, chassisSpeeds1.vyMetersPerSecond, maxDeviation.vyMetersPerSecond) && 
-                MathUtil.isNear(chassisSpeeds0.omegaRadiansPerSecond, chassisSpeeds1.omegaRadiansPerSecond, maxDeviation.omegaRadiansPerSecond);
+    /**
+     * Returns true if both chassis speeds are within maxDeviation of each other.
+     */
+    public static boolean epsilonEqualsChassisSpeeds(ChassisSpeeds chassisSpeeds0, ChassisSpeeds chassisSpeeds1,
+            ChassisSpeeds maxDeviation) {
+        return MathUtil.isNear(chassisSpeeds0.vxMetersPerSecond, chassisSpeeds1.vxMetersPerSecond,
+                maxDeviation.vxMetersPerSecond) &&
+                MathUtil.isNear(chassisSpeeds0.vyMetersPerSecond, chassisSpeeds1.vyMetersPerSecond,
+                        maxDeviation.vyMetersPerSecond)
+                &&
+                MathUtil.isNear(chassisSpeeds0.omegaRadiansPerSecond, chassisSpeeds1.omegaRadiansPerSecond,
+                        maxDeviation.omegaRadiansPerSecond);
     }
 
-    public static ChassisSpeeds clampChassisSpeeds(ChassisSpeeds speedsToClamp, double maxLinearVel, double maxAngularVel) {
-        BreakerVector2 linVelVec = new BreakerVector2(speedsToClamp.vxMetersPerSecond, speedsToClamp.vyMetersPerSecond).clampMagnitude(0.0, maxLinearVel);
-        return new ChassisSpeeds(linVelVec.getX(), linVelVec.getY(), MathUtil.clamp(speedsToClamp.omegaRadiansPerSecond, -maxAngularVel, maxAngularVel));
+    /** Clamps linear and angular components to the given limits. */
+    public static ChassisSpeeds clampChassisSpeeds(ChassisSpeeds speedsToClamp, double maxLinearVel,
+            double maxAngularVel) {
+        BreakerVector2 linVelVec = new BreakerVector2(speedsToClamp.vxMetersPerSecond, speedsToClamp.vyMetersPerSecond)
+                .clampMagnitude(0.0, maxLinearVel);
+        return new ChassisSpeeds(linVelVec.getX(), linVelVec.getY(),
+                MathUtil.clamp(speedsToClamp.omegaRadiansPerSecond, -maxAngularVel, maxAngularVel));
     }
 
-
-    /** https://www.desmos.com/calculator/ubkzzw4vrr */
-    public static double linearizedConstrainedExponential(double x, double linearity, double exp, boolean preserveSign) {
+    /**
+     * Blends linear and exponential curves for input shaping; linearity 0=full exp,
+     * 1=linear. See desmos.com/calculator/ubkzzw4vrr
+     */
+    public static double linearizedConstrainedExponential(double x, double linearity, double exp,
+            boolean preserveSign) {
         double output = Math.abs(x);
         linearity = MathUtil.clamp(linearity, 0.0, 1.0);
         exp = Math.max(exp, 1.0);
@@ -256,18 +303,18 @@ public class BreakerMath {
         return output;
     }
 
+    /** Builds a CoordinateSystem from the given 3D rotation. */
     public static CoordinateSystem getCoordinateSystemFromRotation(Rotation3d rot) {
-    BreakerVector3 x = new BreakerVector3(1.0, 0.0, 0.0);
-    BreakerVector3 y = new BreakerVector3(0.0, 1.0, 0.0);
-    BreakerVector3 z = new BreakerVector3(0.0, 0.0, 1.0);
-    x = x.rotateBy(rot);
-    y = y.rotateBy(rot);
-    z = z.rotateBy(rot);
-    return new CoordinateSystem(
-      new CoordinateAxis(x.getX(), x.getY(), x.getZ()), 
-      new CoordinateAxis(y.getX(), y.getY(), y.getZ()), 
-      new CoordinateAxis(z.getX(), z.getY(), z.getZ()));
-  }
-
+        BreakerVector3 x = new BreakerVector3(1.0, 0.0, 0.0);
+        BreakerVector3 y = new BreakerVector3(0.0, 1.0, 0.0);
+        BreakerVector3 z = new BreakerVector3(0.0, 0.0, 1.0);
+        x = x.rotateBy(rot);
+        y = y.rotateBy(rot);
+        z = z.rotateBy(rot);
+        return new CoordinateSystem(
+                new CoordinateAxis(x.getX(), x.getY(), x.getZ()),
+                new CoordinateAxis(y.getX(), y.getY(), y.getZ()),
+                new CoordinateAxis(z.getX(), z.getY(), z.getZ()));
+    }
 
 }

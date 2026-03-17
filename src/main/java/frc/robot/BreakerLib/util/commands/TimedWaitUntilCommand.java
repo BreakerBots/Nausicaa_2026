@@ -9,6 +9,13 @@ import java.util.function.BooleanSupplier;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.Command;
 
+/**
+ * Waits until a condition has been true for a specified duration, then finishes.
+ * The timer resets whenever the condition becomes false.
+ *
+ * Use this instead of {@link edu.wpi.first.wpilibj2.command.WaitUntilCommand} when you need
+ * the condition to persist (e.g. debouncing sensors, confirming a state is stable before proceeding).
+ */
 public class TimedWaitUntilCommand extends Command {
   /** Creates a new TimedWaitUntill. */
   private BooleanSupplier condition;

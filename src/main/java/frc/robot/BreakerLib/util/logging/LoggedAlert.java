@@ -2,6 +2,11 @@ package frc.robot.BreakerLib.util.logging;
 
 import edu.wpi.first.wpilibj.Alert;
 
+/**
+ * An {@link Alert} that logs its state to BreakerLog whenever it is set or its text changes.
+ * Use this when you want alerts visible on the dashboard and also recorded in log files for
+ * post-match analysis (e.g. fault conditions, mode changes, operator warnings).
+ */
 public class LoggedAlert extends Alert {
     private String logKey;
     
@@ -48,7 +53,5 @@ public class LoggedAlert extends Alert {
   public void log() {
     BreakerLog.log(logKey, this);
   }
-
-  
 
 }

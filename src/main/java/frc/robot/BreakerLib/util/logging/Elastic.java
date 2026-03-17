@@ -13,6 +13,14 @@ import edu.wpi.first.networktables.PubSubOption;
 import edu.wpi.first.networktables.StringPublisher;
 import edu.wpi.first.networktables.StringTopic;
 
+/**
+ * Integration with the Elastic dashboard. Provides two capabilities: sending pop-up notifications
+ * to the driver station and programmatically switching the active tab.
+ *
+ * Use {@link #sendNotification(Notification)} to alert operators (e.g. match events, faults, ready states).
+ * Use {@link #selectTab(String)} or {@link #selectTab(int)} to switch dashboard tabs from robot code
+ * (e.g. show a specific view when entering autonomous).
+ */
 public final class Elastic {
   private static final StringTopic notificationTopic =
       NetworkTableInstance.getDefault().getStringTopic("/Elastic/RobotNotifications");
