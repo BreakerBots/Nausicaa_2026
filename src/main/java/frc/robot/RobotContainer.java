@@ -4,9 +4,12 @@
 
 package frc.robot;
 
+import com.ctre.phoenix6.SignalLogger;
 import com.fasterxml.jackson.databind.util.Named;
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.auto.NamedCommands;
+
+import dev.doglog.DogLogOptions;
 
 import java.util.Set;
 import java.util.function.DoubleSupplier;
@@ -15,6 +18,7 @@ import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.units.Units;
+import edu.wpi.first.wpilibj.PowerDistribution;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
@@ -26,6 +30,8 @@ import frc.robot.BreakerLib.driverstation.BreakerInputStream;
 import frc.robot.BreakerLib.driverstation.BreakerInputStream2d;
 import frc.robot.BreakerLib.driverstation.gamepad.controllers.BreakerXboxController;
 import frc.robot.BreakerLib.util.logging.BreakerLog;
+import frc.robot.BreakerLib.util.logging.BreakerLog.GitInfo;
+import frc.robot.BreakerLib.util.logging.BreakerLog.Metadata;
 import frc.robot.BreakerLib.util.math.functions.BreakerLinearizedConstrainedExponential;
 import frc.robot.subsystems.Drivetrain;
 import frc.robot.subsystems.Intake;
@@ -74,6 +80,7 @@ public class RobotContainer {
 
         // Disable verbose logging to reduce noise
         // Flip this back on when debugging/troubleshooting
+
         BreakerLog.setVerboseLogging(false);
 
         // Register named commands for PathPlanner event markers (must be before buildAutoChooser)
@@ -111,9 +118,34 @@ public class RobotContainer {
         }
         SmartDashboard.putData("Auto Chooser", autoChooser);
 
+        // Set up our logs
+        configureLogging();
+
         // Bind our controller buttons
         configureBindings();
     }
+
+    private void configureLogging() {
+
+        // Phoenix 6 normally logs CAN bus data
+        //SignalLogger.enableAutoLogging(false);
+        
+        // Set up DogLog options for logging
+        // DogLogOptions normalOptions = new DogLogOptions().withLogExtras(true).withCaptureDs(true).withNtPublish(true);
+        // DogLogOptions competitionOptions = new DogLogOptions().withLogExtras(true).withCaptureDs(true).withNtPublish(false);
+        // BreakerLog.setOptions(normalOptions);
+        
+        // When logExtras is true...
+        // Log data from PDH (current draw, voltage, temperature, etc.)
+        //BreakerLog.setPdh(new PowerDistribution(MiscConstants.PDH_ID, ModuleType.kRev));
+       
+        // Log data from CAN bus
+        //BreakerLog.addCANBus(Constants.GeneralConstants.DRIVE_CANIVORE_BUS);
+        
+        // Adds context to logs so we know what robot, git commit,  etc.
+        GitInfo gitInfo = new GitInfo(BuildConstants.MAVEN_NAME, BuildConstants.GIT_REVISION, BuildConstants.GIT_SHA, BuildConstants.GIT_DATE, BuildConstants.GIT_BRANCH, BuildConstants.BUILD_DATE, BuildConstants.DIRTY);
+        BreakerLog.logMetadata(new Metadata("Nausicaa", 2026, "Isacc Lynch, Max Xu, Matthew Pederson, Paul Brockmeyer", gitInfo));
+      }
 
 
     /**
