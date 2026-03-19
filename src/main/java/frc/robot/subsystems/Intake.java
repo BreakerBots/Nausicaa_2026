@@ -25,6 +25,7 @@ import frc.robot.BreakerLib.util.logging.BreakerLog;
 
 public class Intake extends SubsystemBase {
 
+    private final Drivetrain drivetrain;
     private final TalonFX pivotMotor = new TalonFX(Constants.IntakeConstants.PIVOT_MOTOR_ID,
             Constants.GeneralConstants.SUPERSTRUCTURE_CANIVORE_BUS);
     private final TalonFX rollerMotor = new TalonFX(Constants.IntakeConstants.ROLLER_MOTOR_ID,
@@ -37,10 +38,12 @@ public class Intake extends SubsystemBase {
             SensorDirectionValue.CounterClockwise_Positive);
 
     private double targetPivotRotations;
+    private double lastCommandedRollerSpeed;
 
     public State state = State.STOWED;
 
-    public Intake() {
+    public Intake(Drivetrain drivetrain) {
+        this.drivetrain = drivetrain;
         TalonFXConfiguration pivotConfig = new TalonFXConfiguration();
         pivotConfig.MotorOutput.NeutralMode = NeutralModeValue.Brake;
         pivotConfig.CurrentLimits = new CurrentLimitsConfigs()
@@ -137,7 +140,7 @@ public class Intake extends SubsystemBase {
         State previousState = state;
         state = newState;
         setIntakePosition(state.getRotation2d().getRotations());
-        setRollerSpeed(state.getSpeed());
+        setRollerSpeed(computeRollerSpeedForState(state));
 
         BreakerLog.log("Intake/State/Previous", previousState.toString());
         BreakerLog.log("Intake/State/Current", state.toString());
@@ -166,6 +169,7 @@ public class Intake extends SubsystemBase {
         String statusMessage = String.format("state=%s pivot=%.3frot tgt=%.3f %.1fvel roller=%.2fcmd %.1fvel",
                 state, pivotPosition, targetPivotRotations, pivotVelocity, state.getSpeed(), rollerVelocity);
         BreakerLog.log("Intake/Status", statusMessage, true);
+        BreakerLog.log("Intake/RollerSpeed", lastCommandedRollerSpeed, true);
         BreakerLog.log("Intake/EncoderPosition", pivotEncoder.getAbsolutePosition().getValueAsDouble(), true);
         if (BreakerLog.isVerboseLogging()) {
             BreakerLog.log("Electrical/Intake/roller", rollerMotor);
@@ -181,7 +185,32 @@ public class Intake extends SubsystemBase {
         pivotMotor.setControl(new MotionMagicDutyCycle(targetPivotRotations));
     }
 
+    /**
+     * Computes roller speed for the given state. For intaking states (EXTENDED_INTAKING, STOW_INTAKING),
+     * scales up with drivetrain forward velocity: roller does 2 rev in the time drivetrain travels
+     * one roller circumference. Minimum is the state's base speed (never slower).
+     */
+    private double computeRollerSpeedForState(State s) {
+        // Only scale with velocity when intaking states
+        if (s != State.EXTENDED_INTAKING) {
+            return s.getSpeed();
+        }
+        double vxMps = drivetrain.getChassisSpeeds().vxMetersPerSecond;
+        double circumferenceM = Constants.IntakeConstants.ROLLER_CIRCUMFERENCE_METERS;
+        // Target: roller does 2 rev in the time drivetrain travels one circumference.
+        // time = circumference / velocity, so rev/s = 2 / (circumference / v) = 2*v/circumference
+        double velocityRevPerSec = (circumferenceM > 1e-6) ? 2.0 * vxMps / circumferenceM : 0;
+        // Floor: never slower than SPEED_INTAKE. Convert duty (-0.8) to rev/s equivalent.
+        double minRevPerSec = Math.abs(Constants.IntakeConstants.SPEED_INTAKE)
+            * Constants.IntakeConstants.ROLLER_REV_PER_SEC_AT_FULL_DUTY;
+        double targetRevPerSec = Math.max(minRevPerSec, velocityRevPerSec);
+        // Convert rev/s back to duty cycle. Negative = intake direction.
+        double duty = -targetRevPerSec / Constants.IntakeConstants.ROLLER_REV_PER_SEC_AT_FULL_DUTY;
+        return Math.max(-1.0, duty);  // Don't exceed -1.0 (full power in the intake direction)
+    }
+
     private void setRollerSpeed(double speed) {
+        lastCommandedRollerSpeed = speed;
         if (speed != 0) {
             rollerMotor.setControl(new DutyCycleOut(speed));
         }
