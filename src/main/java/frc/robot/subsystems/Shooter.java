@@ -8,6 +8,7 @@ import com.ctre.phoenix6.configs.Slot0Configs;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.VelocityVoltage;
 
+import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
@@ -89,9 +90,9 @@ public class Shooter extends SubsystemBase {
         double v1 = shooterFlywheel1Motor.getVelocity().getValueAsDouble();
         double v2 = shooterFlywheel2Motor.getVelocity().getValueAsDouble();
         double v3 = shooterFlywheel3Motor.getVelocity().getValueAsDouble();
-        return Math.abs(v1 - target) <= tolerance
-                && Math.abs(v2 - target) <= tolerance
-                && Math.abs(v3 - target) <= tolerance;
+        return MathUtil.isNear(v1, target, tolerance)
+                && MathUtil.isNear(v2, target, tolerance)
+                && MathUtil.isNear(v3, target, tolerance);
     }
 
     @Override

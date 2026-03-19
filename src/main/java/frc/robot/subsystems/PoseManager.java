@@ -10,6 +10,7 @@ import com.ctre.phoenix6.swerve.SwerveRequest;
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.path.PathConstraints;
 
+import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -282,7 +283,7 @@ public class PoseManager extends SubsystemBase {
         }, drivetrain)
         .until(() -> {
             double currentDistanceMeters = drivetrain.getRobotToPointTranslation(targetPoint).getNorm();
-            return Math.abs(currentDistanceMeters - targetDistanceMeters) <= toleranceMeters;
+            return MathUtil.isNear(currentDistanceMeters, targetDistanceMeters, toleranceMeters);
         })
         .withTimeout(5.0)
         .finallyDo((interrupted) -> drivetrain.setControl(request.withVelocityX(0.0).withVelocityY(0.0).withRotationalRate(0.0)));

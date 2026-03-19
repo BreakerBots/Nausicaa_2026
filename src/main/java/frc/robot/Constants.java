@@ -385,9 +385,16 @@ public final class Constants {
        
         /** Deadband (rotations) for hood tracking; prevents oscillation when near target. */
         public static final double HOOD_TRACKING_TOLERANCE_ROTATIONS = 0.005;
-        
-        /** Hood P gain for hoodToRotationsCommand (output = kP * error, clamped to duty cycle). */
+
+        /** Motion Magic: cruise velocity (rot/s), acceleration (rot/s²), jerk (rot/s³). */
+        public static final double HOOD_MM_CRUISE_VELOCITY = 0.5;
+        public static final double HOOD_MM_ACCELERATION = 1.0;
+        public static final double HOOD_MM_JERK = 5.0;
+
+        /** Hood closed-loop gains (Slot0). Voltage-based for MotionMagicVoltage. */
         public static final double HOOD_kP = 2.0;
+        public static final double HOOD_kI = 0.0;
+        public static final double HOOD_kD = 0.0;
 
         public static final int HOOD_STATOR_CURRENT_LIMIT = 50;
         public static final int HOOD_SUPPLY_CURRENT_LIMIT = 50;
