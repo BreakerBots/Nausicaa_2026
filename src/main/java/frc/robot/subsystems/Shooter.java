@@ -1,10 +1,7 @@
 package frc.robot.subsystems;
 
 import com.ctre.phoenix6.controls.DutyCycleOut;
-import com.ctre.phoenix6.controls.Follower;
-import com.ctre.phoenix6.controls.VoltageOut;
 import com.ctre.phoenix6.hardware.TalonFX;
-import com.ctre.phoenix6.signals.MotorAlignmentValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 import com.ctre.phoenix6.configs.CurrentLimitsConfigs;
 import com.ctre.phoenix6.configs.Slot0Configs;
@@ -14,6 +11,7 @@ import com.ctre.phoenix6.controls.VelocityVoltage;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+
 import frc.robot.Constants;
 import frc.robot.BreakerLib.util.logging.BreakerLog;
 
@@ -28,7 +26,6 @@ public class Shooter extends SubsystemBase {
 
     public Shooter(TrajectoryManager trajectoryManager) {
         this.trajectoryManager = trajectoryManager;
-        // Flywheels 2 and 3 follow flywheel 1 (same direction)
         TalonFXConfiguration flywheelConfig = new TalonFXConfiguration();
         flywheelConfig.MotorOutput.NeutralMode = NeutralModeValue.Coast;
         flywheelConfig.CurrentLimits = new CurrentLimitsConfigs()
@@ -48,10 +45,6 @@ public class Shooter extends SubsystemBase {
         shooterFlywheel1Motor.getConfigurator().apply(flywheelConfig);
         shooterFlywheel2Motor.getConfigurator().apply(flywheelConfig);
         shooterFlywheel3Motor.getConfigurator().apply(flywheelConfig);
-
-        int leaderId = Constants.ShooterConstants.SHOOTER_FLYWHEEL_1_MOTOR_ID;
-        shooterFlywheel2Motor.setControl(new Follower(leaderId, MotorAlignmentValue.Aligned));
-        shooterFlywheel3Motor.setControl(new Follower(leaderId, MotorAlignmentValue.Aligned));
     }
 
 
@@ -88,13 +81,17 @@ public class Shooter extends SubsystemBase {
         return Commands.runOnce(() -> setState(newState), this);
     }
 
-    /** Returns true when flywheel velocity is within tolerance of the active target speed. */
+    /** Returns true when all flywheels are within tolerance of the active target speed. */
     public boolean isAtTargetSpeed() {
-        double current = shooterFlywheel1Motor.getVelocity().getValueAsDouble();
         double target = getFlywheelSpeed(state);
         if (target == 0) return true;
         double tolerance = Math.abs(target) * Constants.ShooterConstants.FLYWHEEL_SPEED_TOLERANCE;
-        return Math.abs(current - target) <= tolerance;
+        double v1 = shooterFlywheel1Motor.getVelocity().getValueAsDouble();
+        double v2 = shooterFlywheel2Motor.getVelocity().getValueAsDouble();
+        double v3 = shooterFlywheel3Motor.getVelocity().getValueAsDouble();
+        return Math.abs(v1 - target) <= tolerance
+                && Math.abs(v2 - target) <= tolerance
+                && Math.abs(v3 - target) <= tolerance;
     }
 
     @Override
@@ -125,10 +122,15 @@ public class Shooter extends SubsystemBase {
 
     private void setFlywheelSpeed(double speed) {
         if (speed == 0) {
-            // This makes sure the flywheel is coasting to a stop, not braking to a stop
-            shooterFlywheel1Motor.setControl(new DutyCycleOut(0).withOverrideBrakeDurNeutral(false));
+            DutyCycleOut coast = new DutyCycleOut(0).withOverrideBrakeDurNeutral(false);
+            shooterFlywheel1Motor.setControl(coast);
+            shooterFlywheel2Motor.setControl(coast);
+            shooterFlywheel3Motor.setControl(coast);
         } else {
-            shooterFlywheel1Motor.setControl(new VelocityVoltage(speed).withAcceleration(400)); // 15
+            VelocityVoltage velocityControl = new VelocityVoltage(speed).withAcceleration(400);
+            shooterFlywheel1Motor.setControl(velocityControl);
+            shooterFlywheel2Motor.setControl(velocityControl);
+            shooterFlywheel3Motor.setControl(velocityControl);
         }
     }
 
