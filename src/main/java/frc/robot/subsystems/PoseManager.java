@@ -138,7 +138,6 @@ public class PoseManager extends SubsystemBase {
         }, drivetrain)
         .until(() -> {
             // Comment in to test shooter offset 
-            //Translation2d toTarget = drivetrain.getShooterCenterToPointTranslation(targetPoint);
             Translation2d toTarget = drivetrain.getRobotToPointTranslation(targetPoint);
             double desiredHeading = Math.atan2(toTarget.getY(), toTarget.getX());
             double currentHeading = drivetrain.getLocalizer().getPose().getRotation().getRadians();

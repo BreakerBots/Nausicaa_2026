@@ -32,14 +32,18 @@ public class Drivetrain extends BreakerSwerveDrivetrain {
 
     /** Returns the vector from the robot's position to the given field point. */
     public Translation2d getRobotToPointTranslation(Translation2d targetPoint) {
-        return targetPoint.minus(getLocalizer().getPose().getTranslation());
+        return getRobotToPointTranslation(targetPoint, true);
+    }
+
+    public Translation2d getRobotToPointTranslation(Translation2d targetPoint, boolean applyShooterOffset) {
+        return applyShooterOffset ? getShooterCenterToPointTranslation(targetPoint) : targetPoint.minus(getLocalizer().getPose().getTranslation());
     }
 
     /**
      * Returns the vector from the shooter center to the given field point.
      * Accounts for shooter offset (3" right of robot center) so rotation aligns the shooter, not the robot center.
      */
-    public Translation2d getShooterCenterToPointTranslation(Translation2d targetPoint) {
+    private Translation2d getShooterCenterToPointTranslation(Translation2d targetPoint) {
         Pose2d pose = getLocalizer().getPose();
         Translation2d robotCenter = pose.getTranslation();
         double theta = pose.getRotation().getRadians();
