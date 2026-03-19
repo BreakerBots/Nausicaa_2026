@@ -383,19 +383,19 @@ public class RobotContainer {
                         .repeatedly()
                         .until(() -> hopper.state != Hopper.State.FEEDING));
 
-        Command feedPhase = Commands.parallel(
-                Commands.startEnd(
-                        () -> {
-                            shooter.setState(Shooter.State.SHOOTING);
-                            hopper.setState(Hopper.State.FEEDING);
-                        },
-                        () -> {
-                            hopper.setState(Hopper.State.INACTIVE);
-                            shooter.setState(Shooter.State.INACTIVE);
-                            intake.setState(Intake.State.EXTENDED_IDLE);
-                        },
-                        shooter, hopper, intake),
-                jiggleSequence);
+        Command feedControl = Commands.run(() -> {
+                    shooter.setState(Shooter.State.SHOOTING);
+                    Translation2d target = Constants.FieldConstants.getTargetForPose(drivetrain.getLocalizer().getPose());
+                    double angleErrorRad = Math.abs(vision.getAngleToTarget(target));
+                    if (angleErrorRad <= Constants.ShooterConstants.FEED_PAUSE_ANGLE_THRESHOLD_RAD) {
+                        hopper.setState(Hopper.State.FEEDING);
+                    } else {
+                        hopper.setState(Hopper.State.INACTIVE);
+                        intake.setState(Intake.State.EXTENDED_IDLE);
+                    }
+                }, shooter, hopper, intake);
+
+        Command feedPhase = Commands.parallel(feedControl, jiggleSequence);
 
         Command feedPhaseWithDuration = feedTimeoutSeconds != null
                 ? feedPhase.withTimeout(feedTimeoutSeconds)
@@ -405,7 +405,7 @@ public class RobotContainer {
         // If they aren't at speed within the timeout, we proceed anyway.
         Command shootSequence = Commands.sequence(
                         Commands.runOnce(() -> shooter.setState(Shooter.State.SPINNING_UP), shooter),
-                        Commands.waitUntil(shooter::isAtTargetSpeed).withTimeout(2.0),
+                        Commands.waitUntil(shooter::isAtTargetSpeed).withTimeout(0.5),
                         feedPhaseWithDuration)
                 .finallyDo((interrupted) -> {
                     hopper.setState(Hopper.State.INACTIVE);

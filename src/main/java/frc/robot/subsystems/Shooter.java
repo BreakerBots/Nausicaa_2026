@@ -99,11 +99,11 @@ public class Shooter extends SubsystemBase {
 
     @Override
     public void periodic() {
-        
+
         // Update the flywheel speed continuously based on our distance to target
-        // if (state == State.SPINNING_UP || state == State.SHOOTING) {
-        //     setFlywheelSpeed(getFlywheelSpeed(state));
-        // }
+        if (state == State.SPINNING_UP || state == State.SHOOTING) {
+            setFlywheelSpeed(getFlywheelSpeed(state));
+        }
 
         double v1 = shooterFlywheel1Motor.getVelocity().getValueAsDouble();
         double v2 = shooterFlywheel2Motor.getVelocity().getValueAsDouble();

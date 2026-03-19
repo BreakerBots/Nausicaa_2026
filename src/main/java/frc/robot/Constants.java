@@ -351,6 +351,9 @@ public final class Constants {
         /** Fractional tolerance (0.05 = 5%) for flywheel at target speed before feeding. */
         public static final double FLYWHEEL_SPEED_TOLERANCE = 0.05;
 
+        /** Max heading error to allow feeding. Pauses feeder when angle to target exceeds this. */
+        public static final double FEED_PAUSE_ANGLE_THRESHOLD_RAD = Math.toRadians(2.5);
+
         public static final double SPEED_IDLE = 0;
         public static final double SPEED_FLYWHEEL_ACTIVE = 68.0;
 
