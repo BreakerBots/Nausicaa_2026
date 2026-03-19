@@ -66,10 +66,9 @@ public class RobotContainer {
     
     private BreakerInputStream driverX, driverY, driverOmega;
 
-    private boolean slowMode;
-    
-    /** When true, drive controls and autonomous are disabled. */
-    private boolean safetyMode = false;
+    private boolean slowMode; // Scale down drive controls for safer driving in tight spaces
+    private boolean disableHood = false; // For when we want to test shooter offset without hood positioning.
+    private boolean safetyMode = false; // Drive controls and autonomous are disabled.
     
     /** PathPlanner auto chooser; populated from GUI autos when AutoBuilder is configured. */
     private final SendableChooser<Command> autoChooser;
@@ -97,7 +96,8 @@ public class RobotContainer {
         NamedCommands.registerCommand("intake", Commands.defer(() -> intake.setStateCommand(Intake.State.EXTENDED_INTAKING), Set.of(intake)));
         NamedCommands.registerCommand("stopIntake", Commands.defer(() -> intake.setStateCommand(Intake.State.EXTENDED_IDLE), Set.of(intake)));
         NamedCommands.registerCommand("halt", Commands.waitSeconds(4.0));
-        NamedCommands.registerCommand("hoodDown", Commands.defer(() -> shooter.hoodToRotationsCommand(Constants.ShooterConstants.POSITION_HOOD_MIN), Set.of(shooter)));
+        NamedCommands.registerCommand("hoodDown", Commands.defer(() ->
+                disableHood ? Commands.none() : shooter.hoodToRotationsCommand(Constants.ShooterConstants.POSITION_HOOD_MIN), Set.of(shooter)));
         NamedCommands.registerCommand("unclog", Commands.defer(() -> unclogCommand().withTimeout(3.0), Set.of(hopper, intake)));
         NamedCommands.registerCommand("intakeExtendedIdle", Commands.defer(() -> intake.setStateCommand(Intake.State.EXTENDED_IDLE), Set.of(intake)));
         
@@ -425,8 +425,10 @@ public class RobotContainer {
                     hopper.setState(Hopper.State.INACTIVE);
                     shooter.setState(Shooter.State.INACTIVE);
                     intake.setState(Intake.State.EXTENDED_IDLE);
-                    CommandScheduler.getInstance().schedule(
-                            shooter.hoodToRotationsCommand(Constants.ShooterConstants.POSITION_HOOD_MIN));
+                    if (!disableHood) {
+                        CommandScheduler.getInstance().schedule(
+                                shooter.hoodToRotationsCommand(Constants.ShooterConstants.POSITION_HOOD_MIN));
+                    }
                 });
             // Comment this in to test wheel locking 
             // Will lock wheels at start of shoot; any drivetrain command (e.g. aim) will unlock.
@@ -526,13 +528,14 @@ public class RobotContainer {
                 });
 
             double[] hoodStart = new double[1];
-            Command hoodCmd = shooter.hoodToRotationsCommand(hoodTarget)
-                .beforeStarting(() -> hoodStart[0] = Timer.getFPGATimestamp())
-                .finallyDo((interrupted) -> {
-                    double elapsed = Timer.getFPGATimestamp() - hoodStart[0];
-                    BreakerLog.log("AimCommand/HoodToRotations/ElapsedSeconds", elapsed);
-                    BreakerLog.log("AimCommand/HoodToRotations/Interrupted", interrupted);
-                });
+            Command hoodCmd = disableHood ? Commands.none()
+                : shooter.hoodToRotationsCommand(hoodTarget)
+                    .beforeStarting(() -> hoodStart[0] = Timer.getFPGATimestamp())
+                    .finallyDo((interrupted) -> {
+                        double elapsed = Timer.getFPGATimestamp() - hoodStart[0];
+                        BreakerLog.log("AimCommand/HoodToRotations/ElapsedSeconds", elapsed);
+                        BreakerLog.log("AimCommand/HoodToRotations/Interrupted", interrupted);
+                    });
 
             return Commands.parallel(rotateCmd, hoodCmd);
         }, Set.of(drivetrain, shooter))
@@ -550,13 +553,11 @@ public class RobotContainer {
      * Unlike aimCommand (one-shot), this keeps adjusting as the robot moves.
      */
     private Command aimContinuouslyCommand() {
-        return Commands.parallel(
-                // Rotation only, no translation
-                poseManager.trackPointCommand(
-                        () -> Constants.FieldConstants.getTargetForPose(drivetrain.getLocalizer().getPose()),
-                        () -> 0.0,
-                        () -> 0.0),
-                positionHoodForTargetCommand());
+        Command trackCmd = poseManager.trackPointCommand(
+                () -> Constants.FieldConstants.getTargetForPose(drivetrain.getLocalizer().getPose()),
+                () -> 0.0,
+                () -> 0.0);
+        return disableHood ? trackCmd : Commands.parallel(trackCmd, positionHoodForTargetCommand());
     }
 
     /**
@@ -596,9 +597,10 @@ public class RobotContainer {
         //climb.setState(Climb.State.INACTIVE);
         shooter.setState(Shooter.State.INACTIVE);
         hopper.setState(Hopper.State.INACTIVE);
-        // Make sure we drop the hood immediately so that the hopper extends
-        CommandScheduler.getInstance().schedule(
-                shooter.hoodToRotationsCommand(Constants.ShooterConstants.POSITION_HOOD_MIN));
+        if (!disableHood) {
+            CommandScheduler.getInstance().schedule(
+                    shooter.hoodToRotationsCommand(Constants.ShooterConstants.POSITION_HOOD_MIN));
+        }
     }                           
 
     /** Called once when the robot enters teleop. */
@@ -614,8 +616,10 @@ public class RobotContainer {
         climb.setState(Climb.State.INACTIVE);
         shooter.setState(Shooter.State.INACTIVE);
         hopper.setState(Hopper.State.INACTIVE);
-         CommandScheduler.getInstance().schedule(
-            shooter.hoodToRotationsCommand(Constants.ShooterConstants.POSITION_HOOD_MIN));
+        if (!disableHood) {
+            CommandScheduler.getInstance().schedule(
+                    shooter.hoodToRotationsCommand(Constants.ShooterConstants.POSITION_HOOD_MIN));
+        }
     }
 
     // public void disabledInit() {
