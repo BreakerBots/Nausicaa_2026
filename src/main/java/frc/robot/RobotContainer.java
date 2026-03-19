@@ -4,12 +4,9 @@
 
 package frc.robot;
 
-import com.ctre.phoenix6.SignalLogger;
-import com.fasterxml.jackson.databind.util.Named;
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.auto.NamedCommands;
 
-import dev.doglog.DogLogOptions;
 
 import java.util.Set;
 import java.util.function.DoubleSupplier;
@@ -18,7 +15,6 @@ import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.units.Units;
-import edu.wpi.first.wpilibj.PowerDistribution;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
@@ -34,10 +30,10 @@ import frc.robot.BreakerLib.util.logging.BreakerLog.GitInfo;
 import frc.robot.BreakerLib.util.logging.BreakerLog.Metadata;
 import frc.robot.BreakerLib.util.math.functions.BreakerLinearizedConstrainedExponential;
 import frc.robot.subsystems.Drivetrain;
+import frc.robot.subsystems.Hood;
 import frc.robot.subsystems.Intake;
 import frc.robot.subsystems.Shooter;
 import frc.robot.subsystems.Vision;
-import frc.robot.subsystems.Intake.State;
 import frc.robot.subsystems.Climb;
 import frc.robot.subsystems.Hopper;
 import frc.robot.subsystems.PoseManager;
@@ -62,6 +58,7 @@ public class RobotContainer {
     private final Intake intake = new Intake(drivetrain);
     private final Climb climb = new Climb();
     private final Shooter shooter = new Shooter(trajectoryManager);
+    private final Hood hood = new Hood();
     private final Hopper hopper = new Hopper();
     
     private BreakerInputStream driverX, driverY, driverOmega;
@@ -88,7 +85,7 @@ public class RobotContainer {
         NamedCommands.registerCommand("stopIntake", Commands.defer(() -> intake.setStateCommand(Intake.State.EXTENDED_IDLE), Set.of(intake)));
         NamedCommands.registerCommand("halt", Commands.waitSeconds(4.0));
         NamedCommands.registerCommand("hoodDown", Commands.defer(() ->
-                disableHood ? Commands.none() : shooter.hoodToRotationsCommand(Constants.ShooterConstants.POSITION_HOOD_MIN), Set.of(shooter)));
+                disableHood ? Commands.none() : hood.hoodToRotationsCommand(Constants.ShooterConstants.POSITION_HOOD_MIN), Set.of(hood)));
         NamedCommands.registerCommand("unclog", Commands.defer(() -> unclogCommand().withTimeout(3.0), Set.of(hopper, intake)));
         
         // not tested yet...
@@ -264,11 +261,11 @@ public class RobotContainer {
 
         // D-PAD RIGHT --> Hood up (while held; stop when released)
         controller.getDPad().getRight().whileTrue(
-            Commands.run(shooter::runHoodUp, shooter).finallyDo(shooter::stopHood));
+            Commands.run(hood::runHoodUp, hood).finallyDo(hood::stopHood));
         
         // D-PAD LEFT --> Hood down (while held; stop when released)
         controller.getDPad().getLeft().whileTrue(
-            Commands.run(shooter::runHoodDown, shooter).finallyDo(shooter::stopHood));
+            Commands.run(hood::runHoodDown, hood).finallyDo(hood::stopHood));
 
         
 
@@ -337,22 +334,23 @@ public class RobotContainer {
     }
 
     /**
-     * Aim (rotate + hood), then shoot. Runs aim first, then shootForTeleopCommand while trigger held.
+     * Aim (rotate + hood), then shoot. Runs aim first, then shoot with wheels locked for stability.
      */
     private Command aimThenShootCommand() {
-        return aimCommand().andThen(shootForTeleopCommand());
+        return aimCommand().andThen(drivetrain.lockWheelsCommand().raceWith(shootForTeleopCommand()));
     }
 
     /**
      * Aim and shoot simultaneously. Runs aimCommand and shootForTeleopCommand in parallel.
+     * No wheel lock (aim needs to rotate).
      */
-    private Command aimAndShootCommand() {
-        return Commands.parallel(aimCommand(), shootForTeleopCommand());
-    }
+    // private Command aimAndShootCommand() {
+    //     return Commands.parallel(aimCommand(), shootForTeleopCommand());
+    // }
 
     /**
      * Continuously aim and shoot while held. Runs aimContinuouslyCommand and shootForTeleopCommand in parallel.
-     * When trigger released, both stop and release control.
+     * When trigger released, both stop and release control. No wheel lock (aim needs to rotate).
      */
     private Command aimAndShootContinuouslyCommand() {
         return Commands.parallel(aimContinuouslyCommand(), shootForTeleopCommand());
@@ -360,9 +358,9 @@ public class RobotContainer {
 
 
     
-    /** Auto shoot: feed phase runs for 6 seconds. */
+    /** Auto shoot: feed phase runs for 6 seconds. Locks wheels for stability during shoot. */
     private Command shootForAutoCommand() {
-        return shootSequenceCommand(6.0);
+        return drivetrain.lockWheelsCommand().raceWith(shootSequenceCommand(6.0));
     }
 
     /** Teleop shoot: feed phase runs until trigger released. */
@@ -415,13 +413,10 @@ public class RobotContainer {
                     intake.setState(Intake.State.EXTENDED_IDLE);
                     if (!disableHood) {
                         CommandScheduler.getInstance().schedule(
-                                shooter.hoodToRotationsCommand(Constants.ShooterConstants.POSITION_HOOD_MIN));
+                                hood.hoodToRotationsCommand(Constants.ShooterConstants.POSITION_HOOD_MIN));
                     }
                 });
-            // Comment this in to test wheel locking 
-            // Will lock wheels at start of shoot; any drivetrain command (e.g. aim) will unlock.
-            //return shootSequence;
-            return drivetrain.lockWheelsCommand().raceWith(shootSequence);
+        return shootSequence;
     }
 
 
@@ -447,7 +442,7 @@ public class RobotContainer {
 
             double[] hoodStart = new double[1];
             Command hoodCmd = disableHood ? Commands.none()
-                : shooter.hoodToRotationsCommand(hoodTarget)
+                : hood.hoodToRotationsCommand(hoodTarget)
                     .beforeStarting(() -> hoodStart[0] = Timer.getFPGATimestamp())
                     .finallyDo((interrupted) -> {
                         double elapsed = Timer.getFPGATimestamp() - hoodStart[0];
@@ -456,7 +451,7 @@ public class RobotContainer {
                     });
 
             return Commands.parallel(rotateCmd, hoodCmd);
-        }, Set.of(drivetrain, shooter))
+        }, Set.of(drivetrain, hood))
             .withTimeout(1.0)
             .beforeStarting(() -> startTime[0] = Timer.getFPGATimestamp())
             .finallyDo((interrupted) -> {
@@ -484,7 +479,7 @@ public class RobotContainer {
      * Uses getTargetForPose(pose) to determine target, then delegates to shooter.
      */
     public Command positionHoodForTargetCommand() {
-        return shooter.positionHoodForTargetCommand(() ->
+        return hood.positionHoodForTargetCommand(() ->
                 drivetrain.getRobotToPointTranslation(
                         Constants.FieldConstants.getTargetForPose(drivetrain.getLocalizer().getPose())).getNorm());
     }
@@ -509,7 +504,7 @@ public class RobotContainer {
         double aimDistanceM = drivetrain.getRobotToPointTranslation(aimTarget).getNorm();
         BreakerLog.log("Aim/DistanceToTargetM", aimDistanceM, true);
         BreakerLog.log("Aim/HoodTargetRot", TrajectoryManager.getHoodPositionForDistance(aimDistanceM), true);
-        BreakerLog.log("Aim/HoodPositionRot", shooter.getHoodEncoderRotations(), true);
+        BreakerLog.log("Aim/HoodPositionRot", hood.getHoodEncoderRotations(), true);
         BreakerLog.log("Aim/FlywheelTargetRps", trajectoryManager.getFlywheelSpeedForDistance(), true);
         BreakerLog.log("Aim/HeadingErrorDeg", Math.toDegrees(vision.getAngleToTarget(aimTarget)), true);
 
@@ -530,7 +525,7 @@ public class RobotContainer {
         hopper.setState(Hopper.State.INACTIVE);
         if (!disableHood) {
             CommandScheduler.getInstance().schedule(
-                    shooter.hoodToRotationsCommand(Constants.ShooterConstants.POSITION_HOOD_MIN));
+                    hood.hoodToRotationsCommand(Constants.ShooterConstants.POSITION_HOOD_MIN));
         }
     }                           
 
@@ -547,7 +542,7 @@ public class RobotContainer {
         hopper.setState(Hopper.State.INACTIVE);
         if (!disableHood) {
             CommandScheduler.getInstance().schedule(
-                    shooter.hoodToRotationsCommand(Constants.ShooterConstants.POSITION_HOOD_MIN));
+                    hood.hoodToRotationsCommand(Constants.ShooterConstants.POSITION_HOOD_MIN));
         }
     }
 }

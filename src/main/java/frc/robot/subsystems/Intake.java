@@ -153,22 +153,11 @@ public class Intake extends SubsystemBase {
     }
 
     
-
-    
-
-
     @Override
     public void periodic() {
-        logStatus();
-    }
-
-    private void logStatus() {
         double pivotPosition = getPivotPositionRotations();
         double pivotVelocity = pivotMotor.getVelocity().getValueAsDouble();
         double rollerVelocity = rollerMotor.getVelocity().getValueAsDouble();
-        String statusMessage = String.format("state=%s pivot=%.3frot tgt=%.3f %.1fvel roller=%.2fcmd %.1fvel",
-                state, pivotPosition, targetPivotRotations, pivotVelocity, state.getSpeed(), rollerVelocity);
-        BreakerLog.log("Intake/Status", statusMessage, true);
         BreakerLog.log("Intake/RollerSpeed", lastCommandedRollerSpeed, true);
         BreakerLog.log("Intake/EncoderPosition", pivotEncoder.getAbsolutePosition().getValueAsDouble(), true);
         if (BreakerLog.isVerboseLogging()) {
@@ -176,6 +165,7 @@ public class Intake extends SubsystemBase {
             BreakerLog.log("Electrical/Intake/pivot", pivotMotor);
         }
     }
+
 
     private void setIntakePosition(double positionRotations) {
         targetPivotRotations = positionRotations;

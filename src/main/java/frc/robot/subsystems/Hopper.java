@@ -103,22 +103,15 @@ public class Hopper extends SubsystemBase {
 
     @Override
     public void periodic() {
-        logStatus();
-    }
 
-    
-    /** One compact line: state, roller cmd/vel/current. */
-    private void logStatus() {
         double vel = indexerMotor.getVelocity().getValueAsDouble();
         double cur = indexerMotor.getStatorCurrent().getValueAsDouble();
-        String line = String.format("state=%s roller=%.2fcmd %.1fvel %.1fA",
-                state, state.getIndexerSpeed(), vel, cur);
-        BreakerLog.log("Hopper/Status", line, true);
         if (BreakerLog.isVerboseLogging()) {
             BreakerLog.log("Electrical/Hopper/indexer", indexerMotor);
             BreakerLog.log("Electrical/Hopper/feeder", feederMotor);
         }
     }
+
 
     private void setIndexerSpeed(double speed) {
         indexerMotor.setControl(new DutyCycleOut(speed));
