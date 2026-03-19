@@ -233,8 +233,8 @@ public class RobotContainer {
         // ----------------- SHOOTER + HOPPER/FEEDER -------------
 
         // RIGHT TRIGGER --> Continuously aim and shoot while held; both stop when released
-        controller.getRightTrigger().whileTrue(aimThenShootCommand());
-        //controller.getRightTrigger().whileTrue(aimAndShootContinuouslyCommand());
+        //controller.getRightTrigger().whileTrue(aimThenShootCommand());
+        controller.getRightTrigger().whileTrue(aimAndShootContinuouslyCommand());
 
         // A --> Aim
         //controller.getButtonA().onTrue(aimCommand());
@@ -468,8 +468,10 @@ public class RobotContainer {
     private Command aimContinuouslyCommand() {
         Command trackCmd = poseManager.rotateToPointContinuouslyCommand(
                 () -> Constants.FieldConstants.getTargetForPose(drivetrain.getLocalizer().getPose()),
-                () -> 0.0,
-                () -> 0.0);
+                driverX,
+                driverY);
+                //() -> 0.0,
+                //() -> 0.0);
         return disableHood ? trackCmd : Commands.parallel(trackCmd, positionHoodForTargetCommand());
     }
 

@@ -93,7 +93,6 @@ public class Robot extends TimedRobot {
   }
 
   
-
   /** This function is called periodically during test mode. */
   @Override
   public void testPeriodic() {}
@@ -105,9 +104,8 @@ public class Robot extends TimedRobot {
   /** This function is called periodically whilst in simulation. */
   @Override
   public void simulationPeriodic() {}
+  
   @Override
-  public void robotInit() {
-    
-  }
+  public void robotInit() {}
   
 }

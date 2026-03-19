@@ -145,7 +145,7 @@ public class Intake extends SubsystemBase {
         BreakerLog.log("Intake/State/Previous", previousState.toString());
         BreakerLog.log("Intake/State/Current", state.toString());
         BreakerLog.log("Intake/State/PivotPosition", state.getRotation2d().getRotations());
-        BreakerLog.log("Intake/State/RollerSpeed", state.getSpeed());
+        //BreakerLog.log("Intake/State/RollerSpeed", state.getSpeed());
     }
 
     public Command setStateCommand(State newState) {
@@ -155,6 +155,12 @@ public class Intake extends SubsystemBase {
     
     @Override
     public void periodic() {
+
+        // Adjust roller speed dynamically to keep up with drivetrain
+        if (state == State.EXTENDED_INTAKING) {
+            setRollerSpeed(computeRollerSpeedForState(state));
+        }
+
         double pivotPosition = getPivotPositionRotations();
         double pivotVelocity = pivotMotor.getVelocity().getValueAsDouble();
         double rollerVelocity = rollerMotor.getVelocity().getValueAsDouble();
@@ -179,11 +185,12 @@ public class Intake extends SubsystemBase {
      * Computes roller speed for the given state. For intaking states (EXTENDED_INTAKING, STOW_INTAKING),
      * scales up with drivetrain forward velocity: roller does 2 rev in the time drivetrain travels
      * one roller circumference. Minimum is the state's base speed (never slower).
+     * NOTE: Given our default roller speed of 0.7, we won't see this change unless we're moving close to 4mps
      */
-    private double computeRollerSpeedForState(State s) {
+    private double computeRollerSpeedForState(State state) {
         // Only scale with velocity when intaking states
-        if (s != State.EXTENDED_INTAKING) {
-            return s.getSpeed();
+        if (state != State.EXTENDED_INTAKING) {
+            return state.getSpeed();
         }
         double vxMps = drivetrain.getChassisSpeeds().vxMetersPerSecond;
         double circumferenceM = Constants.IntakeConstants.ROLLER_CIRCUMFERENCE_METERS;
