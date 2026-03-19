@@ -523,8 +523,8 @@ public class RobotContainer {
                 .beforeStarting(() -> rotateStart[0] = Timer.getFPGATimestamp())
                 .finallyDo((interrupted) -> {
                     double elapsed = Timer.getFPGATimestamp() - rotateStart[0];
-                    BreakerLog.log("AimCommand/RotateToPoint/ElapsedSeconds", elapsed);
-                    BreakerLog.log("AimCommand/RotateToPoint/Interrupted", interrupted);
+                    BreakerLog.log("Aim/RotateToPoint/ElapsedSeconds", elapsed);
+                    BreakerLog.log("Aim/RotateToPoint/Interrupted", interrupted);
                 });
 
             double[] hoodStart = new double[1];
@@ -533,8 +533,8 @@ public class RobotContainer {
                     .beforeStarting(() -> hoodStart[0] = Timer.getFPGATimestamp())
                     .finallyDo((interrupted) -> {
                         double elapsed = Timer.getFPGATimestamp() - hoodStart[0];
-                        BreakerLog.log("AimCommand/HoodToRotations/ElapsedSeconds", elapsed);
-                        BreakerLog.log("AimCommand/HoodToRotations/Interrupted", interrupted);
+                        BreakerLog.log("Aim/HoodToRotations/ElapsedSeconds", elapsed);
+                        BreakerLog.log("Aim/HoodToRotations/Interrupted", interrupted);
                     });
 
             return Commands.parallel(rotateCmd, hoodCmd);
@@ -543,8 +543,8 @@ public class RobotContainer {
             .beforeStarting(() -> startTime[0] = Timer.getFPGATimestamp())
             .finallyDo((interrupted) -> {
                 double elapsed = Timer.getFPGATimestamp() - startTime[0];
-                BreakerLog.log("AimCommand/ElapsedSeconds", elapsed);
-                BreakerLog.log("AimCommand/Interrupted", interrupted);
+                BreakerLog.log("Aim/ElapsedSeconds", elapsed);
+                BreakerLog.log("Aim/Interrupted", interrupted);
             });
     }
 
@@ -553,7 +553,7 @@ public class RobotContainer {
      * Unlike aimCommand (one-shot), this keeps adjusting as the robot moves.
      */
     private Command aimContinuouslyCommand() {
-        Command trackCmd = poseManager.trackPointCommand(
+        Command trackCmd = poseManager.rotateToPointContinuouslyCommand(
                 () -> Constants.FieldConstants.getTargetForPose(drivetrain.getLocalizer().getPose()),
                 () -> 0.0,
                 () -> 0.0);
@@ -578,10 +578,21 @@ public class RobotContainer {
     public void logPeriodic() {
         BreakerLog.log("SwerveDrivetrain/SafetyMode", safetyMode, true);
         BreakerLog.log("SwerveDrivetrain/SlowMode", slowMode, true);
-         BreakerLog.log("DistanceToTarget", drivetrain.getRobotToPointTranslation(
-                Constants.FieldConstants.getTargetForPose(drivetrain.getLocalizer().getPose())).getNorm(), true);
-         BreakerLog.log("DistanceFromRobotFrontToTarget", drivetrain.getRobotToPointTranslation(
-                 Constants.FieldConstants.getTargetForPose(drivetrain.getLocalizer().getPose())).getNorm() - 0.39878, true);
+        
+        BreakerLog.log("DistanceToTarget", drivetrain.getRobotToPointTranslation(
+            Constants.FieldConstants.getTargetForPose(drivetrain.getLocalizer().getPose())).getNorm(), true);
+        BreakerLog.log("DistanceFromRobotFrontToTarget", drivetrain.getRobotToPointTranslation(
+                Constants.FieldConstants.getTargetForPose(drivetrain.getLocalizer().getPose())).getNorm() - 0.39878, true);
+
+        // Aim telemetry: distance, hood target/actual, flywheel target, heading error
+        Translation2d aimTarget = Constants.FieldConstants.getTargetForPose(drivetrain.getLocalizer().getPose());
+        double aimDistanceM = drivetrain.getRobotToPointTranslation(aimTarget).getNorm();
+        BreakerLog.log("Aim/DistanceToTargetM", aimDistanceM, true);
+        BreakerLog.log("Aim/HoodTargetRot", TrajectoryManager.getHoodPositionForDistance(aimDistanceM), true);
+        BreakerLog.log("Aim/HoodPositionRot", shooter.getHoodEncoderRotations(), true);
+        BreakerLog.log("Aim/FlywheelTargetRps", trajectoryManager.getFlywheelSpeedForDistance(), true);
+        BreakerLog.log("Aim/HeadingErrorDeg", Math.toDegrees(vision.getAngleToTarget(aimTarget)), true);
+
         MatchTimer.update();
     }
 
@@ -608,12 +619,10 @@ public class RobotContainer {
         
         if (intake.state != Intake.State.STOWED) {
             intake.setState(Intake.State.EXTENDED_IDLE);
-        }
-        else {
+        } else {
             intake.setState(Intake.State.STOWED);
-        }
-        
-        climb.setState(Climb.State.INACTIVE);
+        }    
+        //climb.setState(Climb.State.INACTIVE);
         shooter.setState(Shooter.State.INACTIVE);
         hopper.setState(Hopper.State.INACTIVE);
         if (!disableHood) {
@@ -621,11 +630,4 @@ public class RobotContainer {
                     shooter.hoodToRotationsCommand(Constants.ShooterConstants.POSITION_HOOD_MIN));
         }
     }
-
-    // public void disabledInit() {
-    //     System.out.println("Disabled Init!");
-    //     CommandScheduler.getInstance().schedule(
-    //         shooter.hoodToRotationsCommand(Constants.ShooterConstants.POSITION_HOOD_LATCH).ignoringDisable(true));
-    // }
-
 }

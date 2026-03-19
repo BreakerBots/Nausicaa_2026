@@ -120,8 +120,6 @@ public class PoseManager extends SubsystemBase {
         rotationPID.enableContinuousInput(-Math.PI, Math.PI);
 
         return Commands.run(() -> {
-            // Comment in to test shooter offset 
-            //Translation2d toTarget = drivetrain.getShooterCenterToPointTranslation(targetPoint);
             Translation2d toTarget = drivetrain.getRobotToPointTranslation(targetPoint);
             double desiredHeading = Math.atan2(toTarget.getY(), toTarget.getX());
             double currentHeading = drivetrain.getLocalizer().getPose().getRotation().getRadians();
@@ -182,14 +180,14 @@ public class PoseManager extends SubsystemBase {
     /**
      * While run: driver keeps X/Y; rotation is overridden to face the target point (odometry-based).
      */
-    public Command trackPointCommand(Translation2d targetPoint, DoubleSupplier vx, DoubleSupplier vy) {
-        return trackPointCommand(() -> targetPoint, vx, vy);
+    public Command rotateToPointContinuouslyCommand(Translation2d targetPoint, DoubleSupplier vx, DoubleSupplier vy) {
+        return rotateToPointContinuouslyCommand(() -> targetPoint, vx, vy);
     }
 
    /**
     * Adjust rotation to always face target AprilTag. The supplier allows us to continually reevaluate this each cycle.
     */
-    public Command trackPointCommand(Supplier<Translation2d> targetSupplier, DoubleSupplier vx, DoubleSupplier vy) {
+    public Command rotateToPointContinuouslyCommand(Supplier<Translation2d> targetSupplier, DoubleSupplier vx, DoubleSupplier vy) {
         final var request = new SwerveRequest.FieldCentric().withDriveRequestType(DriveRequestType.Velocity);
         PIDController rotationPID = new PIDController(7, 0.0, 0.1);
         rotationPID.enableContinuousInput(-Math.PI, Math.PI);
@@ -197,7 +195,6 @@ public class PoseManager extends SubsystemBase {
 
         return Commands.run(() -> {
             Translation2d targetPoint = targetSupplier.get();
-            //Translation2d toTarget = drivetrain.getShooterCenterToPointTranslation(targetPoint);
             Translation2d toTarget = drivetrain.getRobotToPointTranslation(targetPoint);
             double desiredHeading = Math.atan2(toTarget.getY(), toTarget.getX());
             double currentHeading = drivetrain.getLocalizer().getPose().getRotation().getRadians();
@@ -223,7 +220,7 @@ public class PoseManager extends SubsystemBase {
       * When in our AZ, track the hub. When outside, track one of two passing targets.
       */
     // public Command trackTargetCommand(DoubleSupplier vx, DoubleSupplier vy) {
-    //     return trackPointCommand(() -> {
+    //     return rotateToPointContinuouslyCommand(() -> {
     //         Pose2d pose = drivetrain.getLocalizer().getPose();
     //            Translation2d target = Constants.FieldConstants.getTargetForPose(pose);
     //            BreakerLog.log("PoseManager/TargetForPose", target);
@@ -240,14 +237,14 @@ public class PoseManager extends SubsystemBase {
     //     if (tagPosition == null) {
     //         return Commands.none(); // Tag not in field layout
     //     }
-    //     return trackPointCommand(tagPosition, vx, vy);
+    //     return rotateToPointContinuouslyCommand(tagPosition, vx, vy);
     // }
 
     /**
      * Adjust rotation to always face our Hub.
      */
     // public Command trackHubCenterCommand(DoubleSupplier vx, DoubleSupplier vy) {
-    //     return trackPointCommand(Constants.FieldConstants.getTargetHubCenter(), vx, vy);
+    //     return rotateToPointContinuouslyCommand(Constants.FieldConstants.getTargetHubCenter(), vx, vy);
     // }
 
     // --------------- RANGE TO ---------------
