@@ -10,13 +10,14 @@ import static frc.robot.Constants.DriveConstants.DRIVETRAIN_CONSTANTS;
 import static frc.robot.Constants.DriveConstants.FrontLeft;
 import static frc.robot.Constants.DriveConstants.FrontRight;
 
+import com.ctre.phoenix6.StatusCode;
+import com.ctre.phoenix6.controls.DutyCycleOut;
+import com.ctre.phoenix6.controls.PositionVoltage;
+import com.ctre.phoenix6.swerve.SwerveModule;
 import com.ctre.phoenix6.swerve.SwerveModule.DriveRequestType;
-import com.ctre.phoenix6.swerve.SwerveModule.ModuleRequest;
 import com.ctre.phoenix6.swerve.SwerveRequest;
 
 import edu.wpi.first.math.geometry.Pose2d;
-import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.math.geometry.Translation2d;
 import frc.robot.Constants;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -49,34 +50,29 @@ public class Drivetrain extends BreakerSwerveDrivetrain {
         return targetPoint.minus(shooterCenter);
     }
 
-    /** Locks wheels in X pattern (brake) to resist motion during shooting. Unlock by running any drivetrain command. */
+    /** Locks wheels in X pattern (brake) to resist motion during shooting. 
+     * Unlock by running any drivetrain command.
+     * Phase 1: Position wheels in X using Velocity.
+     * Phase 2: DutyCycleOut(0) on drive (direct brake), PositionVoltage on steer (hold angle). */
+    private static final double LOCK_POSITION_SECONDS = 0.3;
 
     public Command lockWheelsCommand() {
-        // OpenLoopVoltage with 0 engages NeutralMode.Brake on drive motors for strong resistance.
         return Commands.run(() -> setControl(new SwerveRequest.SwerveDriveBrake()
-            .withDriveRequestType(DriveRequestType.OpenLoopVoltage)), this);
-            //.withDriveRequestType(DriveRequestType.Velocity)), this);
-    }  
+            .withDriveRequestType(DriveRequestType.Velocity)), this)
+            .withTimeout(LOCK_POSITION_SECONDS)
+            .andThen(Commands.run(() -> setControl(new HoldWithDriveBrakeRequest()), this))
+            .finallyDo(interrupted -> setControl(new SwerveRequest.Idle()));
+    }
 
-
-
-    // public Command lockWheelsCommand() {
-    //     // X pattern from forward: FL +45° CCW, FR -45° CW, BL -45° CW, BR +45° CCW.
-    //     // OpenLoopVoltage with 0 engages brake on all 4 drive motors (NeutralMode.Brake in config).
-    //     final Rotation2d angleCcw = Rotation2d.fromDegrees(45);
-    //     final Rotation2d angleCw = Rotation2d.fromDegrees(-45);
-    //     final SwerveModuleState[] lockStates = {
-    //         new SwerveModuleState(0, angleCcw),  // FrontLeft: 45° CCW
-    //         new SwerveModuleState(0, angleCw),   // FrontRight: 45° CW
-    //         new SwerveModuleState(0, angleCw),   // BackLeft: 45° CW
-    //         new SwerveModuleState(0, angleCcw),  // BackRight: 45° CCW
-    //     };
-    //     return Commands.run(() -> {
-    //         for (int i = 0; i < 4; i++) {
-    //             getModule(i).apply(new ModuleRequest()
-    //                 .withDriveRequest(DriveRequestType.OpenLoopVoltage)
-    //                 .withState(lockStates[i]));
-    //         }
-    //     }, this);
-    // }
+    /** Holds steer at current angle, applies DutyCycleOut(0) to drive (direct brake). Used after wheels are in X. */
+    private static class HoldWithDriveBrakeRequest implements SwerveRequest {
+        @Override
+        public StatusCode apply(com.ctre.phoenix6.swerve.SwerveDrivetrain.SwerveControlParameters parameters, SwerveModule<?, ?, ?>... modulesToApply) {
+            for (var module : modulesToApply) {
+                double steerPos = module.getSteerMotor().getPosition().getValueAsDouble();
+                module.apply(new DutyCycleOut(0), new PositionVoltage(steerPos));
+            }
+            return StatusCode.OK;
+        }
+    }
 }

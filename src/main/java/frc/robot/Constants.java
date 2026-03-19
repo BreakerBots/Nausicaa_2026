@@ -309,9 +309,14 @@ public final class Constants {
         public static final double ROLLER_kI = 0.00; //0.0
         public static final double ROLLER_kD = 0.00; //0.0
 
+        /** Used to adjust roller speed based on drivetrain velocity. */
+        public static final double ROLLER_DIAMETER_METERS = 1.5 * 0.0254;
+        public static final double ROLLER_CIRCUMFERENCE_METERS = ROLLER_DIAMETER_METERS * Math.PI;
+        public static final double ROLLER_REV_PER_SEC_AT_FULL_DUTY = 80.0; // TUNE THIS: Revolutions at 100% duty cycle
+
         public static final double SPEED_IDLE = 0;
         public static final double SPEED_EXTAKE = 0.5;
-        public static final double SPEED_INTAKE = -0.8;
+        public static final double SPEED_INTAKE = -0.7;
         /** Roller speed during feed jiggle (gentle reverse to help clear jams). */
         public static final double SPEED_FEED_JIGGLE = -0.2;
 

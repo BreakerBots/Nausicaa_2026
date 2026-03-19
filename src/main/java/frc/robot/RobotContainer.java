@@ -59,7 +59,7 @@ public class RobotContainer {
     private final Vision vision = new Vision(drivetrain);
     private final PoseManager poseManager = new PoseManager(drivetrain, vision);
     private final TrajectoryManager trajectoryManager = new TrajectoryManager(drivetrain);
-    private final Intake intake = new Intake();
+    private final Intake intake = new Intake(drivetrain);
     private final Climb climb = new Climb();
     private final Shooter shooter = new Shooter(trajectoryManager);
     private final Hopper hopper = new Hopper();
