@@ -154,19 +154,7 @@ public class RobotContainer {
         // ---------- CONTROLLER 1 - DRIVER ----------
         // ---------------------------------------------
 
-        // LEFT/RIGHT THUMBSTICK HOLD --> SLOW MODE
-        controller.getLeftThumbstick().getJoystickButton().whileTrue(
-            Commands.startEnd(() -> slowMode = true, () -> slowMode = false));
-        controller.getRightThumbstick().getJoystickButton().whileTrue(
-            Commands.startEnd(() -> slowMode = true, () -> slowMode = false));
-
-        // LEFT BUMPER --> RESET LOCALIZER'S POSE
-        controller.getLeftBumper().onTrue(Commands.runOnce(() -> drivetrain.getLocalizer().resetPose(new Pose2d(0,0, Rotation2d.fromRotations(0.0)))));
-
-        // RIGHT BUMPER --> Open?
-        controller.getRightBumper().onTrue(Commands.runOnce(() -> slowMode = !slowMode));
-
-        // ---------------- SWERVE DRIVE ----------------
+        // ---------------- THUMBSTICKS - DRIVE ----------------
 
         // Don't bind these is it's not safe to drive (ie. when the robot is on a table)
         if (!safetyMode) {
@@ -203,61 +191,60 @@ public class RobotContainer {
         
             drivetrain.setDefaultCommand(drivetrain.getTeleopControlCommand(driverX, driverY, driverOmega, Constants.DriveConstants.TELEOP_CONTROL_CONFIG));
         
-
-            // X/B --> Short-range navigate-to-trench, with NZ + max-distance protection handled in PoseManager.
-            // if (!safetyMode) {
-            //     controller.getButtonX().onTrue(
-            //         poseManager.navigateToTrench(Constants.FieldConstants.getTrenchLeftExitPose()));
-            //     controller.getButtonB().onTrue(
-            //         poseManager.navigateToTrench(Constants.FieldConstants.getTrenchRightExitPose()));
-            // }
-
-            // LEFT TRIGGER --> Track hub center; driver keeps X/Y, rotation follows hub; hood tracks distance
-            // DoubleSupplier targetDistance = () -> drivetrain.getRobotToPointTranslation(
-            //         Constants.FieldConstants.getTargetForPose(drivetrain.getLocalizer().getPose())).getNorm();
-            // controller.getLeftTrigger().whileTrue(
-            //     //drivetrain.getLocalizer().resetPose(new Pose2d(0,0, Rotation2d.fromRotations(0.0))))
-            //         //  .andThen(poseManager.trackLeftTriggerTargetCommand(driverX, driverY)
-            //     poseManager.trackTargetCommand(driverX, driverY)
-            //         .alongWith(shooter.positionHoodForTargetCommand(targetDistance)));
+            // LEFT/RIGHT THUMBSTICK HOLD --> SLOW MODE
+            // controller.getLeftThumbstick().getJoystickButton().whileTrue(
+            //     Commands.startEnd(() -> slowMode = true, () -> slowMode = false));
+            // controller.getRightThumbstick().getJoystickButton().whileTrue(
+            //     Commands.startEnd(() -> slowMode = true, () -> slowMode = false));
         }
 
 
-        // ----------------- INTAKE -------------
+        // ----------------- BUMPERS -------------
+
+        // LEFT BUMPER --> RESET LOCALIZER'S POSE
+        controller.getLeftBumper().onTrue(Commands.runOnce(() -> drivetrain.getLocalizer().resetPose(new Pose2d(0,0, Rotation2d.fromRotations(0.0)))));
+
+        // RIGHT BUMPER --> Open?
+        controller.getRightBumper().onTrue(Commands.runOnce(() -> slowMode = !slowMode));
+
+
+        // ----------------- TRIGGERS -------------
 
         // LEFT TRIGGER --> Intake (while held; stop when released)
         controller.getLeftTrigger().whileTrue(Commands.run(() -> intake.setState(Intake.State.EXTENDED_INTAKING), intake)
             .finallyDo(() -> intake.setState(Intake.State.EXTENDED_IDLE)));
             
-
-        // ----------------- SHOOTER + HOPPER/FEEDER -------------
-
         // RIGHT TRIGGER --> Continuously aim and shoot while held; both stop when released
         //controller.getRightTrigger().whileTrue(aimThenShootCommand());
         controller.getRightTrigger().whileTrue(aimAndShootContinuouslyCommand());
+    
 
-        // A --> Aim
-        //controller.getButtonA().onTrue(aimCommand());
-        controller.getButtonA().onTrue(shootForTeleopCommand());
+        // ----------------- BUTTONS -------------
+
+        // A --> Just Aim
+        controller.getButtonA().onTrue(aimCommand());
         
-        // Y --> Unclog: run feeder, indexer, and intake in reverse at 20% speed (while held)
-        controller.getButtonY().whileTrue(unclogCommand());
+        // B --> Just Shoot
+        controller.getButtonA().onTrue(shootForTeleopCommand(true));
 
         // X --> Hood to Latch Position
         //controller.getButtonX().onTrue(shooter.hoodToRotationsCommand(Constants.ShooterConstants.POSITION_HOOD_LATCH));
+        controller.getButtonX().onTrue(intake.setStateCommand(Intake.State.STOWED));
 
-        // B --> Open?
+        // Y --> Unclog: run feeder, indexer, and intake in reverse at 20% speed (while held)
+        controller.getButtonY().whileTrue(unclogCommand());
 
 
         // -- FOR RECORDING SHOOTER DATA --
 
         // Y --> Hood to setpoint
         //controller.getButtonY().onTrue(shooter.hoodToRotationsCommand(Constants.ShooterConstants.POSITION_HOOD_LATCH));
-        controller.getButtonX().onTrue(intake.setStateCommand(Intake.State.STOWED));
+
         // A --> Hood all the way down
         //controller.getButtonA().onTrue(shooter.hoodToRotationsCommand(Constants.ShooterConstants.POSITION_HOOD_MIN));
         
 
+        // ----------------- DPAD-------------
 
         // D-PAD RIGHT --> Hood up (while held; stop when released)
         controller.getDPad().getRight().whileTrue(
@@ -267,9 +254,6 @@ public class RobotContainer {
         controller.getDPad().getLeft().whileTrue(
             Commands.run(hood::runHoodDown, hood).finallyDo(hood::stopHood));
 
-        
-
-        // ----------------- CLIMB -------------
 
         // D-PAD UP --> Run climb up (while held)
         controller.getDPad().getUp().whileTrue(climb.runUp());
@@ -277,8 +261,6 @@ public class RobotContainer {
         // D-PAD DOWN --> Run climb down (while held)
         controller.getDPad().getDown().whileTrue(climb.runDown());
 
-
-        // controller.getDPad().getDown().and(controller.getRightBumper().negate()).onTrue(climb.retract());
 
 
         // ---------------------------------------------
@@ -317,7 +299,24 @@ public class RobotContainer {
         //     }
         // }, intake));
 
+        // X/B --> Short-range navigate-to-trench, with NZ + max-distance protection handled in PoseManager.
+        // if (!safetyMode) {
+        //     controller.getButtonX().onTrue(
+        //         poseManager.navigateToTrench(Constants.FieldConstants.getTrenchLeftExitPose()));
+        //     controller.getButtonB().onTrue(
+        //         poseManager.navigateToTrench(Constants.FieldConstants.getTrenchRightExitPose()));
+        // }
+
+        // LEFT TRIGGER --> Track hub center; driver keeps X/Y, rotation follows hub; hood tracks distance
+        // DoubleSupplier targetDistance = () -> drivetrain.getRobotToPointTranslation(
+        //         Constants.FieldConstants.getTargetForPose(drivetrain.getLocalizer().getPose())).getNorm();
+        // controller.getLeftTrigger().whileTrue(
+        //     //drivetrain.getLocalizer().resetPose(new Pose2d(0,0, Rotation2d.fromRotations(0.0))))
+        //         //  .andThen(poseManager.trackLeftTriggerTargetCommand(driverX, driverY)
+        //     poseManager.trackTargetCommand(driverX, driverY)
+        //         .alongWith(shooter.positionHoodForTargetCommand(targetDistance)));        
     }
+
 
    /** Unclog: run feeder and indexer in reverse at ~20% speed; intake extaking. While held. */
     private Command unclogCommand() {
@@ -365,7 +364,14 @@ public class RobotContainer {
 
     /** Teleop shoot: feed phase runs until trigger released. */
     private Command shootForTeleopCommand() {
-        return shootSequenceCommand(null);
+        return shootForTeleopCommand(false);
+    }
+
+    /**
+     * Teleop shoot with optional angle bypass. When ignoreAngleError is true, feeds regardless of heading to target.
+     */
+    private Command shootForTeleopCommand(boolean ignoreAimError) {
+        return shootSequenceCommand(null, ignoreAimError);
     }
 
 
@@ -373,6 +379,10 @@ public class RobotContainer {
      * Don't use this command directly. Use either shootForAutoCommand() or shootForTeleopCommand() instead.
      */
     private Command shootSequenceCommand(Double feedTimeoutSeconds) {
+        return shootSequenceCommand(feedTimeoutSeconds, false);
+    }
+
+    private Command shootSequenceCommand(Double feedTimeoutSeconds, boolean ignoreAimError) {
         Command jiggleSequence = Commands.sequence(
                 Commands.waitSeconds(1.0),
                 Commands.sequence(
@@ -385,13 +395,17 @@ public class RobotContainer {
 
         Command feedControl = Commands.run(() -> {
                     shooter.setState(Shooter.State.SHOOTING);
-                    Translation2d target = Constants.FieldConstants.getTargetForPose(drivetrain.getLocalizer().getPose());
-                    double angleErrorRad = Math.abs(vision.getAngleToTarget(target));
-                    if (angleErrorRad <= Constants.ShooterConstants.FEED_PAUSE_ANGLE_THRESHOLD_RAD) {
+                    if (ignoreAimError) {
                         hopper.setState(Hopper.State.FEEDING);
                     } else {
-                        hopper.setState(Hopper.State.INACTIVE);
-                        intake.setState(Intake.State.EXTENDED_IDLE);
+                        Translation2d target = Constants.FieldConstants.getTargetForPose(drivetrain.getLocalizer().getPose());
+                        double angleErrorRad = Math.abs(vision.getAngleToTarget(target));
+                        if (angleErrorRad <= Constants.ShooterConstants.FEED_PAUSE_ANGLE_THRESHOLD_RAD) {
+                            hopper.setState(Hopper.State.FEEDING);
+                        } else {
+                            hopper.setState(Hopper.State.INACTIVE);
+                            intake.setState(Intake.State.EXTENDED_IDLE);
+                        }
                     }
                 }, shooter, hopper, intake);
 
