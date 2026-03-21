@@ -5,9 +5,27 @@
     "data": {
       "commands": [
         {
+          "type": "named",
+          "data": {
+            "name": "intakeExtendedIdle"
+          }
+        },
+        {
           "type": "path",
           "data": {
-            "pathName": "R - Outpost, S"
+            "pathName": "R - (1) Outpost"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "halt"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "R - (2) S"
           }
         },
         {
