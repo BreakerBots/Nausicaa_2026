@@ -66,7 +66,7 @@ public class RobotContainer {
     private boolean slowMode; // Scale down drive controls for safer driving in tight spaces
     private boolean disableHood = false; // For when we want to test shooter offset without hood positioning.
     private boolean safetyMode = false; // Drive controls and autonomous are disabled.
-    
+
     /** PathPlanner auto chooser; populated from GUI autos when AutoBuilder is configured. */
     private final SendableChooser<Command> autoChooser;
 
@@ -83,17 +83,16 @@ public class RobotContainer {
         NamedCommands.registerCommand("intake", Commands.defer(() -> intake.setStateCommand(Intake.State.EXTENDED_INTAKING), Set.of(intake)));
         NamedCommands.registerCommand("intakeExtendedIdle", Commands.defer(() -> intake.setStateCommand(Intake.State.EXTENDED_IDLE), Set.of(intake)));
         NamedCommands.registerCommand("stopIntake", Commands.defer(() -> intake.setStateCommand(Intake.State.EXTENDED_IDLE), Set.of(intake)));
-        NamedCommands.registerCommand("halt", Commands.waitSeconds(4.0));
+        NamedCommands.registerCommand("wait4Seconds", Commands.waitSeconds(4.0));
         NamedCommands.registerCommand("hoodDown", Commands.defer(() ->
                 disableHood ? Commands.none() : hood.hoodToRotationsCommand(Constants.ShooterConstants.POSITION_HOOD_MIN), Set.of(hood)));
         NamedCommands.registerCommand("unclog", Commands.defer(() -> unclogCommand().withTimeout(3.0), Set.of(hopper, intake)));
-        
-        // not tested yet...
-        NamedCommands.registerCommand("alignToClimb", Commands.defer(() -> poseManager.navigateToPoseCommand(Constants.FieldConstants.getTargetClimbingPose()), Set.of(drivetrain)));
-        NamedCommands.registerCommand("cExtend", Commands.defer(() -> climb.extend(), Set.of(climb)));
-        NamedCommands.registerCommand("cRetract", Commands.defer(() -> climb.retract(), Set.of(climb)));
-        NamedCommands.registerCommand("cAscend", Commands.defer(() -> climb.ascend(), Set.of(climb)));
-        NamedCommands.registerCommand("cDescend", Commands.defer(() -> climb.descend(), Set.of(climb)));
+
+        // NamedCommands.registerCommand("hooddown", Commands.none());
+        // NamedCommands.registerCommand("consolidatePose", Commands.none());
+        // NamedCommands.registerCommand("rotateToHub", Commands.none());
+        // NamedCommands.registerCommand("rangeToHub", Commands.none());
+
 
         // Set up our auto-chooser    
         if (AutoBuilder.isConfigured()) {
@@ -134,7 +133,7 @@ public class RobotContainer {
         
         // Adds context to logs so we know what robot, git commit,  etc.
         GitInfo gitInfo = new GitInfo(BuildConstants.MAVEN_NAME, BuildConstants.GIT_REVISION, BuildConstants.GIT_SHA, BuildConstants.GIT_DATE, BuildConstants.GIT_BRANCH, BuildConstants.BUILD_DATE, BuildConstants.DIRTY);
-        BreakerLog.logMetadata(new Metadata("Nausicaa", 2026, "Isacc Lynch, Max Xu, Matthew Pederson, Paul Brockmeyer", gitInfo));
+        BreakerLog.logMetadata(new Metadata("Nausicaa", 2026, "Isaac Lynch, Max Xu, Matthew Pedersen, Paul Brockmeyer", gitInfo));
       }
 
 
@@ -225,7 +224,7 @@ public class RobotContainer {
         controller.getButtonA().onTrue(aimCommand());
         
         // B --> Just Shoot
-        controller.getButtonA().onTrue(shootForTeleopCommand(true));
+        controller.getButtonB().onTrue(shootForTeleopCommand(true));
 
         // X --> Hood to Latch Position
         //controller.getButtonX().onTrue(shooter.hoodToRotationsCommand(Constants.ShooterConstants.POSITION_HOOD_LATCH));
@@ -359,7 +358,9 @@ public class RobotContainer {
     
     /** Auto shoot: feed phase runs for 6 seconds. Locks wheels for stability during shoot. */
     private Command shootForAutoCommand() {
-        return drivetrain.lockWheelsCommand().raceWith(shootSequenceCommand(6.0));
+        //return drivetrain.lockWheelsCommand().raceWith(
+        return shootSequenceCommand(6.0);
+            //);
     }
 
     /** Teleop shoot: feed phase runs until trigger released. */
@@ -390,8 +391,8 @@ public class RobotContainer {
                         Commands.waitSeconds(0.3),
                         Commands.runOnce(() -> intake.setState(Intake.State.FEED_JIGGLE_HIGH)),
                         Commands.waitSeconds(0.3))
-                        .repeatedly()
-                        .until(() -> hopper.state != Hopper.State.FEEDING));
+                        .repeatedly());
+        // No .until() — keeps jiggling when feedControl pauses hopper for angle error; ends when trigger released.
 
         Command feedControl = Commands.run(() -> {
                     shooter.setState(Shooter.State.SHOOTING);
@@ -404,10 +405,10 @@ public class RobotContainer {
                             hopper.setState(Hopper.State.FEEDING);
                         } else {
                             hopper.setState(Hopper.State.INACTIVE);
-                            intake.setState(Intake.State.EXTENDED_IDLE);
+                            //intake.setState(Intake.State.EXTENDED_IDLE);
                         }
                     }
-                }, shooter, hopper, intake);
+                }, shooter, hopper); //intake
 
         Command feedPhase = Commands.parallel(feedControl, jiggleSequence);
 
@@ -535,6 +536,7 @@ public class RobotContainer {
 
     /** Called once when the robot enters autonomous. */
     public void autonomousInit() {
+
         intake.setState(Intake.State.STOWED);
         //climb.setState(Climb.State.INACTIVE);
         shooter.setState(Shooter.State.INACTIVE);
@@ -560,5 +562,6 @@ public class RobotContainer {
             CommandScheduler.getInstance().schedule(
                     hood.hoodToRotationsCommand(Constants.ShooterConstants.POSITION_HOOD_MIN));
         }
+        Commands.runOnce(() -> slowMode = true);
     }
 }

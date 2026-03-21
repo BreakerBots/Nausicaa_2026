@@ -128,7 +128,7 @@ public class Shooter extends SubsystemBase {
             shooterFlywheel2Motor.setControl(coast);
             shooterFlywheel3Motor.setControl(coast);
         } else {
-            VelocityVoltage velocityControl = new VelocityVoltage(speed).withAcceleration(400);
+            VelocityVoltage velocityControl = new VelocityVoltage(speed).withAcceleration(Constants.ShooterConstants.ACCELERATION_FLYWHEEL);
             shooterFlywheel1Motor.setControl(velocityControl);
             shooterFlywheel2Motor.setControl(velocityControl);
             shooterFlywheel3Motor.setControl(velocityControl);

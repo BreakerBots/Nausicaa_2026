@@ -354,9 +354,12 @@ public final class Constants {
         /** Max heading error to allow feeding. Pauses feeder when angle to target exceeds this. */
         public static final double FEED_PAUSE_ANGLE_THRESHOLD_RAD = Math.toRadians(2.5);
 
-        public static final double SPEED_IDLE = 0;
-        public static final double SPEED_FLYWHEEL_ACTIVE = 68.0;
+        public static final double SPEED_IDLE = 52;
+        public static final double SPEED_FLYWHEEL_ACTIVE = 58.0; // Was 68
 
+        public static final double ACCELERATION_FLYWHEEL = 200.0;
+
+        public static final double SPEED_FLYWHEEL_AUTO = 68.0;
         /** Valid distance range (m) for TrajectoryManager lookup; outside this falls back to SPEED_FLYWHEEL_ACTIVE. */
         public static final double SHOOTER_RANGE_MIN = 0.25;
         public static final double SHOOTER_RANGE_MAX = 15.0;
