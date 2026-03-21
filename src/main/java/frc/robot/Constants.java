@@ -312,7 +312,14 @@ public final class Constants {
         /** Used to adjust roller speed based on drivetrain velocity. */
         public static final double ROLLER_DIAMETER_METERS = 1.5 * 0.0254;
         public static final double ROLLER_CIRCUMFERENCE_METERS = ROLLER_DIAMETER_METERS * Math.PI;
-        public static final double ROLLER_REV_PER_SEC_AT_FULL_DUTY = 80.0; // TUNE THIS: Revolutions at 100% duty cycle
+        public static final double ROLLER_GEAR_RATIO = 20 / 28;     
+        // Kraken x60 at full duty = 100 rev/s   
+        public static final double ROLLER_REV_PER_SEC_AT_FULL_DUTY = 70.0 * ROLLER_GEAR_RATIO; // TUNE THIS
+        // At 100% duty cycle, our max drivetrain speed is 3.0 m/s
+        // At 70% (current default), our max speed is 2.1 m/s
+        //
+        // 0.7 duty = 0.7 * 20/28 * 70 = 35 roller rev/s
+        // 35 * 0.12 (roller circum in m) / 2 (needed rotations) = 2.1 m/s 
 
         public static final double SPEED_IDLE = 0;
         public static final double SPEED_EXTAKE = 0.5;
