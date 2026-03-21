@@ -3,13 +3,13 @@
   "waypoints": [
     {
       "anchor": {
-        "x": 3.5732667617689007,
-        "y": 0.6
+        "x": 3.2,
+        "y": 2.9
       },
       "prevControl": null,
       "nextControl": {
-        "x": 2.57825107136859,
-        "y": 0.6000000000000001
+        "x": 2.2049843095996895,
+        "y": 2.9
       },
       "isLocked": false,
       "linkedName": null
@@ -29,7 +29,21 @@
     }
   ],
   "rotationTargets": [],
-  "constraintZones": [],
+  "constraintZones": [
+    {
+      "name": "Constraints Zone",
+      "minWaypointRelativePos": 0.7513647642679899,
+      "maxWaypointRelativePos": 1.0,
+      "constraints": {
+        "maxVelocity": 0.7,
+        "maxAcceleration": 9.0,
+        "maxAngularVelocity": 540.0,
+        "maxAngularAcceleration": 720.0,
+        "nominalVoltage": 12.0,
+        "unlimited": false
+      }
+    }
+  ],
   "pointTowardsZones": [],
   "eventMarkers": [],
   "globalConstraints": {
@@ -45,10 +59,10 @@
     "rotation": 180.0
   },
   "reversed": false,
-  "folder": "2026 - Rebuilt",
+  "folder": "Alliance",
   "idealStartingState": {
     "velocity": 0.0,
-    "rotation": 180.0
+    "rotation": 45.0
   },
   "useDefaultConstraints": true
 }

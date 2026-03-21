@@ -121,7 +121,7 @@
       },
       "nextControl": {
         "x": 2.911555706417341,
-        "y": 0.8081249999999999
+        "y": 0.8081249999999998
       },
       "isLocked": false,
       "linkedName": null
@@ -203,7 +203,7 @@
     "rotation": 52.0
   },
   "reversed": false,
-  "folder": "2026 - Rebuilt",
+  "folder": "Devious NZ",
   "idealStartingState": {
     "velocity": 0.0,
     "rotation": 52.0

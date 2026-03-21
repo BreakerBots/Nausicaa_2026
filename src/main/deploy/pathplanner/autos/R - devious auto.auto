@@ -7,7 +7,7 @@
         {
           "type": "path",
           "data": {
-            "pathName": "1x R - NZ, Trench, S"
+            "pathName": "R - (1) NZ, Trench, S"
           }
         },
         {
@@ -25,13 +25,25 @@
         {
           "type": "path",
           "data": {
-            "pathName": "2x R - NZ, Trench, S"
+            "pathName": "R - (2) NZ, Trench, S"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "aim"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "shoot"
           }
         }
       ]
     }
   },
   "resetOdom": true,
-  "folder": "2026 - Rebuilt",
+  "folder": "Devious NZ",
   "choreoAuto": false
 }

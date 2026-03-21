@@ -3,10 +3,18 @@
   "robotLength": 0.88,
   "holonomicMode": true,
   "pathFolders": [
-    "2026 - Rebuilt"
+    "Alliance",
+    "Devious NZ",
+    "Shoot",
+    "Sincere NZ",
+    "Climb"
   ],
   "autoFolders": [
-    "2026 - Rebuilt"
+    "Climb",
+    "Devious NZ",
+    "NZ + Alliance",
+    "Shoot",
+    "Sincere NZ"
   ],
   "defaultMaxVel": 4.5,
   "defaultMaxAccel": 9.0,

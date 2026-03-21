@@ -25,7 +25,7 @@
         {
           "type": "path",
           "data": {
-            "pathName": "L - (2) Depot, S"
+            "pathName": "L - Depot, S v1"
           }
         },
         {
@@ -44,6 +44,6 @@
     }
   },
   "resetOdom": true,
-  "folder": "2026 - Rebuilt",
+  "folder": "NZ + Alliance",
   "choreoAuto": false
 }

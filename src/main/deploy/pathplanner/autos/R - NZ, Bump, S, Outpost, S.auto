@@ -25,7 +25,13 @@
         {
           "type": "path",
           "data": {
-            "pathName": "R - (2) Outpost, S"
+            "pathName": "R - (1) Outpost"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "R - (2) Outpost v1"
           }
         },
         {
@@ -44,6 +50,6 @@
     }
   },
   "resetOdom": true,
-  "folder": "2026 - Rebuilt",
+  "folder": "NZ + Alliance",
   "choreoAuto": false
 }

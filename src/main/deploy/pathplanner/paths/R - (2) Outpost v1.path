@@ -3,25 +3,25 @@
   "waypoints": [
     {
       "anchor": {
-        "x": 3.6,
-        "y": 7.379643366619115
+        "x": 0.65,
+        "y": 0.6
       },
       "prevControl": null,
       "nextControl": {
-        "x": 3.082453637660485,
-        "y": 6.9526676176890145
+        "x": 1.1225962910128384,
+        "y": 1.363166904422254
       },
       "isLocked": false,
       "linkedName": null
     },
     {
       "anchor": {
-        "x": 3.2,
-        "y": 5.2
+        "x": 2.7840085592011405,
+        "y": 3.756818830242511
       },
       "prevControl": {
-        "x": 2.5659493456662608,
-        "y": 6.028147793415497
+        "x": 1.8394864479315256,
+        "y": 3.1098858773181175
       },
       "nextControl": null,
       "isLocked": false,
@@ -42,13 +42,13 @@
   },
   "goalEndState": {
     "velocity": 0,
-    "rotation": -32.19573393471323
+    "rotation": 0.0
   },
   "reversed": false,
-  "folder": "Shoot",
+  "folder": "Alliance",
   "idealStartingState": {
     "velocity": 0,
-    "rotation": 0.0
+    "rotation": 180.0
   },
   "useDefaultConstraints": true
 }

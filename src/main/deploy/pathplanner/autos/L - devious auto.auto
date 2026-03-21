@@ -5,27 +5,27 @@
     "data": {
       "commands": [
         {
-          "type": "named",
-          "data": {
-            "name": "intakeExtendedIdle"
-          }
-        },
-        {
           "type": "path",
           "data": {
-            "pathName": "R - (1) Outpost"
+            "pathName": "L - (1) NZ, Trench, S"
           }
         },
         {
           "type": "named",
           "data": {
-            "name": "halt"
+            "name": "aim"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "shoot"
           }
         },
         {
           "type": "path",
           "data": {
-            "pathName": "R - (2) S"
+            "pathName": "L - (2) NZ, Trench, S"
           }
         },
         {
@@ -44,6 +44,6 @@
     }
   },
   "resetOdom": true,
-  "folder": "2026 - Rebuilt",
+  "folder": "Devious NZ",
   "choreoAuto": false
 }
