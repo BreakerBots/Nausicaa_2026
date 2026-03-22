@@ -273,16 +273,16 @@ public final class Constants {
         /** CANcoder: offset so position reads POSITION_STOWED when pivot is physically stowed. 
          * Determine the raw value via Phoenix Tuner.
          * offset = desiredValue - rawValue = 0 - 0.25 = -0.25. */
-        public static final double PIVOT_ENCODER_OFFSET_ROTATIONS = -0.10009765625; // this was a direct copy-paste from mag offsets
+        public static final double PIVOT_ENCODER_OFFSET_ROTATIONS = 0.224365234375; // this was a direct copy-paste from mag offsets
         /** Choose a value safely beyond the mechanism's travel 
          * 0.5 is safe for an arm that rotates less than 180 degrees. */
         public static final double PIVOT_ENCODER_DISCONTINUITY = 0.5;
 
         /** Pivot angles (rotations) – placeholders until tuned. */
-        public static final Rotation2d POSITION_STOWED = Rotation2d.fromRotations(0.0);  //-0.025
+        public static final Rotation2d POSITION_STOWED = Rotation2d.fromRotations(0.01);  //-0.025
         public static final Rotation2d POSITION_EXTENDED = Rotation2d.fromRotations(-0.28); // Need to Tune
-        public static final Rotation2d POSITION_JIGGLE_HIGH = Rotation2d.fromRotations(-0.14);
-        public static final Rotation2d POSITION_JIGGLE_LOW = Rotation2d.fromRotations(-0.33);
+        public static final Rotation2d POSITION_JIGGLE_HIGH = Rotation2d.fromRotations(-0.15);
+        public static final Rotation2d POSITION_JIGGLE_LOW = Rotation2d.fromRotations(-0.27);
 
         /** Motion Magic (rotations/s, rotations/s², rotations/s³). */
          public static final double PIVOT_MM_CRUISE_VELOCITY = 1.0;
@@ -373,7 +373,7 @@ public final class Constants {
         public static final int HOOD_ENCODER_ID = 35;
 
         /** CANcoder: offset so position reads POSITION_HOOD_DOWN when hood is physically down. Calibrate via Phoenix Tuner. */
-        public static final double HOOD_ENCODER_OFFSET_ROTATIONS = 0.419677734375; //0.423095703125
+        public static final double HOOD_ENCODER_OFFSET_ROTATIONS = 0.011474609375; //0.423095703125
         /** CANcoder: 0.5 = ±180° range. Set so discontinuity is outside mechanism travel. */
         public static final double HOOD_ENCODER_DISCONTINUITY = 0.5;
 
@@ -382,9 +382,9 @@ public final class Constants {
         public static final double SPEED_HOOD_DOWN = 0.3; // 0.3
         public static final double AUTO_SPEED_HOOD_DOWN = -0.3;
         
-        public static final double POSITION_HOOD_MIN = 0; //-0.002197
-        public static final double POSITION_HOOD_MAX = 0.477295; //0.477295
-        public static final double POSITION_HOOD_LATCH = 0.3;
+        public static final double POSITION_HOOD_MIN = -0.001221; //-0.002197
+        public static final double POSITION_HOOD_MAX = 0.473389; //0.477295
+        public static final double POSITION_HOOD_LATCH = 0.3; // not used rn
        
         /** Deadband (rotations) for hood tracking; prevents oscillation when near target. */
         public static final double HOOD_TRACKING_TOLERANCE_ROTATIONS = 0.005;

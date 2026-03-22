@@ -11,6 +11,7 @@ import com.ctre.phoenix6.controls.VelocityDutyCycle;
 import com.ctre.phoenix6.controls.VelocityVoltage;
 import com.ctre.phoenix6.hardware.CANcoder;
 import com.ctre.phoenix6.hardware.TalonFX;
+import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 import com.ctre.phoenix6.signals.SensorDirectionValue;
 
@@ -46,6 +47,7 @@ public class Intake extends SubsystemBase {
         this.drivetrain = drivetrain;
         TalonFXConfiguration pivotConfig = new TalonFXConfiguration();
         pivotConfig.MotorOutput.NeutralMode = NeutralModeValue.Brake;
+        //pivotConfig.MotorOutput.Inverted = InvertedValue.Clockwise_Positive;
         pivotConfig.CurrentLimits = new CurrentLimitsConfigs()
                 .withStatorCurrentLimit(Constants.IntakeConstants.PIVOT_STATOR_CURRENT_LIMIT)
                 .withStatorCurrentLimitEnable(true)
@@ -96,6 +98,7 @@ public class Intake extends SubsystemBase {
 
         rollerMotor.getConfigurator().apply(rollerConfig);
         
+        // targetPivotRotations = state.getRotation2d().getRotations();
         targetPivotRotations = getPivotPositionRotations();
         pivotMotor.setControl(new MotionMagicDutyCycle(targetPivotRotations));
     }

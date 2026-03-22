@@ -542,6 +542,7 @@ public class RobotContainer {
         shooter.setState(Shooter.State.INACTIVE);
         hopper.setState(Hopper.State.INACTIVE);
         if (!disableHood) {
+
             CommandScheduler.getInstance().schedule(
                     hood.hoodToRotationsCommand(Constants.ShooterConstants.POSITION_HOOD_MIN));
         }
@@ -550,18 +551,15 @@ public class RobotContainer {
     /** Called once when the robot enters teleop. */
     public void teleopInit() {
         
+        //intake.setState(Intake.State.STOWED);
         if (intake.state != Intake.State.STOWED) {
             intake.setState(Intake.State.EXTENDED_IDLE);
         } else {
             intake.setState(Intake.State.STOWED);
         }    
-        //climb.setState(Climb.State.INACTIVE);
-        shooter.setState(Shooter.State.INACTIVE);
+        climb.setState(Climb.State.INACTIVE);
+         shooter.setState(Shooter.State.INACTIVE);
         hopper.setState(Hopper.State.INACTIVE);
-        if (!disableHood) {
-            CommandScheduler.getInstance().schedule(
-                    hood.hoodToRotationsCommand(Constants.ShooterConstants.POSITION_HOOD_MIN));
-        }
-        Commands.runOnce(() -> slowMode = true);
+        CommandScheduler.getInstance().schedule(hood.hoodToRotationsCommand(Constants.ShooterConstants.POSITION_HOOD_MIN));
     }
 }

@@ -3,13 +3,11 @@ package frc.robot.subsystems;
 import static edu.wpi.first.units.Units.Rotations;
 
 import com.ctre.phoenix6.controls.DutyCycleOut;
-import com.ctre.phoenix6.controls.MotionMagicVoltage;
 import com.ctre.phoenix6.hardware.CANcoder;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 import com.ctre.phoenix6.signals.SensorDirectionValue;
 import com.ctre.phoenix6.configs.CurrentLimitsConfigs;
-import com.ctre.phoenix6.configs.Slot0Configs;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 
 import java.util.function.DoubleSupplier;
@@ -41,23 +39,12 @@ public class Hood extends SubsystemBase {
                 .withStatorCurrentLimitEnable(true)
                 .withSupplyCurrentLimit(Constants.ShooterConstants.HOOD_SUPPLY_CURRENT_LIMIT)
                 .withSupplyCurrentLimitEnable(true);
-
-        hoodConfig.Feedback.withRemoteCANcoder(hoodEncoder);
-        hoodConfig.MotionMagic.MotionMagicCruiseVelocity = Constants.ShooterConstants.HOOD_MM_CRUISE_VELOCITY;
-        hoodConfig.MotionMagic.MotionMagicAcceleration = Constants.ShooterConstants.HOOD_MM_ACCELERATION;
-        hoodConfig.MotionMagic.MotionMagicJerk = Constants.ShooterConstants.HOOD_MM_JERK;
-
-        Slot0Configs slot0 = hoodConfig.Slot0;
-        slot0.kP = Constants.ShooterConstants.HOOD_kP;
-        slot0.kI = Constants.ShooterConstants.HOOD_kI;
-        slot0.kD = Constants.ShooterConstants.HOOD_kD;
-
         hoodMotor.getConfigurator().apply(hoodConfig);
     }
 
-    /** Current hood position in rotations (from Talon's feedback sensor – remote CANcoder). */
+    /** Current hood encoder position in rotations (cumulative). */
     public double getHoodEncoderRotations() {
-        return hoodMotor.getPosition().getValueAsDouble();
+        return hoodEncoder.getPosition().getValueAsDouble();
     }
 
     public void runHoodUp() {
@@ -94,33 +81,41 @@ public class Hood extends SubsystemBase {
 
     /**
      * Positions hood based on distance to target. Distance is re-evaluated each cycle (e.g. for dynamic targets).
-     * Uses MotionMagicVoltage; target updates each cycle for smooth tracking.
      */
     public Command positionHoodForTargetCommand(DoubleSupplier distanceSupplier) {
+        final double tolerance = Constants.ShooterConstants.HOOD_TRACKING_TOLERANCE_ROTATIONS;
         return Commands.run(() -> {
             double distance = distanceSupplier.getAsDouble();
             double hoodTarget = TrajectoryManager.getHoodPositionForDistance(distance);
-            double clampedTarget = MathUtil.clamp(hoodTarget,
-                    Constants.ShooterConstants.POSITION_HOOD_MIN,
-                    Constants.ShooterConstants.POSITION_HOOD_MAX);
-            hoodMotor.setControl(new MotionMagicVoltage(clampedTarget));
+            double current = getHoodEncoderRotations();
+            if (hoodTarget > current + tolerance) {
+                runHoodUp();
+            } else if (hoodTarget < current - tolerance) {
+                runHoodDown();
+            } else {
+                stopHood();
+            }
         }, this).finallyDo(this::stopHood);
     }
 
-    /** Drives hood to target rotations using MotionMagicVoltage. */
     public Command hoodToRotationsCommand(double targetRotations) {
-        double clampedTarget = MathUtil.clamp(targetRotations,
+        double clamped = MathUtil.clamp(targetRotations,
                 Constants.ShooterConstants.POSITION_HOOD_MIN,
                 Constants.ShooterConstants.POSITION_HOOD_MAX);
         double tolerance = Constants.ShooterConstants.HOOD_TRACKING_TOLERANCE_ROTATIONS;
-        return Commands.run(() -> hoodMotor.setControl(new MotionMagicVoltage(clampedTarget)), this)
-                .until(() -> MathUtil.isNear(getHoodEncoderRotations(), clampedTarget, tolerance))
+        double kP = Constants.ShooterConstants.HOOD_kP;
+        return Commands.run(() -> {
+            double error = clamped - getHoodEncoderRotations();
+            double output = MathUtil.clamp(-kP * error, -1.0, 1.0);
+            hoodMotor.setControl(new DutyCycleOut(output));
+        }, this)
+                .until(() -> Math.abs(getHoodEncoderRotations() - clamped) <= tolerance)
                 .finallyDo(this::stopHood);
     }
 
     @Override
     public void periodic() {
-
+        
         double hoodPos = getHoodEncoderRotations();
         double hoodVel = hoodMotor.getVelocity().getValueAsDouble();
         BreakerLog.log("Hood/PositionRot", hoodPos, true);
