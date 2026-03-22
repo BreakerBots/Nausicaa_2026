@@ -160,9 +160,9 @@ public class Intake extends SubsystemBase {
     public void periodic() {
 
         // Adjust roller speed dynamically to keep up with drivetrain
-        if (state == State.EXTENDED_INTAKING) {
-            setRollerSpeed(computeRollerSpeedForState(state));
-        }
+        // if (state == State.EXTENDED_INTAKING) {
+        //     setRollerSpeed(computeRollerSpeedForState(state));
+        // }
 
         double pivotPosition = getPivotPositionRotations();
         double pivotVelocity = pivotMotor.getVelocity().getValueAsDouble();
@@ -192,21 +192,22 @@ public class Intake extends SubsystemBase {
      */
     private double computeRollerSpeedForState(State state) {
         // Only scale with velocity when intaking states
-        if (state != State.EXTENDED_INTAKING) {
-            return state.getSpeed();
-        }
-        double vxMps = drivetrain.getChassisSpeeds().vxMetersPerSecond;
-        double circumferenceM = Constants.IntakeConstants.ROLLER_CIRCUMFERENCE_METERS;
-        // Target: roller does 2 rev in the time drivetrain travels one circumference.
-        // time = circumference / velocity, so rev/s = 2 / (circumference / v) = 2*v/circumference
-        double velocityRevPerSec = (circumferenceM > 1e-6) ? 2.0 * vxMps / circumferenceM : 0;
-        // Floor: never slower than SPEED_INTAKE. Convert duty (-0.8) to rev/s equivalent.
-        double minRevPerSec = Math.abs(Constants.IntakeConstants.SPEED_INTAKE)
-            * Constants.IntakeConstants.ROLLER_REV_PER_SEC_AT_FULL_DUTY;
-        double targetRevPerSec = Math.max(minRevPerSec, velocityRevPerSec);
-        // Convert rev/s back to duty cycle. Negative = intake direction.
-        double duty = -targetRevPerSec / Constants.IntakeConstants.ROLLER_REV_PER_SEC_AT_FULL_DUTY;
-        return Math.max(-1.0, duty);  // Don't exceed -1.0 (full power in the intake direction)
+        // if (state != State.EXTENDED_INTAKING) {
+        //     return state.getSpeed();
+        // }
+        // double vxMps = drivetrain.getChassisSpeeds().vxMetersPerSecond;
+        // double circumferenceM = Constants.IntakeConstants.ROLLER_CIRCUMFERENCE_METERS;
+        // // Target: roller does 2 rev in the time drivetrain travels one circumference.
+        // // time = circumference / velocity, so rev/s = 2 / (circumference / v) = 2*v/circumference
+        // double velocityRevPerSec = (circumferenceM > 1e-6) ? 2.0 * vxMps / circumferenceM : 0;
+        // // Floor: never slower than SPEED_INTAKE. Convert duty (-0.8) to rev/s equivalent.
+        // double minRevPerSec = Math.abs(Constants.IntakeConstants.SPEED_INTAKE)
+        //     * Constants.IntakeConstants.ROLLER_REV_PER_SEC_AT_FULL_DUTY;
+        // double targetRevPerSec = Math.max(minRevPerSec, velocityRevPerSec);
+        // // Convert rev/s back to duty cycle. Negative = intake direction.
+        // double duty = -targetRevPerSec / Constants.IntakeConstants.ROLLER_REV_PER_SEC_AT_FULL_DUTY;
+        // return Math.max(-1.0, duty);  // Don't exceed -1.0 (full power in the intake direction)
+        return state.getSpeed();
     }
 
     private void setRollerSpeed(double speed) {
