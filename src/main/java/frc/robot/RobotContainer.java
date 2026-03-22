@@ -348,9 +348,10 @@ public class RobotContainer {
 
     /**
      * Aim once (rotate + hood), then shoot while held. Aim runs to completion; shoot runs until trigger released.
+     * ignoreAimError=true so feeder runs regardless of angle (vision may not be aligned).
      */
     private Command aimAndShootContinuouslyCommand() {
-        return Commands.parallel(aimCommand(), shootForTeleopCommand());
+        return Commands.parallel(aimCommand(), shootForTeleopCommand(true));
     }
 
 
