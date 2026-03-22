@@ -347,11 +347,10 @@ public class RobotContainer {
     // }
 
     /**
-     * Continuously aim and shoot while held. Runs aimContinuouslyCommand and shootForTeleopCommand in parallel.
-     * When trigger released, both stop and release control. No wheel lock (aim needs to rotate).
+     * Aim once (rotate + hood), then shoot while held. Aim runs to completion; shoot runs until trigger released.
      */
     private Command aimAndShootContinuouslyCommand() {
-        return Commands.parallel(aimContinuouslyCommand(), shootForTeleopCommand());
+        return Commands.parallel(aimCommand(), shootForTeleopCommand());
     }
 
 
