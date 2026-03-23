@@ -15,6 +15,7 @@ import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 import com.ctre.phoenix6.signals.SensorDirectionValue;
 
+import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
@@ -191,29 +192,29 @@ public class Intake extends SubsystemBase {
      * NOTE: Given our default roller speed of 0.7, we won't see this change unless we're moving close to 4mps
      */
     private double computeRollerSpeedForState(State state) {
-        // Only scale with velocity when intaking states
         // if (state != State.EXTENDED_INTAKING) {
         //     return state.getSpeed();
         // }
-        // double vxMps = drivetrain.getChassisSpeeds().vxMetersPerSecond;
+        // double vxMps = Math.max(0, drivetrain.getChassisSpeeds().vxMetersPerSecond);
         // double circumferenceM = Constants.IntakeConstants.ROLLER_CIRCUMFERENCE_METERS;
-        // // Target: roller does 2 rev in the time drivetrain travels one circumference.
-        // // time = circumference / velocity, so rev/s = 2 / (circumference / v) = 2*v/circumference
-        // double velocityRevPerSec = (circumferenceM > 1e-6) ? 2.0 * vxMps / circumferenceM : 0;
-        // // Floor: never slower than SPEED_INTAKE. Convert duty (-0.8) to rev/s equivalent.
-        // double minRevPerSec = Math.abs(Constants.IntakeConstants.SPEED_INTAKE)
-        //     * Constants.IntakeConstants.ROLLER_REV_PER_SEC_AT_FULL_DUTY;
+        // double minDuty = Constants.IntakeConstants.SPEED_INTAKE; // -0.7, never slower
+        // if (circumferenceM < 1e-6) {
+        //     return minDuty;
+        // }
+        // double velocityRevPerSec = 2.0 * vxMps / circumferenceM;
+        // double minRevPerSec = Math.abs(minDuty) * Constants.IntakeConstants.ROLLER_REV_PER_SEC_AT_FULL_DUTY;
         // double targetRevPerSec = Math.max(minRevPerSec, velocityRevPerSec);
-        // // Convert rev/s back to duty cycle. Negative = intake direction.
         // double duty = -targetRevPerSec / Constants.IntakeConstants.ROLLER_REV_PER_SEC_AT_FULL_DUTY;
-        // return Math.max(-1.0, duty);  // Don't exceed -1.0 (full power in the intake direction)
+        // return MathUtil.clamp(duty, -1.0, minDuty);
         return state.getSpeed();
+
     }
 
     private void setRollerSpeed(double speed) {
         lastCommandedRollerSpeed = speed;
         if (speed != 0) {
             rollerMotor.setControl(new VelocityDutyCycle(speed));
+            //rollerMotor.setControl(new DutyCycleOut(speed));
         } else {
             rollerMotor.setControl(new DutyCycleOut(0));
         }
