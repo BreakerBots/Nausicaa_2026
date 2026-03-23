@@ -213,9 +213,8 @@ public class Intake extends SubsystemBase {
     private void setRollerSpeed(double speed) {
         lastCommandedRollerSpeed = speed;
         if (speed != 0) {
-            rollerMotor.setControl(new DutyCycleOut(speed));
-        }
-        else {
+            rollerMotor.setControl(new VelocityDutyCycle(speed));
+        } else {
             rollerMotor.setControl(new DutyCycleOut(0));
         }
     }
