@@ -312,7 +312,7 @@ public class RobotContainer {
         //     //drivetrain.getLocalizer().resetPose(new Pose2d(0,0, Rotation2d.fromRotations(0.0))))
         //         //  .andThen(poseManager.trackLeftTriggerTargetCommand(driverX, driverY)
         //     poseManager.trackTargetCommand(driverX, driverY)
-        //         .alongWith(shooter.positionHoodForTargetCommand(targetDistance)));        
+        //         .alongWith(shooter.positionHoodContinuouslyCommand(targetDistance)));        
     }
 
 
@@ -350,7 +350,7 @@ public class RobotContainer {
      * ignoreAimError=true so feeder runs regardless of angle (vision may not be aligned).
      */
     private Command aimAndShootContinuouslyCommand() {
-        return Commands.parallel(aimContinuouslyCommand(), shootForTeleopCommand(true));
+        return Commands.parallel(aimContinuouslyCommand(false), shootForTeleopCommand(true));
     }
 
 
@@ -473,20 +473,24 @@ public class RobotContainer {
     }
 
     /**
-     * Continuously aim: track target heading (rotation). Hood positioned once at start. Runs until interrupted.
+     * Continuously aim: track target heading (rotation). Hood positioned once at start (or continuously if adjustHoodContinuously).
+     * Runs until interrupted.
+     * @param adjustHoodContinuously when true, hood tracks distance continuously; when false (default), hood set once at start
      */
-    private Command aimContinuouslyCommand() {
+    private Command aimContinuouslyCommand(boolean positionHoodContinuously) {
         Command trackCmd = poseManager.rotateToPointContinuouslyCommand(
                 () -> Constants.FieldConstants.getTargetForPose(drivetrain.getLocalizer().getPose()),
                 driverX,
                 driverY);
-        Command hoodOnceCmd = Commands.defer(() -> {
-            double distance = drivetrain.getRobotToPointTranslation(
-                    Constants.FieldConstants.getTargetForPose(drivetrain.getLocalizer().getPose())).getNorm();
-            double hoodTarget = TrajectoryManager.getHoodPositionForDistance(distance);
-            return hood.hoodToRotationsCommand(hoodTarget);
-        }, Set.of(hood));
-        return Commands.parallel(trackCmd, hoodOnceCmd);
+        Command hoodCmd = positionHoodContinuously
+                ? positionHoodContinuouslyCommand()
+                : Commands.defer(() -> {
+                    double distance = drivetrain.getRobotToPointTranslation(
+                            Constants.FieldConstants.getTargetForPose(drivetrain.getLocalizer().getPose())).getNorm();
+                    double hoodTarget = TrajectoryManager.getHoodPositionForDistance(distance);
+                    return hood.hoodToRotationsCommand(hoodTarget);
+                }, Set.of(hood));
+        return Commands.parallel(trackCmd, hoodCmd);
     }
 
 
@@ -494,8 +498,8 @@ public class RobotContainer {
      * Positions hood based on distance to target for current pose. Distance is re-evaluated each cycle.
      * Uses getTargetForPose(pose) to determine target, then delegates to shooter.
      */
-    public Command positionHoodForTargetCommand() {
-        return hood.positionHoodForTargetCommand(() ->
+    public Command positionHoodContinuouslyCommand() {
+        return hood.positionHoodContinuouslyCommand(() ->
                 drivetrain.getRobotToPointTranslation(
                         Constants.FieldConstants.getTargetForPose(drivetrain.getLocalizer().getPose())).getNorm());
     }

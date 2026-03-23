@@ -401,7 +401,13 @@ public final class Constants {
         public static final double HOOD_MM_ACCELERATION = 1.0;
         public static final double HOOD_MM_JERK = 5.0;
 
-        /** Hood closed-loop gains (Slot0). Voltage-based for MotionMagicVoltage. */
+        /** Hood feedforward (Slot0) for Motion Magic. */
+        public static final double HOOD_kS = 0.0;
+        public static final double HOOD_kG = 0.0;
+        public static final double HOOD_kV = 0.0;
+        public static final double HOOD_kA = 0.0;
+
+        /** Hood closed-loop gains (Slot0). */
         public static final double HOOD_kP = 2.0;
         public static final double HOOD_kI = 0.0;
         public static final double HOOD_kD = 0.0;
