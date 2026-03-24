@@ -63,10 +63,6 @@ public class Shooter extends SubsystemBase {
          } else {
              return trajectoryManager.getFlywheelSpeedForDistance();
          }
-        // return switch (state) {
-        //     case INACTIVE -> Constants.ShooterConstants.SPEED_IDLE;
-        //     case SPINNING_UP, SHOOTING -> Constants.ShooterConstants.SPEED_FLYWHEEL_ACTIVE;
-        // };
     }
 
     public void setState(State newState) {
@@ -111,9 +107,9 @@ public class Shooter extends SubsystemBase {
         BreakerLog.log("Shooter/DistanceToTarget", distanceToTarget, true);
         BreakerLog.log("Shooter/FlywheelTargetSpeed", targetFlywheelSpeed, true);
         BreakerLog.log("Shooter/Flywheel1Speed", v1, true);
+        BreakerLog.log("Shooter/Flywheel2Speed", v2, true);
+        BreakerLog.log("Shooter/Flywheel3Speed", v3, true);
         if (BreakerLog.isVerboseLogging()) {
-            BreakerLog.log("Shooter/Flywheel2Speed", v2);
-            BreakerLog.log("Shooter/Flywheel3Speed", v3);
             BreakerLog.log("Electrical/Shooter/flywheel1", shooterFlywheel1Motor);
             BreakerLog.log("Electrical/Shooter/flywheel2", shooterFlywheel2Motor);
             BreakerLog.log("Electrical/Shooter/flywheel3", shooterFlywheel3Motor);

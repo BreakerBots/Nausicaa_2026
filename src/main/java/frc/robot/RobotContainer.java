@@ -381,14 +381,20 @@ public class RobotContainer {
     }
 
     private Command shootSequenceCommand(Double feedTimeoutSeconds, boolean ignoreAimError) {
+
         Command jiggleSequence = Commands.sequence(
-                Commands.waitSeconds(1.0),
-                Commands.sequence(
-                        Commands.runOnce(() -> intake.setState(Intake.State.FEED_JIGGLE_LOW)),
-                        Commands.waitSeconds(0.3),
-                        Commands.runOnce(() -> intake.setState(Intake.State.FEED_JIGGLE_HIGH)),
-                        Commands.waitSeconds(0.3))
-                        .repeatedly());
+            Commands.waitSeconds(1.0),
+            Commands.sequence(
+                    Commands.runOnce(() -> intake.setState(Intake.State.FEED_JIGGLE_LOW)),
+                    Commands.waitSeconds(0.3),
+                    Commands.runOnce(() -> intake.setState(Intake.State.FEED_JIGGLE_HIGH)),
+                    Commands.waitSeconds(0.3))
+                    .repeatedly());
+
+        // Command jiggleSequence = Commands.sequence(
+        //     Commands.waitSeconds(1.0),
+        //     Commands.runOnce(() -> intake.setState(Intake.State.FEED_JIGGLE_HIGH)),
+        //     Commands.run(() -> {}, intake));
 
         Command feedControl = Commands.run(() -> {
                     shooter.setState(Shooter.State.SHOOTING);

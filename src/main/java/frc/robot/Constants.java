@@ -270,41 +270,54 @@ public final class Constants {
         public static final int ROLLER_MOTOR_ID = 21;
         public static final int PIVOT_ENCODER_ID = 25;
 
+        // ---------- Pivot ----------
+
         /** CANcoder: offset so position reads POSITION_STOWED when pivot is physically stowed. 
          * Determine the raw value via Phoenix Tuner.
          * offset = desiredValue - rawValue = 0 - 0.25 = -0.25. */
-        public static final double PIVOT_ENCODER_OFFSET_ROTATIONS = 0.224365234375; // this was a direct copy-paste from mag offsets
+        public static final double PIVOT_ENCODER_OFFSET_ROTATIONS = 0.224365234375; // Direct copy-paste from mag offsets
         /** Choose a value safely beyond the mechanism's travel 
          * 0.5 is safe for an arm that rotates less than 180 degrees. */
         public static final double PIVOT_ENCODER_DISCONTINUITY = 0.5;
 
-        /** Pivot angles (rotations) – placeholders until tuned. */
         public static final Rotation2d POSITION_STOWED = Rotation2d.fromRotations(0.01);  //-0.025
         public static final Rotation2d POSITION_EXTENDED = Rotation2d.fromRotations(-0.28); // Need to Tune
         public static final Rotation2d POSITION_JIGGLE_HIGH = Rotation2d.fromRotations(-0.15);
         public static final Rotation2d POSITION_JIGGLE_LOW = Rotation2d.fromRotations(-0.27);
 
-        /** Motion Magic (rotations/s, rotations/s², rotations/s³). */
+        //Motion Magic
          public static final double PIVOT_MM_CRUISE_VELOCITY = 1.0;
          public static final double PIVOT_MM_ACCELERATION = 2.0;
          public static final double PIVOT_MM_JERK = 10;
 
-        /** Feedforward (Slot0) for pivot motor. */
+        // Feedforward
          public static final double PIVOT_kS = 0.08;
          public static final double PIVOT_kG = 0.00;
          public static final double PIVOT_kV = 0.12;
          public static final double PIVOT_kA = 0.01;
 
-         /** PID (Slot0) for pivot motor. */
+         // PID
         public static final double PIVOT_kP = 2.0;
         public static final double PIVOT_kI = 0.00;
         public static final double PIVOT_kD = 0.08;
 
-         /** Feedforward (Slot0) for roller motor. */
-         public static final double ROLLER_kS = 0.1; // 0.1
-         public static final double ROLLER_kV = 0.12; //0.12
+        /** Stator current limit (A) for pivot */
+        public static final int PIVOT_STATOR_CURRENT_LIMIT = 70;
+        public static final int PIVOT_SUPPLY_CURRENT_LIMIT = 60;
 
-        /** PID (Slot0) for roller motor. */
+
+        // ---------- Roller ----------
+
+        public static final double SPEED_IDLE = 0;
+        public static final double SPEED_EXTAKE = 0.5;
+        public static final double SPEED_INTAKE = -0.7;
+        public static final double SPEED_FEED_JIGGLE = -0.2;
+
+        // Feedforward 
+        public static final double ROLLER_kS = 0.1; // 0.1
+        public static final double ROLLER_kV = 0.12; //0.12
+
+        // PID
         public static final double ROLLER_kP = 0.25; //0.25
         public static final double ROLLER_kI = 0.00; //0.0
         public static final double ROLLER_kD = 0.00; //0.0
@@ -322,94 +335,81 @@ public final class Constants {
         //
         // 0.7 duty = 0.7 * 20/28 * 70 = 35 roller rev/s
         // 35 * 0.12 (roller circum in m) / 2 (needed rotations) = 2.1 m/s 
-
-        public static final double SPEED_IDLE = 0;
-        public static final double SPEED_EXTAKE = 0.5;
-        public static final double SPEED_INTAKE = -0.7;
-        /** Roller speed during feed jiggle (gentle reverse to help clear jams). */
-        public static final double SPEED_FEED_JIGGLE = -0.2;
-
-        /** Stator current limit (A) for pivot – protects against jams. */
-        public static final int PIVOT_STATOR_CURRENT_LIMIT = 70;
-        public static final int PIVOT_SUPPLY_CURRENT_LIMIT = 60;
         
-        /** Stator current limit (A) for roller – protects against jams. */
+        /** Stator current limit (A) for roller */
         public static final int ROLLER_STATOR_CURRENT_LIMIT = 80;
         public static final int ROLLER_SUPPLY_CURRENT_LIMIT = 60;
     }
 
-    // --------------- SHOOTER --------------
 
     public static class ShooterConstants {
-        /** Shooter center offset from robot center: 3" to the right. In robot frame +Y is left, so right = -Y. */
-        public static final double SHOOTER_OFFSET_RIGHT_METERS = 4.0 * 0.0254;
+
+        // --------------- SHOOTER --------------
 
         public static final int SHOOTER_FLYWHEEL_1_MOTOR_ID = 30;
         public static final int SHOOTER_FLYWHEEL_2_MOTOR_ID = 31;
         public static final int SHOOTER_FLYWHEEL_3_MOTOR_ID = 32;
         
-        /** Feedforward */
-        public static final double SHOOTER_kS = 0.1;
-        public static final double SHOOTER_kV = 0.12;
-
-        /**PID */
-        public static final double SHOOTER_kP = 0.5; // 0.25
-        public static final double SHOOTER_kI = 0.0;
-        public static final double SHOOTER_kD = 0.0;
-
-        /** Fractional tolerance (0.05 = 5%) for flywheel at target speed before feeding. */
-        public static final double FLYWHEEL_SPEED_TOLERANCE = 0.05;
-
-        /** Max heading error to allow feeding. Pauses feeder when angle to target exceeds this. */
-        public static final double FEED_PAUSE_ANGLE_THRESHOLD_RAD = Math.toRadians(2.5);
+        public static final double ACCELERATION_FLYWHEEL = 200.0;
 
         public static final double SPEED_IDLE = 52;
         public static final double SPEED_FLYWHEEL_ACTIVE = 58.0; // Was 68
 
-        public static final double ACCELERATION_FLYWHEEL = 200.0;
+        public static final double FLYWHEEL_SPEED_TOLERANCE = 0.05; // Within 5% of target speed
+        public static final double FEED_PAUSE_ANGLE_THRESHOLD_RAD = Math.toRadians(2.5); // Within 2.5 degrees of target heading
 
-        public static final double SPEED_FLYWHEEL_AUTO = 68.0;
         /** Valid distance range (m) for TrajectoryManager lookup; outside this falls back to SPEED_FLYWHEEL_ACTIVE. */
         public static final double SHOOTER_RANGE_MIN = 0.25;
         public static final double SHOOTER_RANGE_MAX = 15.0;
 
+        // Feedforward
+        public static final double SHOOTER_kS = 0.1;
+        public static final double SHOOTER_kV = 0.12;
+
+        // PID
+        public static final double SHOOTER_kP = 0.5; // 0.25
+        public static final double SHOOTER_kI = 0.0;
+        public static final double SHOOTER_kD = 0.0;
+
+        /** Shooter center offset from robot center: 3" to the right. In robot frame +Y is left, so right = -Y. */
+        public static final double SHOOTER_OFFSET_RIGHT_METERS = 4.0 * 0.0254;
+
         public static final int FLYWHEEL_STATOR_CURRENT_LIMIT = 80; // 40
         public static final int FLYWHEEL_SUPPLY_CURRENT_LIMIT = 50; // 25
+
 
         // --------------- HOOD --------------
 
         public static final int HOOD_MOTOR_ID = 33;
         public static final int HOOD_ENCODER_ID = 35;
 
-        /** CANcoder: offset so position reads POSITION_HOOD_DOWN when hood is physically down. Calibrate via Phoenix Tuner. */
-        public static final double HOOD_ENCODER_OFFSET_ROTATIONS = 0.011474609375; //0.423095703125
-        /** CANcoder: 0.5 = ±180° range. Set so discontinuity is outside mechanism travel. */
+        public static final double HOOD_ENCODER_OFFSET_ROTATIONS = 0.011474609375; //0.423095703125 - Direct copy-paste from mag offsets
+        /** Choose a value safely beyond the mechanism's travel */
         public static final double HOOD_ENCODER_DISCONTINUITY = 0.5;
 
-        /** Hood: external encoder; command takes target rotations. */
-        public static final double SPEED_HOOD_UP = -0.2; //-0.2
-        public static final double SPEED_HOOD_DOWN = 0.3; // 0.3
+        public static final double SPEED_HOOD_UP = -0.2;
+        public static final double SPEED_HOOD_DOWN = 0.3;
         public static final double AUTO_SPEED_HOOD_DOWN = -0.3;
         
         public static final double POSITION_HOOD_MIN = -0.001221; //-0.002197
         public static final double POSITION_HOOD_MAX = 0.473389; //0.477295
-        public static final double POSITION_HOOD_LATCH = 0.3; // not used rn
+        public static final double POSITION_HOOD_LATCH = 0.3; // Not used right now
        
         /** Deadband (rotations) for hood tracking; prevents oscillation when near target. */
         public static final double HOOD_TRACKING_TOLERANCE_ROTATIONS = 0.005;
 
-        /** Motion Magic: cruise velocity (rot/s), acceleration (rot/s²), jerk (rot/s³). */
+        // Motion Magic
         public static final double HOOD_MM_CRUISE_VELOCITY = 0.5;
         public static final double HOOD_MM_ACCELERATION = 1.0;
         public static final double HOOD_MM_JERK = 5.0;
 
-        /** Hood feedforward (Slot0) for Motion Magic. */
+        // Feedforward
         public static final double HOOD_kS = 0.0;
         public static final double HOOD_kG = 0.0;
         public static final double HOOD_kV = 0.0;
         public static final double HOOD_kA = 0.0;
 
-        /** Hood closed-loop gains (Slot0). */
+        // PID
         public static final double HOOD_kP = 2.0;
         public static final double HOOD_kI = 0.0;
         public static final double HOOD_kD = 0.0;
@@ -423,19 +423,17 @@ public final class Constants {
     public static class HopperConstants {
         public static final int HOPPER_MOTOR_ID = 40;
         public static final int FEEDER_MOTOR_ID = 41;
-        /** Stator current limit (A) for indexer and feeder – protects against jams. Matches other robot end effector rollers. */
         
+        public static final double SPEED_INACTIVE = 0;
+        public static final double SPEED_INDEXING = 0.5;
+        public static final double SPEED_FEEDING = 0.6;
+        public static final double SPEED_UNCLOG_INDEXER = -0.1;
+        public static final double SPEED_UNCLOG_FEEDER = -0.12;
+
         public static final int INDEXER_STATOR_CURRENT_LIMIT = 90;
         public static final int INDEXER_SUPPLY_CURRENT_LIMIT = 70;
         public static final int FEEDER_STATOR_CURRENT_LIMIT = 90;
         public static final int FEEDER_SUPPLY_CURRENT_LIMIT = 70;
-        
-        public static final double SPEED_INACTIVE = 0;
-        public static final double SPEED_INDEXING = 0.5; // need to tune
-        public static final double SPEED_FEEDING = 0.6; // need to tune
-        /** Indexer/feeder speed during unclog (reverse at ~20% of normal). */
-        public static final double SPEED_UNCLOG_INDEXER = -0.1;
-        public static final double SPEED_UNCLOG_FEEDER = -0.12;
     }
 
     // --------------- CLIMB --------------
@@ -446,36 +444,24 @@ public final class Constants {
         public static final int CLIMB_ENCODER_ID = 55;
         // public static final int CLIMB_ENCODER_OFFSET = 0.069580078125;
 
-        /** If true, use motor's integrated encoder instead of external CANcoder. */
-        /** Setpoints: encoder positions (number of rotations) for UP and DOWN positions. */
         public static final double SETPOINT_UP = -1.788125;
         public static final double SETPOINT_CLIMBED = -0.5;
         public static final double SETPOINT_DOWN = 0.1;
         
-
-        /**
-         * DOWN:
-         * Magnetic offset: -0.3642578125
-         * Absolute Position: 0.000244
-         * Absolute Position No Offset: 0.294434
-         * 
-         * UP:
-         * same magnetic offset
-         * Absolute Position: 0.297363
-         * Absolute Position No Offset: -1.408691
-         * 
-         */
-        
-        /** Tolerance: how close is close enough (rotations). */
-        public static final double SETPOINT_TOLERANCE = 0.1;
+        public static final double SETPOINT_TOLERANCE = 0.1; // How close is close enough?
 
         /** Faster speeds for extending/retracting. */
-        public static final double SPEED_EXTENDING = 0.5; // need to tune
-        public static final double SPEED_RETRACTING = -0.2; // need to tune
+        public static final double SPEED_EXTENDING = 0.5;
+        public static final double SPEED_RETRACTING = -0.2;
         
         /** Slower speeds for ascending/descending (0.2 = 20% motor power) */
         public static final double SPEED_ASCENDING = -0.2;
         public static final double SPEED_DESCENDING = 0.2;
+
+        // PID 
+        public static final double PID_kP = 4.0;
+        public static final double PID_kI = 0.0;
+        public static final double PID_kD = 0.0;
 
         /** Homing: voltage to move climb toward stowed (negative = down toward limit). */
         public static final double HOMING_VOLTAGE = -0.3;
@@ -485,13 +471,13 @@ public final class Constants {
         public static final double HOMING_STALL_TIME_SECONDS = 0.8;
         /** Homing timeout (s) – bail if stall not detected. */
         public static final double HOMING_TIMEOUT_SECONDS = 5.0;
-
         /** Stator current limit (A) during homing – loosened so motor can stall without tripping. */
         public static final int HOMING_STATOR_CURRENT_LIMIT = 20;
         //public static final int HOMING_SUPPLY_CURRENT_LIMIT = 15; // idk
         /** Stator current limit (A) for normal operation (restored after homing). Lowered for brownout mitigation. */
         public static final int NORMAL_STATOR_CURRENT_LIMIT = 30;
         //public static final int NORMAL_SUPPLY_CURRENT_LIMIT = 25;
+
         public static final CurrentLimitsConfigs HOMING_CURRENT_LIMITS = new CurrentLimitsConfigs()
                 .withStatorCurrentLimit(HOMING_STATOR_CURRENT_LIMIT)
                 //.withSupplyCurrentLimit(HOMING_SUPPLY_CURRENT_LIMIT)
@@ -502,11 +488,6 @@ public final class Constants {
                 //.withSupplyCurrentLimit(NORMAL_SUPPLY_CURRENT_LIMIT)
                 .withStatorCurrentLimitEnable(true);
                 //.withSupplyCurrentLimitEnable(true);
-
-        /** PID gains for setpoint control. */
-        public static final double PID_kP = 4.0;
-        public static final double PID_kI = 0.0;
-        public static final double PID_kD = 0.0;
     }
 
     // ---------------- SWERVE DRIVE ----------------
