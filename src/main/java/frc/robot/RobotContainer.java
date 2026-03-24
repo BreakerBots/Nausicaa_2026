@@ -357,9 +357,7 @@ public class RobotContainer {
     
     /** Auto shoot: feed phase runs for 6 seconds. Locks wheels for stability during shoot. */
     private Command shootForAutoCommand() {
-        //return drivetrain.lockWheelsCommand().raceWith(
-        return shootSequenceCommand(6.0);
-            //);
+        return shootSequenceCommand(4.0);
     }
 
     /** Teleop shoot: feed phase runs until trigger released. */
@@ -391,7 +389,6 @@ public class RobotContainer {
                         Commands.runOnce(() -> intake.setState(Intake.State.FEED_JIGGLE_HIGH)),
                         Commands.waitSeconds(0.3))
                         .repeatedly());
-        // No .until() — keeps jiggling when feedControl pauses hopper for angle error; ends when trigger released.
 
         Command feedControl = Commands.run(() -> {
                     shooter.setState(Shooter.State.SHOOTING);
@@ -409,8 +406,7 @@ public class RobotContainer {
                     }
                 }, shooter, hopper); //intake
 
-        //Command feedPhase = Commands.parallel(feedControl, jiggleSequence);
-        Command feedPhase = Commands.parallel(feedControl);
+        Command feedPhase = Commands.parallel(feedControl, jiggleSequence);
 
         Command feedPhaseWithDuration = feedTimeoutSeconds != null
                 ? feedPhase.withTimeout(feedTimeoutSeconds)
