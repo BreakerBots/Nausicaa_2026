@@ -106,6 +106,7 @@ public class PoseManager extends SubsystemBase {
         }, Set.of(drivetrain));
     }
 
+
     // --------------- ROTATE TO ---------------
 
     /**
@@ -121,28 +122,14 @@ public class PoseManager extends SubsystemBase {
         rotationPID.enableContinuousInput(-Math.PI, Math.PI);
 
         return Commands.run(() -> {
-            Translation2d toTarget = drivetrain.getRobotToPointTranslation(targetPoint);
-            double desiredHeading = Math.atan2(toTarget.getY(), toTarget.getX());
-            double currentHeading = drivetrain.getLocalizer().getPose().getRotation().getRadians();
-            double angleError = Math.IEEEremainder(desiredHeading - currentHeading, 2.0 * Math.PI);
-
-            double rotationalRate = rotationPID.calculate(0.0, angleError);
-            double maxRotRate = Constants.DriveConstants.MAXIMUM_ROTATIONAL_VELOCITY.in(Units.RadiansPerSecond);
-            rotationalRate = Math.max(-maxRotRate, Math.min(maxRotRate, rotationalRate));
-
+            double angleError = getHeadingErrorRad(targetPoint);
+            double rotationalRate = getClampedRotationalRate(rotationPID, angleError);
             drivetrain.setControl(request
                 .withVelocityX(0.0)
                 .withVelocityY(0.0)
                 .withRotationalRate(rotationalRate));
         }, drivetrain)
-        .until(() -> {
-            // Comment in to test shooter offset 
-            Translation2d toTarget = drivetrain.getRobotToPointTranslation(targetPoint);
-            double desiredHeading = Math.atan2(toTarget.getY(), toTarget.getX());
-            double currentHeading = drivetrain.getLocalizer().getPose().getRotation().getRadians();
-            double angleError = Math.IEEEremainder(desiredHeading - currentHeading, 2.0 * Math.PI);
-            return Math.abs(angleError) <= toleranceRad;
-        })
+        .until(() -> Math.abs(getHeadingErrorRad(targetPoint)) <= toleranceRad)
         .withTimeout(1.0)
         .finallyDo(() -> {
             rotationPID.reset();
@@ -176,6 +163,7 @@ public class PoseManager extends SubsystemBase {
     //     return rotateToPointCommand(tagPosition);
     // }
 
+
     // --------------- MAINTAIN HEADING TO ---------------
 
     /**
@@ -190,18 +178,12 @@ public class PoseManager extends SubsystemBase {
     */
     public Command rotateToPointContinuouslyCommand(Supplier<Translation2d> targetSupplier, DoubleSupplier vx, DoubleSupplier vy) {
         final var request = new SwerveRequest.FieldCentric().withDriveRequestType(DriveRequestType.Velocity);
-        PIDController rotationPID = new PIDController(7, 0.0, 0.1);
+        PIDController rotationPID = new PIDController(7, 0.0, 0.2);
         rotationPID.enableContinuousInput(-Math.PI, Math.PI);
-        double maxRotRate = Constants.DriveConstants.MAXIMUM_ROTATIONAL_VELOCITY.in(Units.RadiansPerSecond);
 
         return Commands.run(() -> {
-            Translation2d targetPoint = targetSupplier.get();
-            Translation2d toTarget = drivetrain.getRobotToPointTranslation(targetPoint);
-            double desiredHeading = Math.atan2(toTarget.getY(), toTarget.getX());
-            double currentHeading = drivetrain.getLocalizer().getPose().getRotation().getRadians();
-            double angleError = Math.IEEEremainder(desiredHeading - currentHeading, 2.0 * Math.PI);
-            double omega = rotationPID.calculate(0.0, angleError);
-            omega = Math.max(-maxRotRate, Math.min(maxRotRate, omega));
+            double angleError = getHeadingErrorRad(targetSupplier.get());
+            double omega = getClampedRotationalRate(rotationPID, angleError);
             drivetrain.setControl(request
                 .withVelocityX(vx.getAsDouble())
                 .withVelocityY(vy.getAsDouble())
@@ -215,6 +197,21 @@ public class PoseManager extends SubsystemBase {
                 .withVelocityY(0.0)
                 .withRotationalRate(0.0));
         });
+    }
+
+    /** Heading error (rad) to face target from current pose; range (-π, π]. */
+    private double getHeadingErrorRad(Translation2d target) {
+        Translation2d toTarget = drivetrain.getRobotToPointTranslation(target);
+        double desiredHeading = Math.atan2(toTarget.getY(), toTarget.getX());
+        double currentHeading = drivetrain.getLocalizer().getPose().getRotation().getRadians();
+        return Math.IEEEremainder(desiredHeading - currentHeading, 2.0 * Math.PI);
+    }
+
+    /** PID on heading error, clamped to max swerve yaw rate. */
+    private double getClampedRotationalRate(PIDController rotationPID, double angleErrorRad) {
+        double omega = rotationPID.calculate(0.0, angleErrorRad);
+        double maxRotRate = Constants.DriveConstants.MAXIMUM_ROTATIONAL_VELOCITY.in(Units.RadiansPerSecond);
+        return Math.max(-maxRotRate, Math.min(maxRotRate, omega));
     }
 
     /**
@@ -248,6 +245,7 @@ public class PoseManager extends SubsystemBase {
     //     return rotateToPointContinuouslyCommand(Constants.FieldConstants.getTargetHubCenter(), vx, vy);
     // }
 
+    
     // --------------- RANGE TO ---------------
 
     /**
