@@ -213,7 +213,10 @@ public class Intake extends SubsystemBase {
     private void setRollerSpeed(double speed) {
         lastCommandedRollerSpeed = speed;
         if (speed != 0) {
-            rollerMotor.setControl(new VelocityDutyCycle(speed));
+            // if we comment this in and start using computeRollerSpeedForState
+            // we should be able to use speed directly
+            double velocityRps = speed * Constants.IntakeConstants.ROLLER_MOTOR_RPS_AT_FULL_DUTY;
+            rollerMotor.setControl(new VelocityDutyCycle(velocityRps));
             //rollerMotor.setControl(new DutyCycleOut(speed));
         } else {
             rollerMotor.setControl(new DutyCycleOut(0));

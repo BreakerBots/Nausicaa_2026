@@ -142,31 +142,31 @@ public class Hood extends SubsystemBase {
     //     }, this).finallyDo(this::stopHood);
     // }
 
-    public Command hoodToRotationsCommand(double targetRotations) {
-        double clamped = MathUtil.clamp(targetRotations,
-                Constants.ShooterConstants.POSITION_HOOD_MIN,
-                Constants.ShooterConstants.POSITION_HOOD_MAX);
-        double tolerance = Constants.ShooterConstants.HOOD_TRACKING_TOLERANCE_ROTATIONS;
-        double kP = Constants.ShooterConstants.HOOD_kP;
-        return Commands.run(() -> {
-            double error = clamped - getHoodEncoderRotations();
-            double output = MathUtil.clamp(-kP * error, -1.0, 1.0);
-            hoodMotor.setControl(new DutyCycleOut(output));
-        }, this)
-                .until(() -> Math.abs(getHoodEncoderRotations() - clamped) <= tolerance)
-                .finallyDo(this::stopHood);
-    }
-
-    // TRIAL 1
     // public Command hoodToRotationsCommand(double targetRotations) {
     //     double clamped = MathUtil.clamp(targetRotations,
     //             Constants.ShooterConstants.POSITION_HOOD_MIN,
     //             Constants.ShooterConstants.POSITION_HOOD_MAX);
     //     double tolerance = Constants.ShooterConstants.HOOD_TRACKING_TOLERANCE_ROTATIONS;
-    //     return Commands.run(() -> driveHoodToward(clamped), this)
+    //     double kP = Constants.ShooterConstants.HOOD_kP;
+    //     return Commands.run(() -> {
+    //         double error = clamped - getHoodEncoderRotations();
+    //         double output = MathUtil.clamp(-kP * error, -1.0, 1.0);
+    //         hoodMotor.setControl(new DutyCycleOut(output));
+    //     }, this)
     //             .until(() -> Math.abs(getHoodEncoderRotations() - clamped) <= tolerance)
     //             .finallyDo(this::stopHood);
     // }
+
+    // TRIAL 1
+    public Command hoodToRotationsCommand(double targetRotations) {
+        double clamped = MathUtil.clamp(targetRotations,
+                Constants.ShooterConstants.POSITION_HOOD_MIN,
+                Constants.ShooterConstants.POSITION_HOOD_MAX);
+        double tolerance = Constants.ShooterConstants.HOOD_TRACKING_TOLERANCE_ROTATIONS;
+        return Commands.run(() -> driveHoodToward(clamped), this)
+                .until(() -> Math.abs(getHoodEncoderRotations() - clamped) <= tolerance)
+                .finallyDo(this::stopHood);
+    }
 
     @Override
     public void periodic() {

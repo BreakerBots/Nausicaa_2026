@@ -223,7 +223,7 @@ public class RobotContainer {
         controller.getButtonA().onTrue(aimCommand());
         
         // B --> Just Shoot
-        controller.getButtonB().onTrue(shootForTeleopCommand(true));
+        controller.getButtonB().onTrue(shootForTeleopCommand(false));
 
         // X --> Hood to Latch Position
         //controller.getButtonX().onTrue(shooter.hoodToRotationsCommand(Constants.ShooterConstants.POSITION_HOOD_LATCH));
@@ -409,7 +409,8 @@ public class RobotContainer {
                     }
                 }, shooter, hopper); //intake
 
-        Command feedPhase = Commands.parallel(feedControl, jiggleSequence);
+        //Command feedPhase = Commands.parallel(feedControl, jiggleSequence);
+        Command feedPhase = Commands.parallel(feedControl);
 
         Command feedPhaseWithDuration = feedTimeoutSeconds != null
                 ? feedPhase.withTimeout(feedTimeoutSeconds)
