@@ -8,10 +8,8 @@ import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.DutyCycleOut;
 import com.ctre.phoenix6.controls.MotionMagicDutyCycle;
 import com.ctre.phoenix6.controls.VelocityDutyCycle;
-import com.ctre.phoenix6.controls.VelocityVoltage;
 import com.ctre.phoenix6.hardware.CANcoder;
 import com.ctre.phoenix6.hardware.TalonFX;
-import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 import com.ctre.phoenix6.signals.SensorDirectionValue;
 
@@ -27,6 +25,8 @@ import frc.robot.BreakerLib.util.logging.BreakerLog;
 
 public class Intake extends SubsystemBase {
 
+    private boolean dynamicIntakeSpeed = false; // If true, roller speed scales with drivetrain velocity
+
     private final Drivetrain drivetrain;
     private final TalonFX pivotMotor = new TalonFX(Constants.IntakeConstants.PIVOT_MOTOR_ID,
             Constants.GeneralConstants.SUPERSTRUCTURE_CANIVORE_BUS);
@@ -40,12 +40,17 @@ public class Intake extends SubsystemBase {
             SensorDirectionValue.CounterClockwise_Positive);
 
     private double targetPivotRotations;
-    private double lastCommandedRollerSpeed;
+    private double lastCommandedRollerSpeedDuty;
+    private double lastCommandedRollerSpeedRps;
 
     public State state = State.STOWED;
 
     public Intake(Drivetrain drivetrain) {
         this.drivetrain = drivetrain;
+
+
+        // ---------- Pivot ----------
+
         TalonFXConfiguration pivotConfig = new TalonFXConfiguration();
         pivotConfig.MotorOutput.NeutralMode = NeutralModeValue.Brake;
         //pivotConfig.MotorOutput.Inverted = InvertedValue.Clockwise_Positive;
@@ -59,7 +64,6 @@ public class Intake extends SubsystemBase {
 
         Slot0Configs pivotSlot0 = pivotConfig.Slot0;
 
-
         // Motion Magic
         pivotConfig.MotionMagic.MotionMagicCruiseVelocity = Constants.IntakeConstants.PIVOT_MM_CRUISE_VELOCITY;
         pivotConfig.MotionMagic.MotionMagicAcceleration = Constants.IntakeConstants.PIVOT_MM_ACCELERATION;
@@ -71,12 +75,17 @@ public class Intake extends SubsystemBase {
         pivotSlot0.kV = Constants.IntakeConstants.PIVOT_kV;
         pivotSlot0.kA = Constants.IntakeConstants.PIVOT_kA;
 
-        // // PID
+        // PID
         pivotSlot0.kP = Constants.IntakeConstants.PIVOT_kP;
         pivotSlot0.kI = Constants.IntakeConstants.PIVOT_kI;
         pivotSlot0.kD = Constants.IntakeConstants.PIVOT_kD;
 
         pivotMotor.getConfigurator().apply(pivotConfig);
+
+        targetPivotRotations = getPivotPositionRotations();
+        pivotMotor.setControl(new MotionMagicDutyCycle(targetPivotRotations));
+
+        // ---------- Roller ----------
 
         TalonFXConfiguration rollerConfig = new TalonFXConfiguration();
         rollerConfig.MotorOutput.NeutralMode = NeutralModeValue.Brake;
@@ -98,16 +107,8 @@ public class Intake extends SubsystemBase {
         rollerSlot0.kD = Constants.IntakeConstants.ROLLER_kD;
 
         rollerMotor.getConfigurator().apply(rollerConfig);
-        
-        // targetPivotRotations = state.getRotation2d().getRotations();
-        targetPivotRotations = getPivotPositionRotations();
-        pivotMotor.setControl(new MotionMagicDutyCycle(targetPivotRotations));
     }
 
-    /** Pivot position from external encoder (rotations). */
-    public double getPivotPositionRotations() {
-        return pivotEncoder.getPosition().getValueAsDouble();
-    }
 
     /**
      * Intake states: pivot position (stowed/extended/jiggle) and roller speed (idle/intake/extake).
@@ -148,7 +149,7 @@ public class Intake extends SubsystemBase {
 
         BreakerLog.log("Intake/State/Previous", previousState.toString());
         BreakerLog.log("Intake/State/Current", state.toString());
-        BreakerLog.log("Intake/State/PivotPosition", state.getRotation2d().getRotations());
+        //BreakerLog.log("Intake/State/PivotPosition", state.getRotation2d().getRotations());
         //BreakerLog.log("Intake/State/RollerSpeed", state.getSpeed());
     }
 
@@ -161,19 +162,26 @@ public class Intake extends SubsystemBase {
     public void periodic() {
 
         // Adjust roller speed dynamically to keep up with drivetrain
-        // if (state == State.EXTENDED_INTAKING) {
-        //     setRollerSpeed(computeRollerSpeedForState(state));
-        // }
+        if (dynamicIntakeSpeed && state == State.EXTENDED_INTAKING) {
+            setRollerSpeed(computeRollerSpeedForState(state));
+        }
 
-        double pivotPosition = getPivotPositionRotations();
-        double pivotVelocity = pivotMotor.getVelocity().getValueAsDouble();
-        double rollerVelocity = rollerMotor.getVelocity().getValueAsDouble();
-        BreakerLog.log("Intake/RollerSpeed", lastCommandedRollerSpeed, true);
-        BreakerLog.log("Intake/EncoderPosition", pivotEncoder.getAbsolutePosition().getValueAsDouble(), true);
+        BreakerLog.log("Intake/RollerSpeedActual", rollerMotor.getVelocity().getValueAsDouble(), true); // What the motor is actual doing (after friction, load, limits, etc.)
+        BreakerLog.log("Intake/RollerSpeedTargetDuty", lastCommandedRollerSpeedDuty, true); // Target duty cycle (-1 to 1)
+        BreakerLog.log("Intake/RollerSpeedTargetRps", lastCommandedRollerSpeedRps, true); // Target velocity (rotations per second)
+        BreakerLog.log("Intake/PivotTargetPosition", state.getRotation2d().getRotations(), true); // Setpoint, not from the encoder.
+        BreakerLog.log("Intake/PivotEncoderAbsolutePosition", pivotEncoder.getAbsolutePosition().getValueAsDouble(), true); // CANcoder absolute position (magnet angle)
+        BreakerLog.log("Intake/PivotEncoderPosition", this.getPivotPositionRotations(), true); // The one we actually use, compare to the Motion Magic target.
         if (BreakerLog.isVerboseLogging()) {
             BreakerLog.log("Electrical/Intake/roller", rollerMotor);
             BreakerLog.log("Electrical/Intake/pivot", pivotMotor);
         }
+    }
+
+
+    /** Pivot position from external encoder (rotations). */
+    public double getPivotPositionRotations() {
+        return pivotEncoder.getPosition().getValueAsDouble();
     }
 
 
@@ -185,6 +193,7 @@ public class Intake extends SubsystemBase {
         pivotMotor.setControl(new MotionMagicDutyCycle(targetPivotRotations));
     }
 
+
     /**
      * Computes roller speed for the given state. For intaking states (EXTENDED_INTAKING, STOW_INTAKING),
      * scales up with drivetrain forward velocity: roller does 2 rev in the time drivetrain travels
@@ -192,33 +201,35 @@ public class Intake extends SubsystemBase {
      * NOTE: Given our default roller speed of 0.7, we won't see this change unless we're moving close to 4mps
      */
     private double computeRollerSpeedForState(State state) {
-        // if (state != State.EXTENDED_INTAKING) {
-        //     return state.getSpeed();
-        // }
-        // double vxMps = Math.max(0, drivetrain.getChassisSpeeds().vxMetersPerSecond);
-        // double circumferenceM = Constants.IntakeConstants.ROLLER_CIRCUMFERENCE_METERS;
-        // double minDuty = Constants.IntakeConstants.SPEED_INTAKE; // -0.7, never slower
-        // if (circumferenceM < 1e-6) {
-        //     return minDuty;
-        // }
-        // double velocityRevPerSec = 2.0 * vxMps / circumferenceM;
-        // double minRevPerSec = Math.abs(minDuty) * Constants.IntakeConstants.ROLLER_REV_PER_SEC_AT_FULL_DUTY;
-        // double targetRevPerSec = Math.max(minRevPerSec, velocityRevPerSec);
-        // double duty = -targetRevPerSec / Constants.IntakeConstants.ROLLER_REV_PER_SEC_AT_FULL_DUTY;
-        // return MathUtil.clamp(duty, -1.0, minDuty);
-        return state.getSpeed();
-
+        // Are we're using a static speed?
+        if (!dynamicIntakeSpeed || state != State.EXTENDED_INTAKING) {
+            return state.getSpeed();
+        // Or are we calculating a dynamic speed based on the drivetrain?
+        } else {
+            double forwardSpeedMps = Math.max(0, drivetrain.getChassisSpeeds().vxMetersPerSecond); // No negative chasis speeds
+            double rollerCircumference = Constants.IntakeConstants.ROLLER_CIRCUMFERENCE_METERS;
+            double minDuty = Constants.IntakeConstants.SPEED_INTAKE; // Don't go under our minimum speed
+            if (rollerCircumference <= 0) {
+                return minDuty;
+            }
+            double velocityRps = 2.0 * forwardSpeedMps / rollerCircumference;
+            double minRps = Math.abs(minDuty) * Constants.IntakeConstants.ROLLER_REV_PER_SEC_AT_FULL_DUTY;
+            double targetRevPerSec = Math.max(minRps, velocityRps);
+            double duty = -targetRevPerSec / Constants.IntakeConstants.ROLLER_REV_PER_SEC_AT_FULL_DUTY; // Convert roller rev/s back to a duty
+            return MathUtil.clamp(duty, -1.0, minDuty); 
+        }
     }
 
+    /** Speed passed in as a duty cycle (-1 to 1). */
     private void setRollerSpeed(double speed) {
-        lastCommandedRollerSpeed = speed;
+        lastCommandedRollerSpeedDuty = speed;
         if (speed != 0) {
-            // if we comment this in and start using computeRollerSpeedForState
-            // we should be able to use speed directly
             double velocityRps = speed * Constants.IntakeConstants.ROLLER_MOTOR_RPS_AT_FULL_DUTY;
+            lastCommandedRollerSpeedRps = velocityRps;
             rollerMotor.setControl(new VelocityDutyCycle(velocityRps));
             //rollerMotor.setControl(new DutyCycleOut(speed));
         } else {
+            lastCommandedRollerSpeedRps = 0;
             rollerMotor.setControl(new DutyCycleOut(0));
         }
     }

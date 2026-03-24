@@ -42,7 +42,7 @@ public class Hood extends SubsystemBase {
                 .withSupplyCurrentLimit(Constants.ShooterConstants.HOOD_SUPPLY_CURRENT_LIMIT)
                 .withSupplyCurrentLimitEnable(true);
         
-        // TRAIL 2
+        // Comment in if using Motion Magic
         // hoodConfig.Feedback.withRemoteCANcoder(hoodEncoder);
         // hoodConfig.MotionMagic.MotionMagicCruiseVelocity = Constants.ShooterConstants.HOOD_MM_CRUISE_VELOCITY;
         // hoodConfig.MotionMagic.MotionMagicAcceleration = Constants.ShooterConstants.HOOD_MM_ACCELERATION;
@@ -89,7 +89,8 @@ public class Hood extends SubsystemBase {
         hoodMotor.setControl(new DutyCycleOut(0.0));
     }
 
-    /** TRIAL 1 - P control: drives hood toward target rotations. Clamps target to limits. */
+
+    /** SimpleP control: drives hood toward target rotations. Clamps target to limits. */
     private void driveHoodToward(double targetRotations) {
         double clamped = MathUtil.clamp(targetRotations,
                 Constants.ShooterConstants.POSITION_HOOD_MIN,
@@ -99,7 +100,8 @@ public class Hood extends SubsystemBase {
         hoodMotor.setControl(new DutyCycleOut(output));
     }
 
-    /** TRIAL 2 - Motion Magic: drives hood toward target rotations. Clamps target to limits. */
+    // Also comment in the slot0 config (above)
+    /** Motion Magic: drives hood toward target rotations. Clamps target to limits. */
     // private void driveHoodToward(double targetRotations) {
     //     double clamped = MathUtil.clamp(targetRotations,
     //             Constants.ShooterConstants.POSITION_HOOD_MIN,
@@ -107,41 +109,50 @@ public class Hood extends SubsystemBase {
     //     hoodMotor.setControl(new MotionMagicDutyCycle(clamped));
     // }
 
-    /**
-     * Positions hood based on distance to target (meters). Continually updates while running.
-     */
+
+    /** Adjusts hood position continuouslybased on distance to target. */
     public Command positionHoodContinuouslyCommand(double distanceMeters) {
         return positionHoodContinuouslyCommand(() -> distanceMeters);
     }
 
-    /**
-     * Positions hood based on distance to target. Distance is re-evaluated each cycle (e.g. for dynamic targets).
-     */
     public Command positionHoodContinuouslyCommand(DoubleSupplier distanceSupplier) {
-        final double tolerance = Constants.ShooterConstants.HOOD_TRACKING_TOLERANCE_ROTATIONS;
         return Commands.run(() -> {
             double distance = distanceSupplier.getAsDouble();
             double hoodTarget = TrajectoryManager.getHoodPositionForDistance(distance);
-            double current = getHoodEncoderRotations();
-            if (hoodTarget > current + tolerance) {
-                runHoodUp();
-            } else if (hoodTarget < current - tolerance) {
-                runHoodDown();
-            } else {
-                stopHood();
-            }
+            driveHoodToward(hoodTarget);
         }, this).finallyDo(this::stopHood);
     }
 
-    // TRIAL 1
+    // Old Version - Keep in case we need to revert
     // public Command positionHoodContinuouslyCommand(DoubleSupplier distanceSupplier) {
+    //     final double tolerance = Constants.ShooterConstants.HOOD_TRACKING_TOLERANCE_ROTATIONS;
     //     return Commands.run(() -> {
     //         double distance = distanceSupplier.getAsDouble();
     //         double hoodTarget = TrajectoryManager.getHoodPositionForDistance(distance);
-    //         driveHoodToward(hoodTarget);
+    //         double current = getHoodEncoderRotations();
+    //         if (hoodTarget > current + tolerance) {
+    //             runHoodUp();
+    //         } else if (hoodTarget < current - tolerance) {
+    //             runHoodDown();
+    //         } else {
+    //             stopHood();
+    //         }
     //     }, this).finallyDo(this::stopHood);
     // }
 
+
+    /** Adjusts hood position one-time to a particular position. */
+    public Command hoodToRotationsCommand(double targetRotations) {
+        double clamped = MathUtil.clamp(targetRotations,
+                Constants.ShooterConstants.POSITION_HOOD_MIN,
+                Constants.ShooterConstants.POSITION_HOOD_MAX);
+        double tolerance = Constants.ShooterConstants.HOOD_TRACKING_TOLERANCE_ROTATIONS;
+        return Commands.run(() -> driveHoodToward(clamped), this)
+                .until(() -> Math.abs(getHoodEncoderRotations() - clamped) <= tolerance)
+                .finallyDo(this::stopHood);
+    }
+
+    // Old Version - Keep in case we need to revert
     // public Command hoodToRotationsCommand(double targetRotations) {
     //     double clamped = MathUtil.clamp(targetRotations,
     //             Constants.ShooterConstants.POSITION_HOOD_MIN,
@@ -157,16 +168,6 @@ public class Hood extends SubsystemBase {
     //             .finallyDo(this::stopHood);
     // }
 
-    // TRIAL 1
-    public Command hoodToRotationsCommand(double targetRotations) {
-        double clamped = MathUtil.clamp(targetRotations,
-                Constants.ShooterConstants.POSITION_HOOD_MIN,
-                Constants.ShooterConstants.POSITION_HOOD_MAX);
-        double tolerance = Constants.ShooterConstants.HOOD_TRACKING_TOLERANCE_ROTATIONS;
-        return Commands.run(() -> driveHoodToward(clamped), this)
-                .until(() -> Math.abs(getHoodEncoderRotations() - clamped) <= tolerance)
-                .finallyDo(this::stopHood);
-    }
 
     @Override
     public void periodic() {
