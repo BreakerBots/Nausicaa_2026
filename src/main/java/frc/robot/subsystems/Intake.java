@@ -227,6 +227,7 @@ public class Intake extends SubsystemBase {
             double velocityRps = speed * Constants.IntakeConstants.ROLLER_MOTOR_RPS_AT_FULL_DUTY;
             lastCommandedRollerSpeedRps = velocityRps;
             rollerMotor.setControl(new VelocityDutyCycle(velocityRps));
+            //rollerMotor.setControl(new DutyCycleOut(-1.0));
             //rollerMotor.setControl(new DutyCycleOut(speed));
         } else {
             lastCommandedRollerSpeedRps = 0;

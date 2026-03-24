@@ -165,7 +165,6 @@ public final class Constants {
         public static final Pose2d POSE_RED_LEFT_EXIT_AZ_VIA_TRENCH = new Pose2d(13.24, 0.634, Rotation2d.fromDegrees(180));
         public static final Pose2d POSE_RED_RIGHT_EXIT_AZ_VIA_TRENCH = new Pose2d(13.24, 7.408, Rotation2d.fromDegrees(180));
 
-
         // Targets to aim at for shooting/passing.
 
         public static final Translation2d TARGET_BLUE_HUB_CENTER = new Translation2d(4.618, 4.036);
@@ -327,9 +326,9 @@ public final class Constants {
         public static final double ROLLER_CIRCUMFERENCE_METERS = ROLLER_DIAMETER_METERS * Math.PI;
         public static final double ROLLER_GEAR_RATIO = 20 / 28;
         /** Motor (rotor) rev/s at 100% duty. Converts duty cycle to velocity for closed-loop control. */
-        public static final double ROLLER_MOTOR_RPS_AT_FULL_DUTY = 70.0;
+        public static final double ROLLER_MOTOR_RPS_AT_FULL_DUTY = 70.0; // TUNE THIS
         // Kraken x60 at full duty = 100 rev/s
-        public static final double ROLLER_REV_PER_SEC_AT_FULL_DUTY = ROLLER_MOTOR_RPS_AT_FULL_DUTY * ROLLER_GEAR_RATIO; // TUNE THIS
+        public static final double ROLLER_REV_PER_SEC_AT_FULL_DUTY = ROLLER_MOTOR_RPS_AT_FULL_DUTY * ROLLER_GEAR_RATIO; 
         // At 100% duty cycle, our max drivetrain speed is 3.0 m/s
         // At 70% (current default), our max speed is 2.1 m/s
         //

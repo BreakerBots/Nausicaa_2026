@@ -87,12 +87,6 @@ public class RobotContainer {
                 hood.hoodToRotationsCommand(Constants.ShooterConstants.POSITION_HOOD_MIN), Set.of(hood)));
         NamedCommands.registerCommand("unclog", Commands.defer(() -> unclogCommand().withTimeout(3.0), Set.of(hopper, intake)));
 
-        // NamedCommands.registerCommand("hooddown", Commands.none());
-        // NamedCommands.registerCommand("consolidatePose", Commands.none());
-        // NamedCommands.registerCommand("rotateToHub", Commands.none());
-        // NamedCommands.registerCommand("rangeToHub", Commands.none());
-
-
         // Set up our auto-chooser    
         if (AutoBuilder.isConfigured()) {
             // Looks for autos in /src/main/deploy/pathplanner/autos/
@@ -113,6 +107,7 @@ public class RobotContainer {
         configureBindings();
     }
 
+    
     private void configureLogging() {
 
         // Phoenix 6 normally logs CAN bus data
@@ -561,7 +556,7 @@ public class RobotContainer {
             intake.setState(Intake.State.STOWED);
         }    
         climb.setState(Climb.State.INACTIVE);
-         shooter.setState(Shooter.State.INACTIVE);
+        shooter.setState(Shooter.State.INACTIVE);
         hopper.setState(Hopper.State.INACTIVE);
         CommandScheduler.getInstance().schedule(hood.hoodToRotationsCommand(Constants.ShooterConstants.POSITION_HOOD_MIN));
     }
