@@ -10,7 +10,7 @@
           {
             "title": "Field",
             "x": 384.0,
-            "y": 0.0,
+            "y": 384.0,
             "width": 768.0,
             "height": 384.0,
             "type": "Field",
@@ -30,86 +30,15 @@
           },
           {
             "title": "IMU Yaw",
-            "x": 640.0,
-            "y": 640.0,
-            "width": 256.0,
+            "x": 0.0,
+            "y": 128.0,
+            "width": 128.0,
             "height": 128.0,
-            "type": "Text Display",
+            "type": "Large Text Display",
             "properties": {
               "topic": "/SmartDashboard/Vision/IMU/YawDeg",
               "period": 0.06,
-              "data_type": "double",
-              "show_submit_button": false
-            }
-          },
-          {
-            "title": "Fused Pose",
-            "x": 384.0,
-            "y": 640.0,
-            "width": 256.0,
-            "height": 128.0,
-            "type": "Text Display",
-            "properties": {
-              "topic": "/SmartDashboard/Vision/FusedPose/Pose",
-              "period": 0.06,
-              "data_type": "string",
-              "show_submit_button": false
-            }
-          },
-          {
-            "title": "BL Pose",
-            "x": 384.0,
-            "y": 512.0,
-            "width": 256.0,
-            "height": 128.0,
-            "type": "Text Display",
-            "properties": {
-              "topic": "/SmartDashboard/Vision/BackCamera/Pose",
-              "period": 0.06,
-              "data_type": "string",
-              "show_submit_button": false
-            }
-          },
-          {
-            "title": "FR Pose",
-            "x": 384.0,
-            "y": 384.0,
-            "width": 256.0,
-            "height": 128.0,
-            "type": "Text Display",
-            "properties": {
-              "topic": "/SmartDashboard/Vision/FrontCamera/Pose",
-              "period": 0.06,
-              "data_type": "string",
-              "show_submit_button": false
-            }
-          },
-          {
-            "title": "BL Status",
-            "x": 640.0,
-            "y": 512.0,
-            "width": 512.0,
-            "height": 128.0,
-            "type": "Text Display",
-            "properties": {
-              "topic": "/SmartDashboard/Vision/BackCamera/Status",
-              "period": 0.06,
-              "data_type": "string",
-              "show_submit_button": false
-            }
-          },
-          {
-            "title": "FR Status",
-            "x": 640.0,
-            "y": 384.0,
-            "width": 512.0,
-            "height": 128.0,
-            "type": "Text Display",
-            "properties": {
-              "topic": "/SmartDashboard/Vision/FrontCamera/Status",
-              "period": 0.06,
-              "data_type": "string",
-              "show_submit_button": false
+              "data_type": "double"
             }
           },
           {
@@ -127,9 +56,9 @@
           },
           {
             "title": "Log",
-            "x": 896.0,
-            "y": 640.0,
-            "width": 256.0,
+            "x": 128.0,
+            "y": 128.0,
+            "width": 384.0,
             "height": 128.0,
             "type": "Text Display",
             "properties": {
@@ -137,37 +66,6 @@
               "period": 0.06,
               "data_type": "string",
               "show_submit_button": false
-            }
-          },
-          {
-            "title": "BatteryVoltage",
-            "x": 256.0,
-            "y": 0.0,
-            "width": 128.0,
-            "height": 128.0,
-            "type": "Text Display",
-            "properties": {
-              "topic": "/Robot/SystemStats/BatteryVoltage",
-              "period": 0.06,
-              "data_type": "double",
-              "show_submit_button": false
-            }
-          },
-          {
-            "title": "BrownedOut",
-            "x": 128.0,
-            "y": 0.0,
-            "width": 128.0,
-            "height": 128.0,
-            "type": "Boolean Box",
-            "properties": {
-              "topic": "/Robot/SystemStats/BrownedOut",
-              "period": 0.06,
-              "data_type": "boolean",
-              "true_color": 4283215696,
-              "false_color": 4294198070,
-              "true_icon": "None",
-              "false_icon": "None"
             }
           },
           {
@@ -185,15 +83,83 @@
           },
           {
             "title": "limelight-f",
-            "x": 1152.0,
+            "x": 512.0,
             "y": 0.0,
-            "width": 384.0,
+            "width": 512.0,
             "height": 384.0,
             "type": "Camera Stream",
             "properties": {
               "topic": "/CameraPublisher/limelight-f",
               "period": 0.06,
               "rotation_turns": 0
+            }
+          },
+          {
+            "title": "Front - Status",
+            "x": 1024.0,
+            "y": 0.0,
+            "width": 512.0,
+            "height": 128.0,
+            "type": "Text Display",
+            "properties": {
+              "topic": "/Robot/Vision/FrontCamera/Status",
+              "period": 0.06,
+              "data_type": "string",
+              "show_submit_button": false
+            }
+          },
+          {
+            "title": "Fused Yaw",
+            "x": 0.0,
+            "y": 0.0,
+            "width": 128.0,
+            "height": 128.0,
+            "type": "Large Text Display",
+            "properties": {
+              "topic": "/Robot/Vision/FusedPose/YawDeg",
+              "period": 0.06,
+              "data_type": "double"
+            }
+          },
+          {
+            "title": "BL - Status",
+            "x": 1024.0,
+            "y": 128.0,
+            "width": 512.0,
+            "height": 128.0,
+            "type": "Text Display",
+            "properties": {
+              "topic": "/Robot/Vision/BackLeftCamera/Status",
+              "period": 0.06,
+              "data_type": "string",
+              "show_submit_button": false
+            }
+          },
+          {
+            "title": "BR - Status",
+            "x": 1024.0,
+            "y": 256.0,
+            "width": 512.0,
+            "height": 128.0,
+            "type": "Text Display",
+            "properties": {
+              "topic": "/Robot/Vision/BackRightCamera/Status",
+              "period": 0.06,
+              "data_type": "string",
+              "show_submit_button": false
+            }
+          },
+          {
+            "title": "Pose",
+            "x": 128.0,
+            "y": 0.0,
+            "width": 384.0,
+            "height": 128.0,
+            "type": "Large Text Display",
+            "properties": {
+              "topic": "/Robot/Vision/FusedPose/Pose",
+              "period": 0.06,
+              "data_type": "string"
             }
           }
         ]
@@ -203,75 +169,6 @@
       "name": "Subsystems",
       "grid_layout": {
         "layouts": [
-          {
-            "title": "Climb State",
-            "x": 512.0,
-            "y": 128.0,
-            "width": 256.0,
-            "height": 384.0,
-            "type": "List Layout",
-            "properties": {
-              "label_position": "TOP"
-            },
-            "children": [
-              {
-                "title": "AtHomePosition",
-                "x": 0.0,
-                "y": 0.0,
-                "width": 128.0,
-                "height": 128.0,
-                "type": "Text Display",
-                "properties": {
-                  "topic": "/Robot/Climb/AtHomePosition",
-                  "period": 0.06,
-                  "data_type": "boolean",
-                  "show_submit_button": false
-                }
-              },
-              {
-                "title": "StateChange",
-                "x": 0.0,
-                "y": 0.0,
-                "width": 128.0,
-                "height": 128.0,
-                "type": "Text Display",
-                "properties": {
-                  "topic": "/Robot/Climb/StateChange",
-                  "period": 0.06,
-                  "data_type": "string",
-                  "show_submit_button": false
-                }
-              },
-              {
-                "title": "Status",
-                "x": 0.0,
-                "y": 0.0,
-                "width": 128.0,
-                "height": 128.0,
-                "type": "Text Display",
-                "properties": {
-                  "topic": "/Robot/Climb/Status",
-                  "period": 0.06,
-                  "data_type": "string",
-                  "show_submit_button": false
-                }
-              },
-              {
-                "title": "TargetSetpoint",
-                "x": 0.0,
-                "y": 0.0,
-                "width": 128.0,
-                "height": 128.0,
-                "type": "Text Display",
-                "properties": {
-                  "topic": "/Robot/Climb/TargetSetpoint",
-                  "period": 0.06,
-                  "data_type": "double",
-                  "show_submit_button": false
-                }
-              }
-            ]
-          },
           {
             "title": "Hopper State",
             "x": 256.0,
@@ -329,10 +226,10 @@
           },
           {
             "title": "Intake State",
-            "x": 256.0,
-            "y": 256.0,
+            "x": 512.0,
+            "y": 0.0,
             "width": 256.0,
-            "height": 384.0,
+            "height": 256.0,
             "type": "List Layout",
             "properties": {
               "label_position": "TOP"
@@ -363,34 +260,6 @@
                   "topic": "/Robot/Intake/State/Previous",
                   "period": 0.06,
                   "data_type": "string",
-                  "show_submit_button": false
-                }
-              },
-              {
-                "title": "PivotPosition",
-                "x": 0.0,
-                "y": 0.0,
-                "width": 128.0,
-                "height": 128.0,
-                "type": "Text Display",
-                "properties": {
-                  "topic": "/Robot/Intake/State/PivotPosition",
-                  "period": 0.06,
-                  "data_type": "double",
-                  "show_submit_button": false
-                }
-              },
-              {
-                "title": "RollerSpeed",
-                "x": 0.0,
-                "y": 0.0,
-                "width": 128.0,
-                "height": 128.0,
-                "type": "Text Display",
-                "properties": {
-                  "topic": "/Robot/Intake/State/RollerSpeed",
-                  "period": 0.06,
-                  "data_type": "double",
                   "show_submit_button": false
                 }
               }
@@ -434,20 +303,6 @@
                   "data_type": "string",
                   "show_submit_button": false
                 }
-              },
-              {
-                "title": "TargetFlywheelSpeed",
-                "x": 0.0,
-                "y": 0.0,
-                "width": 128.0,
-                "height": 128.0,
-                "type": "Text Display",
-                "properties": {
-                  "topic": "/Robot/Shooter/State/TargetFlywheelSpeed",
-                  "period": 0.06,
-                  "data_type": "double",
-                  "show_submit_button": false
-                }
               }
             ]
           }
@@ -456,7 +311,7 @@
           {
             "title": "Alliance",
             "x": 1152.0,
-            "y": 512.0,
+            "y": 640.0,
             "width": 128.0,
             "height": 128.0,
             "type": "Boolean Box",
@@ -472,7 +327,7 @@
           },
           {
             "title": "BatteryVoltage",
-            "x": 768.0,
+            "x": 1024.0,
             "y": 0.0,
             "width": 256.0,
             "height": 128.0,
@@ -490,9 +345,9 @@
           },
           {
             "title": "Auto Chooser",
-            "x": 768.0,
-            "y": 512.0,
-            "width": 384.0,
+            "x": 1280.0,
+            "y": 640.0,
+            "width": 256.0,
             "height": 128.0,
             "type": "ComboBox Chooser",
             "properties": {
@@ -503,7 +358,7 @@
           },
           {
             "title": "Fused Pose",
-            "x": 1024.0,
+            "x": 1280.0,
             "y": 0.0,
             "width": 256.0,
             "height": 128.0,
@@ -515,43 +370,22 @@
             }
           },
           {
-            "title": "Flywheel1Speed",
+            "title": "FW1 Speed",
             "x": 0.0,
             "y": 256.0,
             "width": 128.0,
             "height": 128.0,
-            "type": "Graph",
+            "type": "Large Text Display",
             "properties": {
               "topic": "/Robot/Shooter/Flywheel1Speed",
               "period": 0.033,
-              "data_type": "double",
-              "time_displayed": 5.0,
-              "color": 4278238420,
-              "line_width": 2.0
-            }
-          },
-          {
-            "title": "HoodPosition",
-            "x": 1152.0,
-            "y": 640.0,
-            "width": 128.0,
-            "height": 128.0,
-            "type": "Number Bar",
-            "properties": {
-              "topic": "/Robot/Shooter/HoodPosition",
-              "period": 0.06,
-              "data_type": "double",
-              "min_value": -1.0,
-              "max_value": 1.0,
-              "divisions": 5,
-              "inverted": false,
-              "orientation": "horizontal"
+              "data_type": "double"
             }
           },
           {
             "title": "SafetyMode",
-            "x": 512.0,
-            "y": 0.0,
+            "x": 1024.0,
+            "y": 640.0,
             "width": 128.0,
             "height": 128.0,
             "type": "Boolean Box",
@@ -566,25 +400,8 @@
             }
           },
           {
-            "title": "SlowMode",
-            "x": 640.0,
-            "y": 0.0,
-            "width": 128.0,
-            "height": 128.0,
-            "type": "Boolean Box",
-            "properties": {
-              "topic": "/Robot/SwerveDrivetrain/SlowMode",
-              "period": 0.06,
-              "data_type": "boolean",
-              "true_color": 4278255370,
-              "false_color": 4278190080,
-              "true_icon": "None",
-              "false_icon": "None"
-            }
-          },
-          {
             "title": "Field",
-            "x": 768.0,
+            "x": 1024.0,
             "y": 128.0,
             "width": 512.0,
             "height": 256.0,
@@ -604,213 +421,198 @@
             }
           },
           {
-            "title": "Phase",
-            "x": 896.0,
-            "y": 384.0,
-            "width": 128.0,
-            "height": 128.0,
-            "type": "Large Text Display",
-            "properties": {
-              "topic": "/Robot/MatchTimer/Phase",
-              "period": 0.06,
-              "data_type": "string"
-            }
-          },
-          {
-            "title": "TransitionWarning",
-            "x": 1024.0,
-            "y": 384.0,
-            "width": 256.0,
-            "height": 128.0,
-            "type": "Large Text Display",
-            "properties": {
-              "topic": "/Robot/MatchTimer/TransitionWarning",
-              "period": 0.06,
-              "data_type": "string"
-            }
-          },
-          {
-            "title": "Time",
-            "x": 768.0,
-            "y": 384.0,
-            "width": 128.0,
-            "height": 128.0,
-            "type": "Match Time",
-            "properties": {
-              "topic": "/Robot/MatchTimer/Time",
-              "period": 0.06,
-              "data_type": "double",
-              "time_display_mode": "Minutes and Seconds",
-              "red_start_time": 30,
-              "yellow_start_time": 30
-            }
-          },
-          {
             "title": "DistanceFromRobotFrontToTarget",
-            "x": 1280.0,
-            "y": 384.0,
+            "x": 512.0,
+            "y": 640.0,
             "width": 256.0,
             "height": 128.0,
-            "type": "Text Display",
+            "type": "Large Text Display",
             "properties": {
               "topic": "/Robot/DistanceFromRobotFrontToTarget",
               "period": 0.06,
-              "data_type": "double",
-              "show_submit_button": false
+              "data_type": "double"
             }
           },
           {
             "title": "DistanceToTarget",
-            "x": 1280.0,
-            "y": 512.0,
+            "x": 256.0,
+            "y": 640.0,
             "width": 256.0,
             "height": 128.0,
-            "type": "Text Display",
+            "type": "Large Text Display",
             "properties": {
               "topic": "/Robot/DistanceToTarget",
               "period": 0.06,
-              "data_type": "double",
-              "show_submit_button": false
+              "data_type": "double"
             }
           },
           {
-            "title": "FlywheelCumulativeAh",
-            "x": 0.0,
-            "y": 640.0,
-            "width": 128.0,
-            "height": 128.0,
-            "type": "Text Display",
-            "properties": {
-              "topic": "/Robot/Power/FlywheelCumulativeAh",
-              "period": 0.06,
-              "data_type": "double",
-              "show_submit_button": false
-            }
-          },
-          {
-            "title": "FlywheelCumulative_mAh",
+            "title": "FW Target Speed",
             "x": 128.0,
-            "y": 640.0,
+            "y": 256.0,
             "width": 128.0,
             "height": 128.0,
-            "type": "Text Display",
-            "properties": {
-              "topic": "/Robot/Power/FlywheelCumulative_mAh",
-              "period": 0.06,
-              "data_type": "double",
-              "show_submit_button": false
-            }
-          },
-          {
-            "title": "FlywheelCurrentA",
-            "x": 256.0,
-            "y": 640.0,
-            "width": 128.0,
-            "height": 128.0,
-            "type": "Text Display",
-            "properties": {
-              "topic": "/Robot/Power/FlywheelCurrentA",
-              "period": 0.06,
-              "data_type": "double",
-              "show_submit_button": false
-            }
-          },
-          {
-            "title": "FlywheelTargetSpeed",
-            "x": 0.0,
-            "y": 384.0,
-            "width": 128.0,
-            "height": 128.0,
-            "type": "Text Display",
+            "type": "Large Text Display",
             "properties": {
               "topic": "/Robot/Shooter/FlywheelTargetSpeed",
               "period": 0.06,
-              "data_type": "double",
-              "show_submit_button": false
+              "data_type": "double"
             }
           },
           {
-            "title": "FlywheelTargetRps",
+            "title": "FW Target Rps",
             "x": 128.0,
             "y": 384.0,
             "width": 128.0,
             "height": 128.0,
-            "type": "Text Display",
+            "type": "Large Text Display",
             "properties": {
               "topic": "/Robot/Aim/FlywheelTargetRps",
               "period": 0.06,
-              "data_type": "double",
-              "show_submit_button": false
-            }
-          },
-          {
-            "title": "DistanceToTargetM",
-            "x": 512.0,
-            "y": 640.0,
-            "width": 128.0,
-            "height": 128.0,
-            "type": "Text Display",
-            "properties": {
-              "topic": "/Robot/Aim/DistanceToTargetM",
-              "period": 0.06,
-              "data_type": "double",
-              "show_submit_button": false
+              "data_type": "double"
             }
           },
           {
             "title": "HeadingErrorDeg",
-            "x": 640.0,
+            "x": 0.0,
             "y": 640.0,
-            "width": 128.0,
+            "width": 256.0,
             "height": 128.0,
-            "type": "Text Display",
+            "type": "Large Text Display",
             "properties": {
               "topic": "/Robot/Aim/HeadingErrorDeg",
               "period": 0.06,
-              "data_type": "double",
-              "show_submit_button": false
+              "data_type": "double"
             }
           },
           {
             "title": "HoodPositionRot",
-            "x": 896.0,
-            "y": 640.0,
-            "width": 128.0,
+            "x": 256.0,
+            "y": 384.0,
+            "width": 256.0,
             "height": 128.0,
-            "type": "Text Display",
+            "type": "Large Text Display",
             "properties": {
               "topic": "/Robot/Aim/HoodPositionRot",
               "period": 0.06,
-              "data_type": "double",
-              "show_submit_button": false
+              "data_type": "double"
             }
           },
           {
             "title": "HoodTargetRot",
-            "x": 1024.0,
-            "y": 640.0,
-            "width": 128.0,
+            "x": 256.0,
+            "y": 256.0,
+            "width": 256.0,
             "height": 128.0,
-            "type": "Text Display",
+            "type": "Large Text Display",
             "properties": {
               "topic": "/Robot/Aim/HoodTargetRot",
               "period": 0.06,
-              "data_type": "double",
-              "show_submit_button": false
+              "data_type": "double"
             }
           },
           {
-            "title": "RollerSpeed",
-            "x": 128.0,
+            "title": "FW2 Speed",
+            "x": 0.0,
+            "y": 384.0,
+            "width": 128.0,
+            "height": 128.0,
+            "type": "Large Text Display",
+            "properties": {
+              "topic": "/Robot/Shooter/Flywheel2Speed",
+              "period": 0.06,
+              "data_type": "double"
+            }
+          },
+          {
+            "title": "FW3 Speed",
+            "x": 0.0,
             "y": 512.0,
             "width": 128.0,
             "height": 128.0,
-            "type": "Text Display",
+            "type": "Large Text Display",
             "properties": {
-              "topic": "/Robot/Intake/RollerSpeed",
+              "topic": "/Robot/Shooter/Flywheel3Speed",
               "period": 0.06,
-              "data_type": "double",
-              "show_submit_button": false
+              "data_type": "double"
+            }
+          },
+          {
+            "title": "Roller Target Rps",
+            "x": 768.0,
+            "y": 256.0,
+            "width": 256.0,
+            "height": 128.0,
+            "type": "Large Text Display",
+            "properties": {
+              "topic": "/Robot/Intake/RollerSpeedTargetRps",
+              "period": 0.06,
+              "data_type": "double"
+            }
+          },
+          {
+            "title": "Roller Target Duty",
+            "x": 768.0,
+            "y": 128.0,
+            "width": 256.0,
+            "height": 128.0,
+            "type": "Large Text Display",
+            "properties": {
+              "topic": "/Robot/Intake/RollerSpeedTargetDuty",
+              "period": 0.06,
+              "data_type": "double"
+            }
+          },
+          {
+            "title": "Roller Actual",
+            "x": 768.0,
+            "y": 384.0,
+            "width": 256.0,
+            "height": 128.0,
+            "type": "Large Text Display",
+            "properties": {
+              "topic": "/Robot/Intake/RollerSpeedActual",
+              "period": 0.06,
+              "data_type": "double"
+            }
+          },
+          {
+            "title": "PivotTargetPosition",
+            "x": 512.0,
+            "y": 256.0,
+            "width": 256.0,
+            "height": 128.0,
+            "type": "Large Text Display",
+            "properties": {
+              "topic": "/Robot/Intake/PivotTargetPosition",
+              "period": 0.06,
+              "data_type": "double"
+            }
+          },
+          {
+            "title": "PivotEncoderPosition",
+            "x": 512.0,
+            "y": 384.0,
+            "width": 256.0,
+            "height": 128.0,
+            "type": "Large Text Display",
+            "properties": {
+              "topic": "/Robot/Intake/PivotEncoderPosition",
+              "period": 0.06,
+              "data_type": "double"
+            }
+          },
+          {
+            "title": "PivotEncoderAbsolutePosition",
+            "x": 512.0,
+            "y": 512.0,
+            "width": 256.0,
+            "height": 128.0,
+            "type": "Large Text Display",
+            "properties": {
+              "topic": "/Robot/Intake/PivotEncoderAbsolutePosition",
+              "period": 0.06,
+              "data_type": "double"
             }
           }
         ]
@@ -994,7 +796,7 @@
           },
           {
             "title": "HoodPositionRot",
-            "x": 256.0,
+            "x": 0.0,
             "y": 128.0,
             "width": 256.0,
             "height": 128.0,
@@ -1033,7 +835,7 @@
           },
           {
             "title": "HoodTargetRot",
-            "x": 0.0,
+            "x": 256.0,
             "y": 128.0,
             "width": 256.0,
             "height": 128.0,
