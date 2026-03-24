@@ -24,6 +24,8 @@ import frc.robot.BreakerLib.util.logging.BreakerLog;
 
 public class Hood extends SubsystemBase {
 
+    private boolean useMotionMagic = false; // If true, use Motion Magic for hood control
+
     private final TalonFX hoodMotor = new TalonFX(Constants.ShooterConstants.HOOD_MOTOR_ID,
             Constants.GeneralConstants.SUPERSTRUCTURE_CANIVORE_BUS);
     private final CANcoder hoodEncoder = BreakerCANCoderFactory.createCANCoder(
@@ -42,19 +44,20 @@ public class Hood extends SubsystemBase {
                 .withSupplyCurrentLimit(Constants.ShooterConstants.HOOD_SUPPLY_CURRENT_LIMIT)
                 .withSupplyCurrentLimitEnable(true);
         
-        // Comment in if using Motion Magic
-        // hoodConfig.Feedback.withRemoteCANcoder(hoodEncoder);
-        // hoodConfig.MotionMagic.MotionMagicCruiseVelocity = Constants.ShooterConstants.HOOD_MM_CRUISE_VELOCITY;
-        // hoodConfig.MotionMagic.MotionMagicAcceleration = Constants.ShooterConstants.HOOD_MM_ACCELERATION;
-        // hoodConfig.MotionMagic.MotionMagicJerk = Constants.ShooterConstants.HOOD_MM_JERK;
-        // Slot0Configs slot0 = hoodConfig.Slot0;
-        // slot0.kS = Constants.ShooterConstants.HOOD_kS;
-        // slot0.kG = Constants.ShooterConstants.HOOD_kG;
-        // slot0.kV = Constants.ShooterConstants.HOOD_kV;
-        // slot0.kA = Constants.ShooterConstants.HOOD_kA;
-        // slot0.kP = Constants.ShooterConstants.HOOD_kP;
-        // slot0.kI = Constants.ShooterConstants.HOOD_kI;
-        // slot0.kD = Constants.ShooterConstants.HOOD_kD;
+        if (useMotionMagic) {
+            hoodConfig.Feedback.withRemoteCANcoder(hoodEncoder);
+            hoodConfig.MotionMagic.MotionMagicCruiseVelocity = Constants.ShooterConstants.HOOD_MM_CRUISE_VELOCITY;
+            hoodConfig.MotionMagic.MotionMagicAcceleration = Constants.ShooterConstants.HOOD_MM_ACCELERATION;
+            hoodConfig.MotionMagic.MotionMagicJerk = Constants.ShooterConstants.HOOD_MM_JERK;
+            Slot0Configs slot0 = hoodConfig.Slot0;
+            slot0.kS = Constants.ShooterConstants.HOOD_kS;
+            slot0.kG = Constants.ShooterConstants.HOOD_kG;
+            slot0.kV = Constants.ShooterConstants.HOOD_kV;
+            slot0.kA = Constants.ShooterConstants.HOOD_kA;
+            slot0.kP = Constants.ShooterConstants.HOOD_kP;
+            slot0.kI = Constants.ShooterConstants.HOOD_kI;
+            slot0.kD = Constants.ShooterConstants.HOOD_kD;
+        }
         
         hoodMotor.getConfigurator().apply(hoodConfig);
     }
@@ -93,24 +96,19 @@ public class Hood extends SubsystemBase {
     /** SimpleP control: drives hood toward target rotations. Clamps target to limits. */
     private void driveHoodToward(double targetRotations) {
         double clamped = MathUtil.clamp(targetRotations,
-                Constants.ShooterConstants.POSITION_HOOD_MIN,
-                Constants.ShooterConstants.POSITION_HOOD_MAX);
-        double error = clamped - getHoodEncoderRotations();
-        double output = MathUtil.clamp(-Constants.ShooterConstants.HOOD_kP * error, -1.0, 1.0);
-        hoodMotor.setControl(new DutyCycleOut(output));
+            Constants.ShooterConstants.POSITION_HOOD_MIN,
+            Constants.ShooterConstants.POSITION_HOOD_MAX);
+        if (useMotionMagic) {
+            hoodMotor.setControl(new MotionMagicDutyCycle(clamped));
+        } else {
+            double error = clamped - getHoodEncoderRotations();
+            double output = MathUtil.clamp(-Constants.ShooterConstants.HOOD_kP * error, -1.0, 1.0);
+            hoodMotor.setControl(new DutyCycleOut(output));
+        }
     }
 
-    // Also comment in the slot0 config (above)
-    /** Motion Magic: drives hood toward target rotations. Clamps target to limits. */
-    // private void driveHoodToward(double targetRotations) {
-    //     double clamped = MathUtil.clamp(targetRotations,
-    //             Constants.ShooterConstants.POSITION_HOOD_MIN,
-    //             Constants.ShooterConstants.POSITION_HOOD_MAX);
-    //     hoodMotor.setControl(new MotionMagicDutyCycle(clamped));
-    // }
 
-
-    /** Adjusts hood position continuouslybased on distance to target. */
+    /** Adjusts hood position continuously based on distance to target. */
     public Command positionHoodContinuouslyCommand(double distanceMeters) {
         return positionHoodContinuouslyCommand(() -> distanceMeters);
     }
@@ -149,7 +147,13 @@ public class Hood extends SubsystemBase {
         double tolerance = Constants.ShooterConstants.HOOD_TRACKING_TOLERANCE_ROTATIONS;
         return Commands.run(() -> driveHoodToward(clamped), this)
                 .until(() -> Math.abs(getHoodEncoderRotations() - clamped) <= tolerance)
-                .finallyDo(this::stopHood);
+                // On success, keep last closed-loop request (MM/P); only zero output if cancelled.
+                .finallyDo((interrupted) -> {
+                    if (interrupted) {
+                        stopHood();
+                    }
+                });
+                //.finallyDo(this::stopHood);
     }
 
     // Old Version - Keep in case we need to revert
