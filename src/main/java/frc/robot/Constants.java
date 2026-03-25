@@ -400,6 +400,13 @@ public final class Constants {
         /** Deadband (rotations) for hood tracking; prevents oscillation when near target. */
         public static final double HOOD_TRACKING_TOLERANCE_ROTATIONS = 0.005;
 
+        /**
+         * Max time to hold the start of the shoot sequence while waiting for hood to reach trajectory
+         * setpoint (e.g. continuous aim + shoot). After this, spin-up/feed begin anyway so a flaky hood
+         * does not block shooting.
+         */
+        public static final double HOOD_PRESHOOT_MAX_WAIT_SECONDS = 1.2;
+
         // Motion Magic
         public static final double HOOD_MM_CRUISE_VELOCITY = 0.5;
         public static final double HOOD_MM_ACCELERATION = 1.0;

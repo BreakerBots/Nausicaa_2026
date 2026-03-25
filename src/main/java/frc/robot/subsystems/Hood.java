@@ -67,6 +67,15 @@ public class Hood extends SubsystemBase {
         return hoodEncoder.getPosition().getValueAsDouble();
     }
 
+    /** True if encoder is within {@link Constants.ShooterConstants#HOOD_TRACKING_TOLERANCE_ROTATIONS} of target (after clamping). */
+    public boolean isHoodWithinToleranceOf(double targetRotations) {
+        double clamped = MathUtil.clamp(targetRotations,
+                Constants.ShooterConstants.POSITION_HOOD_MIN,
+                Constants.ShooterConstants.POSITION_HOOD_MAX);
+        return Math.abs(getHoodEncoderRotations() - clamped)
+                <= Constants.ShooterConstants.HOOD_TRACKING_TOLERANCE_ROTATIONS;
+    }
+
     public void runHoodUp() {
         if (getHoodEncoderRotations() >= Constants.ShooterConstants.POSITION_HOOD_MAX) {
             stopHood();
