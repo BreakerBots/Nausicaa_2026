@@ -24,7 +24,8 @@ public class TrajectoryManager extends SubsystemBase {
 
     // for MHS only: add 33.23401872 inches to each measurement (corner to center of hub)
     private static final ShootEntry[] SHOOT_LOOKUP_TABLE = {
-        new ShootEntry(1.5902686, 0.04, 52),        
+        new ShootEntry(1.47, 0.03, 50),  // MHS
+        new ShootEntry(1.5902686, 0.04, 52),       
         new ShootEntry(1.8950686, 0.07, 54),       
         new ShootEntry(2.1998686, 0.1, 56),      
         new ShootEntry(3.1143686, 0.19, 60),  

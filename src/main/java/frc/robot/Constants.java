@@ -283,11 +283,13 @@ public final class Constants {
         public static final Rotation2d POSITION_EXTENDED = Rotation2d.fromRotations(-0.28); // Need to Tune
         public static final Rotation2d POSITION_JIGGLE_HIGH = Rotation2d.fromRotations(-0.15);
         public static final Rotation2d POSITION_JIGGLE_LOW = Rotation2d.fromRotations(-0.27);
+        public static final Rotation2d POSITION_JIGGLE_HIGHER = Rotation2d.fromRotations(-0.19);
+        
 
         //Motion Magic
-         public static final double PIVOT_MM_CRUISE_VELOCITY = 1.0;
-         public static final double PIVOT_MM_ACCELERATION = 2.0;
-         public static final double PIVOT_MM_JERK = 10;
+         public static final double PIVOT_MM_CRUISE_VELOCITY = 1.0; // 1.0
+         public static final double PIVOT_MM_ACCELERATION = 2.0; // 2.0
+         public static final double PIVOT_MM_JERK = 10; // 10
 
         // Feedforward
          public static final double PIVOT_kS = 0.08;
@@ -393,6 +395,7 @@ public final class Constants {
         public static final double POSITION_HOOD_MIN = -0.001221; //-0.002197
         public static final double POSITION_HOOD_MAX = 0.473389; //0.477295
         public static final double POSITION_HOOD_LATCH = 0.3; // Not used right now
+        public static final double POSITION_HOOD_TEST = 0.03;
        
         /** Deadband (rotations) for hood tracking; prevents oscillation when near target. */
         public static final double HOOD_TRACKING_TOLERANCE_ROTATIONS = 0.005;
