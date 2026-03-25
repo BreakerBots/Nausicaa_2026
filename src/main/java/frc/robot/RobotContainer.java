@@ -343,11 +343,10 @@ public class RobotContainer {
     /**
      * Aim once (rotate + hood), then shoot while held. Aim runs to completion; shoot runs until trigger released.
      * ignoreAimError=true so feeder runs regardless of angle (vision may not be aligned).
-     * Shoot sequence (spin-up + feed) is delayed until the hood reaches tolerance for the current distance or
-     * {@link Constants.ShooterConstants#HOOD_PRESHOOT_MAX_WAIT_SECONDS} elapses, whichever comes first.
+     * Shoot sequence (spin-up + feed) is delayed until the hood reaches tolerance for the current distance or the timeout.
      */
     private Command aimAndShootContinuouslyCommand() {
-        Command waitHoodSettledOrTimeout = Commands.waitUntil(() -> {
+        Command waitUntilHoodPositioned = Commands.waitUntil(() -> {
             double distance = drivetrain.getRobotToPointTranslation(
                     Constants.FieldConstants.getTargetForPose(drivetrain.getLocalizer().getPose())).getNorm();
             double hoodTarget = TrajectoryManager.getHoodPositionForDistance(distance);
@@ -355,7 +354,7 @@ public class RobotContainer {
         }).withTimeout(1.0);
         return Commands.parallel(
                 aimContinuouslyCommand(false),
-                Commands.sequence(waitHoodSettledOrTimeout, shootForTeleopCommand(false)));
+                Commands.sequence(waitUntilHoodPositioned, shootForTeleopCommand(false)));
                 //return Commands.parallel(aimContinuouslyCommand(false), shootForTeleopCommand(false));
     }
 
