@@ -142,6 +142,14 @@ public class Intake extends SubsystemBase {
     }
 
     public void setState(State newState) {
+
+        // Deploy extended with rollers idle before spinning up
+        if (state == State.STOWED && newState == State.EXTENDED_INTAKING) {
+            setState(State.EXTENDED_IDLE);
+            setState(State.EXTENDED_INTAKING);
+            return;
+        }
+
         State previousState = state;
         state = newState;
         setIntakePosition(state.getRotation2d().getRotations());
