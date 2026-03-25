@@ -281,9 +281,9 @@ public final class Constants {
 
         public static final Rotation2d POSITION_STOWED = Rotation2d.fromRotations(0.01);  //-0.025
         public static final Rotation2d POSITION_EXTENDED = Rotation2d.fromRotations(-0.28); // Need to Tune
-        public static final Rotation2d POSITION_JIGGLE_HIGH = Rotation2d.fromRotations(-0.15);
         public static final Rotation2d POSITION_JIGGLE_LOW = Rotation2d.fromRotations(-0.27);
-        public static final Rotation2d POSITION_JIGGLE_HIGHER = Rotation2d.fromRotations(-0.19);
+        public static final Rotation2d POSITION_JIGGLE_HIGH = Rotation2d.fromRotations(-0.15);
+        //public static final Rotation2d POSITION_JIGGLE_HIGHER = Rotation2d.fromRotations(-0.10);
         
 
         //Motion Magic

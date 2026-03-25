@@ -107,7 +107,7 @@ public class RobotContainer {
         configureBindings();
     }
 
-    
+
     private void configureLogging() {
 
         // Phoenix 6 normally logs CAN bus data
@@ -215,7 +215,7 @@ public class RobotContainer {
         // ----------------- BUTTONS -------------
 
         // A --> Just Aim
-        //controller.getButtonA().onTrue(aimCommand());
+        controller.getButtonA().onTrue(aimCommand());
         
         // B --> Just Shoot
         controller.getButtonB().onTrue(shootForTeleopCommand(false));
@@ -225,16 +225,16 @@ public class RobotContainer {
         controller.getButtonX().onTrue(intake.setStateCommand(Intake.State.STOWED));
 
         // Y --> Unclog: run feeder, indexer, and intake in reverse at 20% speed (while held)
-        //controller.getButtonY().whileTrue(unclogCommand());
+        controller.getButtonY().whileTrue(unclogCommand());
 
 
         // -- FOR RECORDING SHOOTER DATA --
 
         // Y --> Hood to setpoint
-        controller.getButtonY().onTrue(hood.hoodToRotationsCommand(Constants.ShooterConstants.POSITION_HOOD_TEST));
+        //controller.getButtonY().onTrue(hood.hoodToRotationsCommand(Constants.ShooterConstants.POSITION_HOOD_TEST));
 
         // A --> Hood all the way down
-        controller.getButtonA().onTrue(hood.hoodToRotationsCommand(Constants.ShooterConstants.POSITION_HOOD_MIN));
+        //controller.getButtonA().onTrue(hood.hoodToRotationsCommand(Constants.ShooterConstants.POSITION_HOOD_MIN));
         
 
         // ----------------- DPAD-------------
@@ -552,12 +552,12 @@ public class RobotContainer {
     /** Called once when the robot enters teleop. */
     public void teleopInit() {
         
-        intake.setState(Intake.State.EXTENDED_IDLE);
-        // if (intake.state != Intake.State.STOWED) {
-        //     intake.setState(Intake.State.EXTENDED_IDLE);
-        // } else {
-        //     intake.setState(Intake.State.STOWED);
-        // }    
+        //intake.setState(Intake.State.EXTENDED_IDLE);
+        if (intake.state != Intake.State.STOWED) {
+            intake.setState(Intake.State.EXTENDED_IDLE);
+        } else {
+            intake.setState(Intake.State.STOWED);
+        }    
         climb.setState(Climb.State.INACTIVE);
         shooter.setState(Shooter.State.INACTIVE);
         hopper.setState(Hopper.State.INACTIVE);

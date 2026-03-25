@@ -157,9 +157,9 @@ public class Intake extends SubsystemBase {
         return Commands.runOnce(() -> setState(newState), this);
     }
     
-    public void setPivotDutyCycle(double dutyCycle) {
-        pivotMotor.setControl(new DutyCycleOut(dutyCycle));
-    }
+    // public void setPivotDutyCycle(double dutyCycle) {
+    //     pivotMotor.setControl(new DutyCycleOut(dutyCycle));
+    // }
 
     
     @Override
