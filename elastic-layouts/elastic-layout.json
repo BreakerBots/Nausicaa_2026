@@ -614,6 +614,40 @@
               "period": 0.06,
               "data_type": "double"
             }
+          },
+          {
+            "title": "HeadingGoodToShoot",
+            "x": 256.0,
+            "y": 512.0,
+            "width": 128.0,
+            "height": 128.0,
+            "type": "Boolean Box",
+            "properties": {
+              "topic": "/Robot/Aim/HeadingGoodToShoot",
+              "period": 0.06,
+              "data_type": "boolean",
+              "true_color": 4283215696,
+              "false_color": 4294198070,
+              "true_icon": "None",
+              "false_icon": "None"
+            }
+          },
+          {
+            "title": "HoodPositionGoodToShoot",
+            "x": 384.0,
+            "y": 512.0,
+            "width": 128.0,
+            "height": 128.0,
+            "type": "Boolean Box",
+            "properties": {
+              "topic": "/Robot/Aim/HoodPositionGoodToShoot",
+              "period": 0.06,
+              "data_type": "boolean",
+              "true_color": 4283215696,
+              "false_color": 4294198070,
+              "true_icon": "None",
+              "false_icon": "None"
+            }
           }
         ]
       }
@@ -625,7 +659,7 @@
         "containers": [
           {
             "title": "Alliance",
-            "x": 1024.0,
+            "x": 1152.0,
             "y": 0.0,
             "width": 128.0,
             "height": 128.0,
@@ -660,7 +694,7 @@
           },
           {
             "title": "Auto Chooser",
-            "x": 512.0,
+            "x": 640.0,
             "y": 0.0,
             "width": 512.0,
             "height": 128.0,
@@ -707,7 +741,7 @@
           },
           {
             "title": "Field",
-            "x": 512.0,
+            "x": 640.0,
             "y": 128.0,
             "width": 512.0,
             "height": 256.0,
@@ -728,7 +762,7 @@
           },
           {
             "title": "Phase",
-            "x": 1024.0,
+            "x": 1152.0,
             "y": 256.0,
             "width": 128.0,
             "height": 128.0,
@@ -741,7 +775,7 @@
           },
           {
             "title": "TransitionWarning",
-            "x": 512.0,
+            "x": 640.0,
             "y": 384.0,
             "width": 640.0,
             "height": 128.0,
@@ -754,7 +788,7 @@
           },
           {
             "title": "Time",
-            "x": 1024.0,
+            "x": 1152.0,
             "y": 128.0,
             "width": 128.0,
             "height": 128.0,
@@ -797,7 +831,7 @@
           {
             "title": "HoodPositionRot",
             "x": 0.0,
-            "y": 128.0,
+            "y": 256.0,
             "width": 256.0,
             "height": 128.0,
             "type": "Large Text Display",
@@ -810,7 +844,7 @@
           {
             "title": "Flywheel1Speed",
             "x": 0.0,
-            "y": 256.0,
+            "y": 128.0,
             "width": 256.0,
             "height": 128.0,
             "type": "Large Text Display",
@@ -823,7 +857,7 @@
           {
             "title": "FlywheelTargetSpeed",
             "x": 256.0,
-            "y": 256.0,
+            "y": 128.0,
             "width": 256.0,
             "height": 128.0,
             "type": "Large Text Display",
@@ -836,7 +870,7 @@
           {
             "title": "HoodTargetRot",
             "x": 256.0,
-            "y": 128.0,
+            "y": 256.0,
             "width": 256.0,
             "height": 128.0,
             "type": "Large Text Display",
@@ -844,6 +878,40 @@
               "topic": "/Robot/Aim/HoodTargetRot",
               "period": 0.06,
               "data_type": "double"
+            }
+          },
+          {
+            "title": "HeadingGoodToShoot",
+            "x": 512.0,
+            "y": 384.0,
+            "width": 128.0,
+            "height": 128.0,
+            "type": "Boolean Box",
+            "properties": {
+              "topic": "/Robot/Aim/HeadingGoodToShoot",
+              "period": 0.06,
+              "data_type": "boolean",
+              "true_color": 4283215696,
+              "false_color": 4294198070,
+              "true_icon": "None",
+              "false_icon": "None"
+            }
+          },
+          {
+            "title": "HoodPositionGoodToShoot",
+            "x": 512.0,
+            "y": 256.0,
+            "width": 128.0,
+            "height": 128.0,
+            "type": "Boolean Box",
+            "properties": {
+              "topic": "/Robot/Aim/HoodPositionGoodToShoot",
+              "period": 0.06,
+              "data_type": "boolean",
+              "true_color": 4283215696,
+              "false_color": 4294198070,
+              "true_icon": "None",
+              "false_icon": "None"
             }
           }
         ]
