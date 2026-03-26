@@ -3,11 +3,11 @@ package frc.robot.subsystems;
 import java.util.Collections;
 
 import edu.wpi.first.math.MathUtil;
-import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
 import frc.robot.BreakerLib.physics.BreakerVector2;
+import frc.robot.BreakerLib.util.math.interpolation.BreakerInterpolableDouble;
 import frc.robot.BreakerLib.util.math.interpolation.maps.BreakerInterpolatingTreeMap;
 
 /**
@@ -21,6 +21,8 @@ public class TrajectoryManager extends SubsystemBase {
      */
     private record ShootEntry(double distanceM, double hoodRot, double flywheelSpeed) {}
 
+    /** Distance (m) → max heading error as a percentage of π rad ({@link #isHeadingGoodToShoot}). */
+    private record HeadingGtsEntry(double distanceM, double headingTolerancePercent) {}
 
     // for MHS only: add 33.23401872 inches to each measurement (corner to center of hub)
     private static final ShootEntry[] SHOOT_LOOKUP_TABLE = {
@@ -33,7 +35,19 @@ public class TrajectoryManager extends SubsystemBase {
         new ShootEntry(4.9430686, 0.3, 66),   
     };
 
+    // Heading “good to shoot” tolerance
+    private static final HeadingGtsEntry[] HEADING_GTS_LOOKUP_TABLE = {
+            new HeadingGtsEntry(1.0, 5.0),
+            new HeadingGtsEntry(1.5, 4.0),
+            new HeadingGtsEntry(2.0, 3.5),
+            new HeadingGtsEntry(2.5, 3.0),
+            new HeadingGtsEntry(3.0, 2.5),
+            new HeadingGtsEntry(4.0, 2.0),
+    };
+
     private static final BreakerInterpolatingTreeMap<Double, BreakerVector2> shootLookup = buildShootLookup();
+    private static final BreakerInterpolatingTreeMap<Double, BreakerInterpolableDouble> headingGtsLookup =
+            buildHeadingGtsLookup();
 
     private final Drivetrain drivetrain;
 
@@ -45,6 +59,14 @@ public class TrajectoryManager extends SubsystemBase {
         BreakerInterpolatingTreeMap<Double, BreakerVector2> map = new BreakerInterpolatingTreeMap<>();
         for (ShootEntry e : SHOOT_LOOKUP_TABLE) {
             map.put(e.distanceM(), new BreakerVector2(e.hoodRot(), e.flywheelSpeed()));
+        }
+        return map;
+    }
+
+    private static BreakerInterpolatingTreeMap<Double, BreakerInterpolableDouble> buildHeadingGtsLookup() {
+        BreakerInterpolatingTreeMap<Double, BreakerInterpolableDouble> map = new BreakerInterpolatingTreeMap<>();
+        for (HeadingGtsEntry e : HEADING_GTS_LOOKUP_TABLE) {
+            map.put(e.distanceM(), new BreakerInterpolableDouble(e.headingTolerancePercent()));
         }
         return map;
     }
@@ -133,27 +155,8 @@ public class TrajectoryManager extends SubsystemBase {
    }
 
 
-   // We should change this to use BreakerLib 
    private static double headingTolerancePercentForDistance(double dMeters) {
-       if (dMeters <= 1.0) {
-           return 5.0;
-       }
-       if (dMeters <= 1.5) {
-           return MathUtil.interpolate(5.0, 4.0, (dMeters - 1.0) / 0.5);
-       }
-       if (dMeters <= 2.0) {
-           return MathUtil.interpolate(4.0, 3.5, (dMeters - 1.5) / 0.5);
-       }
-       if (dMeters <= 2.5) {
-           return MathUtil.interpolate(3.5, 3.0, (dMeters - 2.0) / 0.5);
-       }
-       if (dMeters <= 3.0) {
-           return MathUtil.interpolate(3.0, 2.5, (dMeters - 2.5) / 0.5);
-       }
-       if (dMeters <= 4.0) {
-           return MathUtil.interpolate(2.5, 2.0, (dMeters - 3.0) / 1.0);
-       }
-       return 2.0;
+       return headingGtsLookup.getInterpolatedValue(dMeters).getValue();
    }
 
 
