@@ -349,9 +349,9 @@ public class RobotContainer {
         Command waitUntilHoodPositioned = Commands.waitUntil(() -> {
             double distance = drivetrain.getRobotToPointTranslation(
                     Constants.FieldConstants.getTargetForPose(drivetrain.getLocalizer().getPose())).getNorm();
-            double hoodTarget = TrajectoryManager.getHoodPositionForDistance(distance);
-            return hood.isHoodWithinToleranceOf(hoodTarget);
-        }).withTimeout(1.0);
+            //double hoodTarget = TrajectoryManager.getHoodPositionForDistance(distance);
+            return TrajectoryManager.isHoodPositionGoodToShoot(hood.getHoodEncoderRotations(), distance);
+        }).withTimeout(0.75);
         return Commands.parallel(
                 aimContinuouslyCommand(false),
                 Commands.sequence(waitUntilHoodPositioned, shootForTeleopCommand(false)));
@@ -409,8 +409,9 @@ public class RobotContainer {
                         hopper.setState(Hopper.State.FEEDING);
                     } else {
                         Translation2d target = Constants.FieldConstants.getTargetForPose(drivetrain.getLocalizer().getPose());
+                        double distanceToTarget = drivetrain.getRobotToPointTranslation(target).getNorm();
                         double angleErrorRad = Math.abs(vision.getAngleToTarget(target));
-                        if (angleErrorRad <= Constants.ShooterConstants.FEED_PAUSE_ANGLE_THRESHOLD_RAD) {
+                        if (TrajectoryManager.isHeadingGoodToShoot(angleErrorRad, distanceToTarget)) {
                             hopper.setState(Hopper.State.FEEDING);
                         } else {
                             hopper.setState(Hopper.State.INACTIVE);
@@ -537,6 +538,13 @@ public class RobotContainer {
         BreakerLog.log("Aim/HoodPositionRot", hood.getHoodEncoderRotations(), true);
         BreakerLog.log("Aim/FlywheelTargetRps", trajectoryManager.getFlywheelSpeedForDistance(), true);
         BreakerLog.log("Aim/HeadingErrorDeg", Math.toDegrees(vision.getAngleToTarget(aimTarget)), true);
+
+        BreakerLog.log("Aim/HeadingGoodToShoot",
+               TrajectoryManager.isHeadingGoodToShoot(Math.abs(vision.getAngleToTarget(aimTarget)), aimDistanceM),
+               true);
+       BreakerLog.log("Aim/HoodPositionGoodToShoot",
+               TrajectoryManager.isHoodPositionGoodToShoot(hood.getHoodEncoderRotations(), aimDistanceM),
+               true);
 
         MatchTimer.update();
     }

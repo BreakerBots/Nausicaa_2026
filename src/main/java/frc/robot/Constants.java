@@ -287,15 +287,15 @@ public final class Constants {
         
 
         //Motion Magic
-         public static final double PIVOT_MM_CRUISE_VELOCITY = 1.0; // 1.0
-         public static final double PIVOT_MM_ACCELERATION = 2.0; // 2.0
-         public static final double PIVOT_MM_JERK = 10; // 10
+        public static final double PIVOT_MM_CRUISE_VELOCITY = 1.0; // 1.0
+        public static final double PIVOT_MM_ACCELERATION = 2.0; // 2.0
+        public static final double PIVOT_MM_JERK = 10; // 10
 
         // Feedforward
-         public static final double PIVOT_kS = 0.08;
-         public static final double PIVOT_kG = 0.00;
-         public static final double PIVOT_kV = 0.12;
-         public static final double PIVOT_kA = 0.01;
+        public static final double PIVOT_kS = 0.08;
+        public static final double PIVOT_kG = 0.00;
+        public static final double PIVOT_kV = 0.12;
+        public static final double PIVOT_kA = 0.01;
 
          // PID
         public static final double PIVOT_kP = 2.0;
@@ -311,7 +311,7 @@ public final class Constants {
 
         public static final double SPEED_IDLE = 0;
         public static final double SPEED_EXTAKE = 0.5;
-        public static final double SPEED_INTAKE = -0.7;
+        public static final double SPEED_INTAKE = -0.6;
         public static final double SPEED_FEED_JIGGLE = -0.2;
 
         // Feedforward 
@@ -357,7 +357,7 @@ public final class Constants {
         public static final double SPEED_FLYWHEEL_ACTIVE = 58.0; // Was 68
 
         public static final double FLYWHEEL_SPEED_TOLERANCE = 0.05; // Within 5% of target speed
-        public static final double FEED_PAUSE_ANGLE_THRESHOLD_RAD = Math.toRadians(2.5); // Within 2.5 degrees of target heading
+        //public static final double FEED_PAUSE_ANGLE_THRESHOLD_RAD = Math.toRadians(2.5); // Within 2.5 degrees of target heading
 
         /** Valid distance range (m) for TrajectoryManager lookup; outside this falls back to SPEED_FLYWHEEL_ACTIVE. */
         public static final double SHOOTER_RANGE_MIN = 0.25;
@@ -397,8 +397,11 @@ public final class Constants {
         public static final double POSITION_HOOD_LATCH = 0.3; // Not used right now
         public static final double POSITION_HOOD_TEST = 0.03;
        
-        /** Deadband (rotations) for hood tracking; prevents oscillation when near target. */
-        public static final double HOOD_TRACKING_TOLERANCE_ROTATIONS = 0.005;
+        // Keep push hood until we're within this tolerance
+        public static final double HOOD_TARGET_TOLERANCE_ROTATIONS = 0.005;
+
+        // We can start shooting once we reach this tolerance
+        public static final double HOOD_GTS_TOLERANCE_ROTATIONS = 0.01;
 
         /**
          * Max time to hold the start of the shoot sequence while waiting for hood to reach trajectory
@@ -413,13 +416,13 @@ public final class Constants {
         public static final double HOOD_MM_JERK = 5.0;
 
         // Feedforward
-        public static final double HOOD_kS = 0.0;
-        public static final double HOOD_kG = 0.0;
-        public static final double HOOD_kV = 0.0;
-        public static final double HOOD_kA = 0.0;
+        public static final double HOOD_kS = 0.08;
+        public static final double HOOD_kG = 0.00;
+        public static final double HOOD_kV = 0.12;
+        public static final double HOOD_kA = 0.01;
 
         // PID
-        public static final double HOOD_kP = 2.0;
+        public static final double HOOD_kP = 2.4;
         public static final double HOOD_kI = 0.0;
         public static final double HOOD_kD = 0.0;
 

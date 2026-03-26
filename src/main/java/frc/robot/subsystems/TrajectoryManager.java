@@ -119,4 +119,52 @@ public class TrajectoryManager extends SubsystemBase {
         return result;
     }
     
+   /**
+    * True if hood encoder is within tolerance of the
+    * trajectory hood setpoint for this distance (after clamping target to mechanical limits).
+    */
+   public static boolean isHoodPositionGoodToShoot(double currentHoodRotations, double distanceToTargetMeters) {
+       double target = getHoodPositionForDistance(distanceToTargetMeters);
+       double clamped = MathUtil.clamp(target,
+               Constants.ShooterConstants.POSITION_HOOD_MIN,
+               Constants.ShooterConstants.POSITION_HOOD_MAX);
+       return Math.abs(currentHoodRotations - clamped)
+               <= Constants.ShooterConstants.HOOD_GTS_TOLERANCE_ROTATIONS;
+   }
+
+
+   // We should change this to use BreakerLib 
+   private static double headingTolerancePercentForDistance(double dMeters) {
+       if (dMeters <= 1.0) {
+           return 5.0;
+       }
+       if (dMeters <= 1.5) {
+           return MathUtil.interpolate(5.0, 4.0, (dMeters - 1.0) / 0.5);
+       }
+       if (dMeters <= 2.0) {
+           return MathUtil.interpolate(4.0, 3.5, (dMeters - 1.5) / 0.5);
+       }
+       if (dMeters <= 2.5) {
+           return MathUtil.interpolate(3.5, 3.0, (dMeters - 2.0) / 0.5);
+       }
+       if (dMeters <= 3.0) {
+           return MathUtil.interpolate(3.0, 2.5, (dMeters - 2.5) / 0.5);
+       }
+       if (dMeters <= 4.0) {
+           return MathUtil.interpolate(2.5, 2.0, (dMeters - 3.0) / 1.0);
+       }
+       return 2.0;
+   }
+
+
+   /**
+    * True when {@code |angleToTarget|} is within a distance-dependent cap. Tolerance is {@code (percent/100)·π} rad
+    * where {@code percent} is interpolated from the table (5% at ≤1 m down to 2% at ≥4 m).
+    */
+   public static boolean isHeadingGoodToShoot(double absAngleErrorRad, double distanceToTargetMeters) {
+       double p = headingTolerancePercentForDistance(distanceToTargetMeters);
+       double maxErrRad = (p / 100.0) * Math.PI;
+       return absAngleErrorRad <= maxErrRad;
+   }
+
 }

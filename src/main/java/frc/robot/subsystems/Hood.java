@@ -54,9 +54,9 @@ public class Hood extends SubsystemBase {
             slot0.kG = Constants.ShooterConstants.HOOD_kG;
             slot0.kV = Constants.ShooterConstants.HOOD_kV;
             slot0.kA = Constants.ShooterConstants.HOOD_kA;
-            slot0.kP = Constants.ShooterConstants.HOOD_kP;
-            slot0.kI = Constants.ShooterConstants.HOOD_kI;
-            slot0.kD = Constants.ShooterConstants.HOOD_kD;
+            slot0.kP = -Constants.ShooterConstants.HOOD_kP;
+            slot0.kI = -Constants.ShooterConstants.HOOD_kI;
+            slot0.kD = -Constants.ShooterConstants.HOOD_kD;
         }
         
         hoodMotor.getConfigurator().apply(hoodConfig);
@@ -65,15 +65,6 @@ public class Hood extends SubsystemBase {
     /** Current hood encoder position in rotations (cumulative). */
     public double getHoodEncoderRotations() {
         return hoodEncoder.getPosition().getValueAsDouble();
-    }
-
-    /** True if encoder is within {@link Constants.ShooterConstants#HOOD_TRACKING_TOLERANCE_ROTATIONS} of target (after clamping). */
-    public boolean isHoodWithinToleranceOf(double targetRotations) {
-        double clamped = MathUtil.clamp(targetRotations,
-                Constants.ShooterConstants.POSITION_HOOD_MIN,
-                Constants.ShooterConstants.POSITION_HOOD_MAX);
-        return Math.abs(getHoodEncoderRotations() - clamped)
-                <= Constants.ShooterConstants.HOOD_TRACKING_TOLERANCE_ROTATIONS;
     }
 
     public void runHoodUp() {
@@ -132,7 +123,7 @@ public class Hood extends SubsystemBase {
 
     // Old Version - Keep in case we need to revert
     // public Command positionHoodContinuouslyCommand(DoubleSupplier distanceSupplier) {
-    //     final double tolerance = Constants.ShooterConstants.HOOD_TRACKING_TOLERANCE_ROTATIONS;
+    //     final double tolerance = Constants.ShooterConstants.HOOD_TARGET_TOLERANCE_ROTATIONS;
     //     return Commands.run(() -> {
     //         double distance = distanceSupplier.getAsDouble();
     //         double hoodTarget = TrajectoryManager.getHoodPositionForDistance(distance);
@@ -153,7 +144,7 @@ public class Hood extends SubsystemBase {
         double clamped = MathUtil.clamp(targetRotations,
                 Constants.ShooterConstants.POSITION_HOOD_MIN,
                 Constants.ShooterConstants.POSITION_HOOD_MAX);
-        double tolerance = Constants.ShooterConstants.HOOD_TRACKING_TOLERANCE_ROTATIONS;
+        double tolerance = Constants.ShooterConstants.HOOD_TARGET_TOLERANCE_ROTATIONS;
         return Commands.run(() -> driveHoodToward(clamped), this)
                 .until(() -> Math.abs(getHoodEncoderRotations() - clamped) <= tolerance)
                 // On success, keep last closed-loop request (MM/P); only zero output if cancelled.
@@ -170,7 +161,7 @@ public class Hood extends SubsystemBase {
     //     double clamped = MathUtil.clamp(targetRotations,
     //             Constants.ShooterConstants.POSITION_HOOD_MIN,
     //             Constants.ShooterConstants.POSITION_HOOD_MAX);
-    //     double tolerance = Constants.ShooterConstants.HOOD_TRACKING_TOLERANCE_ROTATIONS;
+    //     double tolerance = Constants.ShooterConstants.HOOD_TARGET_TOLERANCE_ROTATIONS;
     //     double kP = Constants.ShooterConstants.HOOD_kP;
     //     return Commands.run(() -> {
     //         double error = clamped - getHoodEncoderRotations();
