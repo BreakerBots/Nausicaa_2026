@@ -354,7 +354,11 @@ public class RobotContainer {
         }).withTimeout(0.75);
         return Commands.parallel(
                 aimContinuouslyCommand(false),
-                Commands.sequence(waitUntilHoodPositioned, shootForTeleopCommand(false)));
+                Commands.sequence(waitUntilHoodPositioned, shootForTeleopCommand(false)))
+                .finallyDo((interrupted) -> {
+                    CommandScheduler.getInstance().schedule(
+                            hood.hoodToRotationsCommand(Constants.ShooterConstants.POSITION_HOOD_MIN));
+                });
                 //return Commands.parallel(aimContinuouslyCommand(false), shootForTeleopCommand(false));
     }
 
@@ -434,7 +438,7 @@ public class RobotContainer {
                         feedPhaseWithDuration)
                 .finallyDo((interrupted) -> {
                     hopper.setState(Hopper.State.INACTIVE);
-                    shooter.setState(Shooter.State.INACTIVE);
+                    shooter.setState(Shooter.State.SPINNING_UP);
                     intake.setState(Intake.State.EXTENDED_IDLE);
                     CommandScheduler.getInstance().schedule(
                             hood.hoodToRotationsCommand(Constants.ShooterConstants.POSITION_HOOD_MIN));
@@ -576,7 +580,7 @@ public class RobotContainer {
             intake.setState(Intake.State.STOWED);
         }    
         climb.setState(Climb.State.INACTIVE);
-        shooter.setState(Shooter.State.INACTIVE);
+        shooter.setState(Shooter.State.SPINNING_UP);
         hopper.setState(Hopper.State.INACTIVE);
         CommandScheduler.getInstance().schedule(hood.hoodToRotationsCommand(Constants.ShooterConstants.POSITION_HOOD_MIN));
     }

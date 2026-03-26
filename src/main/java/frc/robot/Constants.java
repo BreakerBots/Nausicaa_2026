@@ -351,10 +351,11 @@ public final class Constants {
         public static final int SHOOTER_FLYWHEEL_2_MOTOR_ID = 31;
         public static final int SHOOTER_FLYWHEEL_3_MOTOR_ID = 32;
         
-        public static final double ACCELERATION_FLYWHEEL = 200.0;
+        public static final double ACCELERATION_FLYWHEEL = 20.0; // 200.0
 
-        public static final double SPEED_IDLE = 52;
-        public static final double SPEED_FLYWHEEL_ACTIVE = 58.0; // Was 68
+        public static final double SPEED_IDLE = 0;
+        public static final double SPEED_FLYWHEEL_ACTIVE = 52.0; // Was 68
+
 
         public static final double FLYWHEEL_SPEED_TOLERANCE = 0.05; // Within 5% of target speed
         //public static final double FEED_PAUSE_ANGLE_THRESHOLD_RAD = Math.toRadians(2.5); // Within 2.5 degrees of target heading
