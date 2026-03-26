@@ -310,8 +310,8 @@ public final class Constants {
         // ---------- Roller ----------
 
         public static final double SPEED_IDLE = 0;
-        public static final double SPEED_EXTAKE = 0.5;
-        public static final double SPEED_INTAKE = -0.6;
+        public static final double SPEED_EXTAKE = 0.4;
+        public static final double SPEED_INTAKE = -0.52; // Allows for drivetrain speed of up to 2.4 m/s
         public static final double SPEED_FEED_JIGGLE = -0.2;
 
         // Feedforward 
@@ -326,16 +326,15 @@ public final class Constants {
         /** Used to adjust roller speed based on drivetrain velocity. */
         public static final double ROLLER_DIAMETER_METERS = 1.5 * 0.0254;
         public static final double ROLLER_CIRCUMFERENCE_METERS = ROLLER_DIAMETER_METERS * Math.PI;
-        public static final double ROLLER_GEAR_RATIO = 20 / 28;
+        /** Motor pinion : roller gear (teeth). Roller RPS = motor RPS × this ratio. */
+        public static final double ROLLER_GEAR_RATIO = 20.0 / 18.0;
         /** Motor (rotor) rev/s at 100% duty. Converts duty cycle to velocity for closed-loop control. */
-        public static final double ROLLER_MOTOR_RPS_AT_FULL_DUTY = 70.0; // TUNE THIS
+        public static final double ROLLER_MOTOR_RPS_AT_FULL_DUTY = 70.0; // Verified via Phoenix Tuner
         // Kraken x60 at full duty = 100 rev/s
-        public static final double ROLLER_REV_PER_SEC_AT_FULL_DUTY = ROLLER_MOTOR_RPS_AT_FULL_DUTY * ROLLER_GEAR_RATIO; 
-        // At 100% duty cycle, our max drivetrain speed is 3.0 m/s
-        // At 70% (current default), our max speed is 2.1 m/s
-        //
-        // 0.7 duty = 0.7 * 20/28 * 70 = 35 roller rev/s
-        // 35 * 0.12 (roller circum in m) / 2 (needed rotations) = 2.1 m/s 
+        public static final double ROLLER_REV_PER_SEC_AT_FULL_DUTY = ROLLER_MOTOR_RPS_AT_FULL_DUTY * ROLLER_GEAR_RATIO;
+        // Static intake (SPEED_INTAKE): |duty| × ROLLER_REV_PER_SEC_AT_FULL_DUTY = roller rev/s.
+        // 2 rev per roller circumference while driving: v_max ≈ rollerRps × C / 2.
+        // Example: |0.52| duty → ~40 roller rev/s; meets 2 rev per C at ~2.4 m/s forward (see intake tuning).
         
         /** Stator current limit (A) for roller */
         public static final int ROLLER_STATOR_CURRENT_LIMIT = 80;

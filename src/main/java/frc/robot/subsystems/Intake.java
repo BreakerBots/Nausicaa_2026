@@ -210,7 +210,7 @@ public class Intake extends SubsystemBase {
      * Computes roller speed for the given state. For intaking states (EXTENDED_INTAKING, STOW_INTAKING),
      * scales up with drivetrain forward velocity: roller does 2 rev in the time drivetrain travels
      * one roller circumference. Minimum is the state's base speed (never slower).
-     * NOTE: Given our default roller speed of 0.7, we won't see this change unless we're moving close to 4mps
+     * NOTE: With SPEED_INTAKE magnitude 0.52 and current gear ratio, scaling matters mainly above ~2.4 m/s forward.
      */
     private double computeRollerSpeedForState(State state) {
         // Are we're using a static speed?
