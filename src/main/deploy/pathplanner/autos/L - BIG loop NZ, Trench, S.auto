@@ -13,25 +13,7 @@
         {
           "type": "path",
           "data": {
-            "pathName": "L - NZ, Bump, S"
-          }
-        },
-        {
-          "type": "named",
-          "data": {
-            "name": "aim"
-          }
-        },
-        {
-          "type": "named",
-          "data": {
-            "name": "shoot"
-          }
-        },
-        {
-          "type": "path",
-          "data": {
-            "pathName": "L - Depot, S v1"
+            "pathName": "L - BIG loop NZ, Trench, S"
           }
         },
         {
@@ -50,6 +32,6 @@
     }
   },
   "resetOdom": true,
-  "folder": "NZ + Alliance",
+  "folder": "Sincere NZ",
   "choreoAuto": false
 }
