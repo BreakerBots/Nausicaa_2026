@@ -11,6 +11,12 @@
           }
         },
         {
+          "type": "named",
+          "data": {
+            "name": "intake"
+          }
+        },
+        {
           "type": "path",
           "data": {
             "pathName": "R - BIG loop NZ, Trench, S"

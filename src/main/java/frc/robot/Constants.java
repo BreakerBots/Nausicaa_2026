@@ -353,7 +353,7 @@ public final class Constants {
         public static final double ACCELERATION_FLYWHEEL = 20.0; // 200.0
 
         public static final double SPEED_IDLE = 0;
-        public static final double SPEED_FLYWHEEL_ACTIVE = 52.0; // Was 68
+        public static final double SPEED_FLYWHEEL_ACTIVE = 54.0; // Was 68
 
 
         public static final double FLYWHEEL_SPEED_TOLERANCE = 0.05; // Within 5% of target speed

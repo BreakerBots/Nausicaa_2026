@@ -83,7 +83,7 @@ public class RobotContainer {
         NamedCommands.registerCommand("intake", Commands.defer(() -> intake.setStateCommand(Intake.State.EXTENDED_INTAKING), Set.of(intake)));
         NamedCommands.registerCommand("intakeExtendedIdle", Commands.defer(() -> intake.setStateCommand(Intake.State.EXTENDED_IDLE), Set.of(intake)));
         NamedCommands.registerCommand("stopIntake", Commands.defer(() -> intake.setStateCommand(Intake.State.EXTENDED_IDLE), Set.of(intake)));
-        NamedCommands.registerCommand("wait4Seconds", Commands.waitSeconds(4.0));
+        NamedCommands.registerCommand("wait1Seconds", Commands.waitSeconds(1.0));
         NamedCommands.registerCommand("hoodDown", Commands.defer(() ->
                 hood.hoodToRotationsCommand(Constants.ShooterConstants.POSITION_HOOD_MIN).withTimeout(0.8), Set.of(hood)));
         NamedCommands.registerCommand("unclog", Commands.defer(() -> unclogCommand().withTimeout(3.0), Set.of(hopper, intake)));
