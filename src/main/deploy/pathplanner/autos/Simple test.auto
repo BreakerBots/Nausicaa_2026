@@ -1,0 +1,25 @@
+{
+  "version": "2025.0",
+  "command": {
+    "type": "sequential",
+    "data": {
+      "commands": [
+        {
+          "type": "path",
+          "data": {
+            "pathName": "Simple (1)"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "Simple (2)"
+          }
+        }
+      ]
+    }
+  },
+  "resetOdom": true,
+  "folder": "Lair testing",
+  "choreoAuto": false
+}
