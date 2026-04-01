@@ -366,7 +366,7 @@ public class RobotContainer {
     
     /** Auto shoot: feed phase runs for 6 seconds. Locks wheels for stability during shoot. */
     private Command shootForAutoCommand() {
-        return shootSequenceCommand(6.0);
+        return shootSequenceCommand(4.0);
     }
 
     /** PathPlanner: aim then auto-shoot as one named command (see aimAndShoot registration). */
@@ -453,14 +453,15 @@ public class RobotContainer {
 
         // AUTO: hood in-sequence so the next path step can run after aim → shoot.
         if (feedTimeoutSeconds != null) {
-            return Commands.sequence(spinUpAndFeed, hood.downCommand())
+            Command hoodDown = hood.downCommand().withTimeout(0.5);
+            return Commands.sequence(spinUpAndFeed, hoodDown)
                     .finallyDo((interrupted) -> {
                         hopper.setState(Hopper.State.INACTIVE);
                         shooter.setState(Shooter.State.SPINNING_UP);
                         intake.setState(Intake.State.EXTENDED_IDLE);
                         if (interrupted) {
                             CommandScheduler.getInstance().schedule(
-                        hood.downCommand().withTimeout(0.75));
+                        hoodDown);
                 }
             });
         
