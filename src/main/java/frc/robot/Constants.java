@@ -311,7 +311,7 @@ public final class Constants {
 
         public static final double SPEED_IDLE = 0;
         public static final double SPEED_EXTAKE = 0.4;
-        public static final double SPEED_INTAKE = -0.8; 
+        public static final double SPEED_INTAKE = -0.9; 
         public static final double SPEED_FEED_JIGGLE = -0.2;
 
         // Feedforward 

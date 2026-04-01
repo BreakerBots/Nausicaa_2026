@@ -3,12 +3,12 @@
   "waypoints": [
     {
       "anchor": {
-        "x": -3.0,
+        "x": 0.0,
         "y": 4.028530670470756
       },
       "prevControl": null,
       "nextControl": {
-        "x": -2.0,
+        "x": 1.0,
         "y": 4.028530670470756
       },
       "isLocked": false,
@@ -16,12 +16,12 @@
     },
     {
       "anchor": {
-        "x": 3.0,
+        "x": 2.5,
         "y": 4.029
       },
       "prevControl": {
-        "x": 3.2487868365136308,
-        "y": 4.004401016737672
+        "x": 2.2499999999999996,
+        "y": 4.029
       },
       "nextControl": null,
       "isLocked": false,
@@ -42,13 +42,13 @@
   },
   "goalEndState": {
     "velocity": 0,
-    "rotation": 180.0
+    "rotation": 0.0
   },
   "reversed": false,
   "folder": "Lair testing",
   "idealStartingState": {
     "velocity": 0.0,
-    "rotation": 180.0
+    "rotation": 0.0
   },
   "useDefaultConstraints": true
 }
