@@ -602,7 +602,7 @@ public final class Constants {
 
         // Theoretical free speed (m/s) at 12v applied output;
         // TUNING: This needs to be tuned to your individual robot
-        public static final LinearVelocity kSpeedAt12Volts = Units.MetersPerSecond.of(0.0);
+        public static final LinearVelocity kSpeedAt12Volts = Units.MetersPerSecond.of(4.5);
 
         // Every 1 rotation of the azimuth results in kCoupleRatio drive motor turns;
         private static final double kCoupleRatio = 3.125;
