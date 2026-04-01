@@ -80,7 +80,8 @@ public class RobotContainer {
         NamedCommands.registerCommand("spinUp", Commands.defer(() -> shooter.setStateCommand(Shooter.State.SPINNING_UP), Set.of(shooter)));
         NamedCommands.registerCommand("aim", Commands.defer(() -> aimCommand(), Set.of(drivetrain, hood)));
         NamedCommands.registerCommand("shoot", Commands.defer(() -> shootForAutoCommand(), Set.of(shooter, hopper, intake, hood)));
-        NamedCommands.registerCommand("intake", Commands.defer(() -> intake.setStateCommand(Intake.State.EXTENDED_INTAKING), Set.of(intake)));
+        NamedCommands.registerCommand("intake", Commands.defer(() -> intake.intakeUntilCancelledCommand(), Set.of(intake)));
+        //NamedCommands.registerCommand("intake", Commands.defer(() -> intake.setStateCommand(Intake.State.EXTENDED_INTAKING), Set.of(intake)));
         NamedCommands.registerCommand("intakeExtendedIdle", Commands.defer(() -> intake.setStateCommand(Intake.State.EXTENDED_IDLE), Set.of(intake)));
         NamedCommands.registerCommand("stopIntake", Commands.defer(() -> intake.setStateCommand(Intake.State.EXTENDED_IDLE), Set.of(intake)));
         NamedCommands.registerCommand("wait1Seconds", Commands.waitSeconds(1.0));

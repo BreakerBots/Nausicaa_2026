@@ -171,7 +171,14 @@ public class Intake extends SubsystemBase {
     //     pivotMotor.setControl(new DutyCycleOut(dutyCycle));
     // }
 
-    
+    public Command intakeUntilCancelledCommand() {
+        return Commands.startEnd(
+            () -> setState(State.EXTENDED_INTAKING),
+            () -> setState(State.EXTENDED_IDLE),
+            this);
+    }
+
+
     @Override
     public void periodic() {
 
