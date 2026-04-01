@@ -182,6 +182,7 @@ public class Intake extends SubsystemBase {
         BreakerLog.log("Intake/RollerSpeedTargetDuty", lastCommandedRollerSpeedDuty, true); // Target duty cycle (-1 to 1)
         BreakerLog.log("Intake/RollerSpeedTargetRps", lastCommandedRollerSpeedRps, true); // Target velocity (rotations per second)
         BreakerLog.log("Intake/PivotTargetPosition", state.getRotation2d().getRotations(), true); // Setpoint, not from the encoder.
+        BreakerLog.log("Intake/PivotEncoderAbsolutePosition", pivotEncoder.getAbsolutePosition().getValueAsDouble(), true);
         BreakerLog.log("Intake/PivotEncoderAbsolutePosition", pivotEncoder.getAbsolutePosition().getValueAsDouble(), true); // CANcoder absolute position (magnet angle)
         BreakerLog.log("Intake/PivotEncoderPosition", this.getPivotPositionRotations(), true); // The one we actually use, compare to the Motion Magic target.
         if (BreakerLog.isVerboseLogging()) {

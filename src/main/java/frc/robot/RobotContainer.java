@@ -4,6 +4,7 @@
 
 package frc.robot;
 
+import com.ctre.phoenix6.swerve.SwerveRequest;
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.auto.NamedCommands;
 
@@ -82,9 +83,9 @@ public class RobotContainer {
         NamedCommands.registerCommand("intake", Commands.defer(() -> intake.setStateCommand(Intake.State.EXTENDED_INTAKING), Set.of(intake)));
         NamedCommands.registerCommand("intakeExtendedIdle", Commands.defer(() -> intake.setStateCommand(Intake.State.EXTENDED_IDLE), Set.of(intake)));
         NamedCommands.registerCommand("stopIntake", Commands.defer(() -> intake.setStateCommand(Intake.State.EXTENDED_IDLE), Set.of(intake)));
-        NamedCommands.registerCommand("wait4Seconds", Commands.waitSeconds(4.0));
+        NamedCommands.registerCommand("wait1Seconds", Commands.waitSeconds(1.0));
         NamedCommands.registerCommand("hoodDown", Commands.defer(() ->
-                hood.hoodToRotationsCommand(Constants.ShooterConstants.POSITION_HOOD_MIN), Set.of(hood)));
+                hood.hoodToRotationsCommand(Constants.ShooterConstants.POSITION_HOOD_MIN).withTimeout(0.8), Set.of(hood)));
         NamedCommands.registerCommand("unclog", Commands.defer(() -> unclogCommand().withTimeout(3.0), Set.of(hopper, intake)));
 
         // Set up our auto-chooser    
@@ -215,7 +216,7 @@ public class RobotContainer {
         // ----------------- BUTTONS -------------
 
         // A --> Just Aim
-        controller.getButtonA().onTrue(aimCommand());
+        //controller.getButtonA().onTrue(aimCommand());
         
         // B --> Just Shoot
         controller.getButtonB().onTrue(shootForTeleopCommand(false));
@@ -224,7 +225,7 @@ public class RobotContainer {
         //controller.getButtonX().onTrue(shooter.hoodToRotationsCommand(Constants.ShooterConstants.POSITION_HOOD_LATCH));
         controller.getButtonX().onTrue(intake.setStateCommand(Intake.State.STOWED));
 
-        // Y --> Unclog: run feeder, indexer, and intake in reverse at 20% speed (while held)
+        // Y --> E: run feeder, indexer, and intake in reverse at 20% speed (while held)
         controller.getButtonY().whileTrue(unclogCommand());
 
 
@@ -234,7 +235,7 @@ public class RobotContainer {
         //controller.getButtonY().onTrue(hood.hoodToRotationsCommand(Constants.ShooterConstants.POSITION_HOOD_TEST));
 
         // A --> Hood all the way down
-        //controller.getButtonA().onTrue(hood.hoodToRotationsCommand(Constants.ShooterConstants.POSITION_HOOD_MIN));
+        controller.getButtonA().onTrue(hood.hoodToRotationsCommand(Constants.ShooterConstants.POSITION_HOOD_LATCH));
         
 
         // ----------------- DPAD-------------
@@ -249,7 +250,9 @@ public class RobotContainer {
 
 
         // D-PAD UP --> Run climb up (while held)
-        controller.getDPad().getUp().whileTrue(climb.runUp());
+        // controller.getDPad().getUp().whileTrue(climb.runUp());
+
+        controller.getDPad().getUp().onTrue(hood.hoodToRotationsCommand(Constants.ShooterConstants.POSITION_HOOD_LATCH));
 
         // D-PAD DOWN --> Run climb down (while held)
         controller.getDPad().getDown().whileTrue(climb.runDown());
@@ -365,7 +368,7 @@ public class RobotContainer {
     
     /** Auto shoot: feed phase runs for 6 seconds. Locks wheels for stability during shoot. */
     private Command shootForAutoCommand() {
-        return shootSequenceCommand(4.0);
+        return shootSequenceCommand(6.0);
     }
 
     /** Teleop shoot: feed phase runs until trigger released. */
@@ -562,17 +565,21 @@ public class RobotContainer {
     /** Called once when the robot enters autonomous. */
     public void autonomousInit() {
 
-        intake.setState(Intake.State.STOWED);
-        //climb.setState(Climb.State.INACTIVE);
-        shooter.setState(Shooter.State.INACTIVE);
-        hopper.setState(Hopper.State.INACTIVE);
-        CommandScheduler.getInstance().schedule(
-                hood.hoodToRotationsCommand(Constants.ShooterConstants.POSITION_HOOD_MIN));
+        CommandScheduler.getInstance().schedule(hood.hoodToRotationsCommand(Constants.ShooterConstants.POSITION_HOOD_MIN));
+         intake.setState(Intake.State.STOWED);
+        // //climb.setState(Climb.State.INACTIVE);
+         shooter.setState(Shooter.State.INACTIVE);
+        // hopper.setState(Hopper.State.INACTIVE);
+
+        // drivetrain.setDefaultCommand(
+        //     Commands.run(() -> drivetrain.setControl(new SwerveRequest.Idle()), drivetrain));
     }                           
 
     /** Called once when the robot enters teleop. */
     public void teleopInit() {
         
+        //drivetrain.setDefaultCommand(drivetrain.getTeleopControlCommand(driverX, driverY, driverOmega, Constants.DriveConstants.TELEOP_CONTROL_CONFIG));
+
         //intake.setState(Intake.State.EXTENDED_IDLE);
         if (intake.state != Intake.State.STOWED) {
             intake.setState(Intake.State.EXTENDED_IDLE);

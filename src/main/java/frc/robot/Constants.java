@@ -279,7 +279,7 @@ public final class Constants {
          * 0.5 is safe for an arm that rotates less than 180 degrees. */
         public static final double PIVOT_ENCODER_DISCONTINUITY = 0.5;
 
-        public static final Rotation2d POSITION_STOWED = Rotation2d.fromRotations(0.01);  //-0.025
+        public static final Rotation2d POSITION_STOWED = Rotation2d.fromRotations(-0.005);  //-0.025
         public static final Rotation2d POSITION_EXTENDED = Rotation2d.fromRotations(-0.28); // Need to Tune
         public static final Rotation2d POSITION_JIGGLE_LOW = Rotation2d.fromRotations(-0.27);
         public static final Rotation2d POSITION_JIGGLE_HIGH = Rotation2d.fromRotations(-0.15);
@@ -303,15 +303,15 @@ public final class Constants {
         public static final double PIVOT_kD = 0.08;
 
         /** Stator current limit (A) for pivot */
-        public static final int PIVOT_STATOR_CURRENT_LIMIT = 70;
-        public static final int PIVOT_SUPPLY_CURRENT_LIMIT = 60;
+        public static final int PIVOT_STATOR_CURRENT_LIMIT = 70; //70
+        public static final int PIVOT_SUPPLY_CURRENT_LIMIT = 60; //60
 
 
         // ---------- Roller ----------
 
         public static final double SPEED_IDLE = 0;
         public static final double SPEED_EXTAKE = 0.4;
-        public static final double SPEED_INTAKE = -0.52; // Allows for drivetrain speed of up to 2.4 m/s
+        public static final double SPEED_INTAKE = -0.8; 
         public static final double SPEED_FEED_JIGGLE = -0.2;
 
         // Feedforward 
@@ -327,7 +327,7 @@ public final class Constants {
         public static final double ROLLER_DIAMETER_METERS = 1.5 * 0.0254;
         public static final double ROLLER_CIRCUMFERENCE_METERS = ROLLER_DIAMETER_METERS * Math.PI;
         /** Motor pinion : roller gear (teeth). Roller RPS = motor RPS × this ratio. */
-        public static final double ROLLER_GEAR_RATIO = 20.0 / 18.0;
+        public static final double ROLLER_GEAR_RATIO = 20.0 / 28.0; // wAS 20 / 18
         /** Motor (rotor) rev/s at 100% duty. Converts duty cycle to velocity for closed-loop control. */
         public static final double ROLLER_MOTOR_RPS_AT_FULL_DUTY = 70.0; // Verified via Phoenix Tuner
         // Kraken x60 at full duty = 100 rev/s
@@ -353,7 +353,7 @@ public final class Constants {
         public static final double ACCELERATION_FLYWHEEL = 20.0; // 200.0
 
         public static final double SPEED_IDLE = 0;
-        public static final double SPEED_FLYWHEEL_ACTIVE = 52.0; // Was 68
+        public static final double SPEED_FLYWHEEL_ACTIVE = 54.0; // Was 68
 
 
         public static final double FLYWHEEL_SPEED_TOLERANCE = 0.05; // Within 5% of target speed
@@ -375,8 +375,8 @@ public final class Constants {
         /** Shooter center offset from robot center: 3" to the right. In robot frame +Y is left, so right = -Y. */
         public static final double SHOOTER_OFFSET_RIGHT_METERS = 4.0 * 0.0254;
 
-        public static final int FLYWHEEL_STATOR_CURRENT_LIMIT = 80; // 40
-        public static final int FLYWHEEL_SUPPLY_CURRENT_LIMIT = 50; // 25
+        public static final int FLYWHEEL_STATOR_CURRENT_LIMIT = 80; // 80, 40
+        public static final int FLYWHEEL_SUPPLY_CURRENT_LIMIT = 50; // 50, 25
 
 
         // --------------- HOOD --------------
@@ -384,17 +384,17 @@ public final class Constants {
         public static final int HOOD_MOTOR_ID = 33;
         public static final int HOOD_ENCODER_ID = 35;
 
-        public static final double HOOD_ENCODER_OFFSET_ROTATIONS = 0.011474609375; //0.423095703125 - Direct copy-paste from mag offsets
+        public static final double HOOD_ENCODER_OFFSET_ROTATIONS = 0.01123046875; //0.423095703125 - Direct copy-paste from mag offsets
         /** Choose a value safely beyond the mechanism's travel */
         public static final double HOOD_ENCODER_DISCONTINUITY = 0.5;
 
         public static final double SPEED_HOOD_UP = -0.2;
-        public static final double SPEED_HOOD_DOWN = 0.3;
+        public static final double SPEED_HOOD_DOWN = 0.4;
         public static final double AUTO_SPEED_HOOD_DOWN = -0.3;
         
-        public static final double POSITION_HOOD_MIN = -0.001221; //-0.002197
+        public static final double POSITION_HOOD_MIN = 0.000; //-0.002197
         public static final double POSITION_HOOD_MAX = 0.473389; //0.477295
-        public static final double POSITION_HOOD_LATCH = 0.3; // Not used right now
+        public static final double POSITION_HOOD_LATCH = 0.101318; // Not used right now
         public static final double POSITION_HOOD_TEST = 0.03;
        
         // Keep push hood until we're within this tolerance
@@ -442,10 +442,10 @@ public final class Constants {
         public static final double SPEED_UNCLOG_INDEXER = -0.1;
         public static final double SPEED_UNCLOG_FEEDER = -0.12;
 
-        public static final int INDEXER_STATOR_CURRENT_LIMIT = 90;
-        public static final int INDEXER_SUPPLY_CURRENT_LIMIT = 70;
-        public static final int FEEDER_STATOR_CURRENT_LIMIT = 90;
-        public static final int FEEDER_SUPPLY_CURRENT_LIMIT = 70;
+        public static final int INDEXER_STATOR_CURRENT_LIMIT = 90; //90
+        public static final int INDEXER_SUPPLY_CURRENT_LIMIT = 70; //70
+        public static final int FEEDER_STATOR_CURRENT_LIMIT = 90; //90
+        public static final int FEEDER_SUPPLY_CURRENT_LIMIT = 70; //70
     }
 
     // --------------- CLIMB --------------
@@ -509,7 +509,7 @@ public final class Constants {
         /** ROBOT-LEVEL MAXIMUM SPEEDS - How fast can the robot drive and rotate (currently reduced for testing)
          * Translational = forward/backward and left/right movement (X and Y on the field)
          * Rotational = spinning in place (turning) */
-        public static final LinearVelocity MAXIMUM_TRANSLATIONAL_VELOCITY = Units.MetersPerSecond.of(2.8);
+        public static final LinearVelocity MAXIMUM_TRANSLATIONAL_VELOCITY = Units.MetersPerSecond.of(2.4);
         public static final LinearVelocity ALIGN_MODE_MAXIMUM_TRANSLATIONAL_VELOCITY = Units.MetersPerSecond.of(0.4);
         public static final AngularVelocity MAXIMUM_ROTATIONAL_VELOCITY = Units.RadiansPerSecond.of(5.0);
         public static final AngularVelocity ALIGN_MODE_MAXIMUM_ROTATIONAL_VELOCITY = Units.RadiansPerSecond.of(0.8);
@@ -577,10 +577,10 @@ public final class Constants {
         // Neutral mode = what happens when motor receives 0% power (Brake = stops, Coast = free-spins)
 
         // Current limits = adjust if motors brown out (lower) or need more power (higher)
-        private static final int DRIVE_STATOR_CURRENT_LIMIT = 90;
-        private static final int DRIVE_SUPPLY_CURRENT_LIMIT = 80;
-        private static final int STEER_STATOR_CURRENT_LIMIT = 60;
-        private static final int STEER_SUPPLY_CURRENT_LIMIT = 50;
+        private static final int DRIVE_STATOR_CURRENT_LIMIT = 90; //90
+        private static final int DRIVE_SUPPLY_CURRENT_LIMIT = 80; //80
+        private static final int STEER_STATOR_CURRENT_LIMIT = 60; //60
+        private static final int STEER_SUPPLY_CURRENT_LIMIT = 50; //60
         
         private static final TalonFXConfiguration driveInitialConfigs = new TalonFXConfiguration()
             .withMotorOutput(new MotorOutputConfigs().withNeutralMode(NeutralModeValue.Brake))

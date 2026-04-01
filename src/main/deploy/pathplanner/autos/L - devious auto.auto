@@ -5,6 +5,12 @@
     "data": {
       "commands": [
         {
+          "type": "named",
+          "data": {
+            "name": "hoodDown"
+          }
+        },
+        {
           "type": "path",
           "data": {
             "pathName": "L - (1) NZ, Trench, S"
