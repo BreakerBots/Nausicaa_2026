@@ -156,6 +156,10 @@ public class Hood extends SubsystemBase {
                 //.finallyDo(this::stopHood);
     }
 
+    public Command downCommand() {
+        return hoodToRotationsCommand(Constants.ShooterConstants.POSITION_HOOD_MIN);
+    }
+
     // Old Version - Keep in case we need to revert
     // public Command hoodToRotationsCommand(double targetRotations) {
     //     double clamped = MathUtil.clamp(targetRotations,

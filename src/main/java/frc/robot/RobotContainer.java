@@ -78,17 +78,13 @@ public class RobotContainer {
         NamedCommands.registerCommand("enterSlowMode", Commands.defer(() -> Commands.runOnce(() -> slowMode = !slowMode), Set.of(drivetrain)));
         NamedCommands.registerCommand("wait", Commands.waitSeconds(1.0));
         NamedCommands.registerCommand("spinUp", Commands.defer(() -> shooter.setStateCommand(Shooter.State.SPINNING_UP), Set.of(shooter)));
-        NamedCommands.registerCommand("aim", aimCommand());
-        NamedCommands.registerCommand("shoot", Commands.defer(() -> shootForAutoCommand(), Set.of(shooter, hopper, intake)));
-        // Single PathPlanner step avoids back-to-back wrapped named commands (aim + shoot) before a path.
-        NamedCommands.registerCommand("aimAndShoot",
-                Commands.defer(() -> aimThenShootForAutoCommand(), Set.of(drivetrain, hood, shooter, hopper, intake)));
+        NamedCommands.registerCommand("aim", Commands.defer(() -> aimCommand(), Set.of(drivetrain, hood)));
+        NamedCommands.registerCommand("shoot", Commands.defer(() -> shootForAutoCommand(), Set.of(shooter, hopper, intake, hood)));
         NamedCommands.registerCommand("intake", Commands.defer(() -> intake.setStateCommand(Intake.State.EXTENDED_INTAKING), Set.of(intake)));
         NamedCommands.registerCommand("intakeExtendedIdle", Commands.defer(() -> intake.setStateCommand(Intake.State.EXTENDED_IDLE), Set.of(intake)));
         NamedCommands.registerCommand("stopIntake", Commands.defer(() -> intake.setStateCommand(Intake.State.EXTENDED_IDLE), Set.of(intake)));
         NamedCommands.registerCommand("wait1Seconds", Commands.waitSeconds(1.0));
-        NamedCommands.registerCommand("hoodDown", Commands.defer(() ->
-                hood.hoodToRotationsCommand(Constants.ShooterConstants.POSITION_HOOD_MIN).withTimeout(0.8), Set.of(hood)));
+        NamedCommands.registerCommand("hoodDown", Commands.defer(() -> hood.downCommand().withTimeout(0.8), Set.of(hood)));
         NamedCommands.registerCommand("unclog", Commands.defer(() -> unclogCommand().withTimeout(3.0), Set.of(hopper, intake)));
 
         // Set up our auto-chooser    
@@ -362,8 +358,7 @@ public class RobotContainer {
                 aimContinuouslyCommand(false),
                 Commands.sequence(waitUntilHoodPositioned, shootForTeleopCommand(false)))
                 .finallyDo((interrupted) -> {
-                    CommandScheduler.getInstance().schedule(
-                            hood.hoodToRotationsCommand(Constants.ShooterConstants.POSITION_HOOD_MIN));
+                    CommandScheduler.getInstance().schedule(hood.downCommand());
                 });
                 //return Commands.parallel(aimContinuouslyCommand(false), shootForTeleopCommand(false));
     }
@@ -401,66 +396,87 @@ public class RobotContainer {
 
     private Command shootSequenceCommand(Double feedTimeoutSeconds, boolean ignoreAimError) {
 
-        Command jiggleSequence = Commands.sequence(
-            Commands.waitSeconds(1.0),
-            Commands.sequence(
-                    Commands.runOnce(() -> intake.setState(Intake.State.FEED_JIGGLE_LOW)),
-                    Commands.waitSeconds(0.3),
-                    Commands.runOnce(() -> intake.setState(Intake.State.FEED_JIGGLE_HIGH)),
-                    Commands.waitSeconds(0.3))
-                    .repeatedly());
+        // The OG Jiggle
+        Command jiggle = Commands.sequence(
+                Commands.waitSeconds(1.0),
+                Commands.sequence(
+                        Commands.runOnce(() -> intake.setState(Intake.State.FEED_JIGGLE_LOW)),
+                        Commands.waitSeconds(0.3),
+                        Commands.runOnce(() -> intake.setState(Intake.State.FEED_JIGGLE_HIGH)),
+                        Commands.waitSeconds(0.3))
+                        .repeatedly());
 
-        Command jiggleSequenceProgressive = Commands.sequence(
-            Commands.waitSeconds(0.9),
-            Commands.sequence(
-                    Commands.runOnce(() -> intake.setState(Intake.State.FEED_JIGGLE_LOW)),
-                    Commands.waitSeconds(0.3),
-                    Commands.runOnce(() -> intake.setState(Intake.State.FEED_JIGGLE_MEDIUM)),
-                    Commands.waitSeconds(0.3),                        
-                    Commands.runOnce(() -> intake.setState(Intake.State.FEED_JIGGLE_HIGH)),
-                    Commands.waitSeconds(0.3),
-                    Commands.runOnce(() -> intake.setState(Intake.State.FEED_JIGGLE_HIGHER)),
-                    Commands.waitSeconds(0.3))                        
-                    .repeatedly());
+        // Jiggle 2.0
+        Command jiggleProgressively = Commands.sequence(
+                Commands.waitSeconds(0.9),
+                Commands.sequence(
+                        Commands.runOnce(() -> intake.setState(Intake.State.FEED_JIGGLE_LOW)),
+                        Commands.waitSeconds(0.3),
+                        Commands.runOnce(() -> intake.setState(Intake.State.FEED_JIGGLE_MEDIUM)),
+                        Commands.waitSeconds(0.3),
+                        Commands.runOnce(() -> intake.setState(Intake.State.FEED_JIGGLE_HIGH)),
+                        Commands.waitSeconds(0.3),
+                        Commands.runOnce(() -> intake.setState(Intake.State.FEED_JIGGLE_HIGHER)),
+                        Commands.waitSeconds(0.3))
+                        .repeatedly());
 
-        Command feedControl = Commands.run(() -> {
-                    shooter.setState(Shooter.State.SHOOTING);
-                    if (ignoreAimError) {
-                        hopper.setState(Hopper.State.FEEDING);
-                    } else {
-                        Translation2d target = Constants.FieldConstants.getTargetForPose(drivetrain.getLocalizer().getPose());
-                        double distanceToTarget = drivetrain.getRobotToPointTranslation(target).getNorm();
-                        double angleErrorRad = Math.abs(vision.getAngleToTarget(target));
-                        if (TrajectoryManager.isHeadingGoodToShoot(angleErrorRad, distanceToTarget)) {
-                            hopper.setState(Hopper.State.FEEDING);
-                        } else {
-                            hopper.setState(Hopper.State.INACTIVE);
-                            //intake.setState(Intake.State.EXTENDED_IDLE);
-                        }
-                    }
-                }, shooter, hopper); //intake
+        
+        Command feed = Commands.run(() -> {
+            shooter.setState(Shooter.State.SHOOTING);
+            if (ignoreAimError) {
+                hopper.setState(Hopper.State.FEEDING);
+            } else {
+                Translation2d target = Constants.FieldConstants.getTargetForPose(drivetrain.getLocalizer().getPose());
+                double distanceToTarget = drivetrain.getRobotToPointTranslation(target).getNorm();
+                double angleErrorRad = Math.abs(vision.getAngleToTarget(target));
+                if (TrajectoryManager.isHeadingGoodToShoot(angleErrorRad, distanceToTarget)) {
+                    hopper.setState(Hopper.State.FEEDING);
+                } else {
+                    hopper.setState(Hopper.State.INACTIVE);
+                    // intake.setState(Intake.State.EXTENDED_IDLE);
+                }
+            }
+        }, shooter, hopper); // intake
 
-        Command feedPhase = Commands.parallel(feedControl, jiggleSequence);
+        Command feedAndJiggle = Commands.parallel(feed, jiggle);
 
-        Command feedPhaseWithDuration = feedTimeoutSeconds != null
-                ? feedPhase.withTimeout(feedTimeoutSeconds)
-                : feedPhase;
+        Command feedForDuration = feedTimeoutSeconds != null
+                ? feedAndJiggle.withTimeout(feedTimeoutSeconds)
+                : feedAndJiggle;
 
         // Spin up, but don't wait forever for flywheels to reach target speed.
         // If they aren't at speed within the timeout, we proceed anyway.
-        Command shootSequence = Commands.sequence(
-                        Commands.runOnce(() -> shooter.setState(Shooter.State.SPINNING_UP), shooter),
-                        Commands.waitUntil(shooter::isAtTargetSpeed).withTimeout(0.5),
-                        feedPhaseWithDuration)
-                .finallyDo((interrupted) -> {
-                    hopper.setState(Hopper.State.INACTIVE);
-                    shooter.setState(Shooter.State.SPINNING_UP);
-                    intake.setState(Intake.State.EXTENDED_IDLE);
-                    CommandScheduler.getInstance().schedule(
-                            hood.hoodToRotationsCommand(Constants.ShooterConstants.POSITION_HOOD_MIN));
-                });
-        return shootSequence;
-    }
+        Command spinUpAndFeed = Commands.sequence(
+                Commands.runOnce(() -> shooter.setState(Shooter.State.SPINNING_UP), shooter),
+                Commands.waitUntil(shooter::isAtTargetSpeed).withTimeout(0.5),
+                feedForDuration);
+
+        // AUTO: hood in-sequence so the next path step can run after aim → shoot.
+        if (feedTimeoutSeconds != null) {
+            return Commands.sequence(spinUpAndFeed, hood.downCommand())
+                    .finallyDo((interrupted) -> {
+                        hopper.setState(Hopper.State.INACTIVE);
+                        shooter.setState(Shooter.State.SPINNING_UP);
+                        intake.setState(Intake.State.EXTENDED_IDLE);
+                        if (interrupted) {
+                            CommandScheduler.getInstance().schedule(
+                        hood.downCommand().withTimeout(0.75));
+                }
+            });
+        
+        // TELEOP: can't have hood in-sequence (because aimContinuouslyCommand, running in parallel, also needs it)
+        } else {
+            return spinUpAndFeed.finallyDo((interrupted) -> {
+                hopper.setState(Hopper.State.INACTIVE);
+                shooter.setState(Shooter.State.SPINNING_UP);
+                intake.setState(Intake.State.EXTENDED_IDLE);
+                CommandScheduler.getInstance().schedule(hood.downCommand());
+            });
+        }
+   }
+
+
+
 
 
     /**
@@ -578,21 +594,16 @@ public class RobotContainer {
     /** Called once when the robot enters autonomous. */
     public void autonomousInit() {
 
-        CommandScheduler.getInstance().schedule(hood.hoodToRotationsCommand(Constants.ShooterConstants.POSITION_HOOD_MIN));
          intake.setState(Intake.State.STOWED);
         // //climb.setState(Climb.State.INACTIVE);
          shooter.setState(Shooter.State.INACTIVE);
         // hopper.setState(Hopper.State.INACTIVE);
-
-        // drivetrain.setDefaultCommand(
-        //     Commands.run(() -> drivetrain.setControl(new SwerveRequest.Idle()), drivetrain));
+        CommandScheduler.getInstance().schedule(hood.downCommand());
     }                           
 
     /** Called once when the robot enters teleop. */
     public void teleopInit() {
         
-        //drivetrain.setDefaultCommand(drivetrain.getTeleopControlCommand(driverX, driverY, driverOmega, Constants.DriveConstants.TELEOP_CONTROL_CONFIG));
-
         //intake.setState(Intake.State.EXTENDED_IDLE);
         if (intake.state != Intake.State.STOWED) {
             intake.setState(Intake.State.EXTENDED_IDLE);
@@ -602,6 +613,6 @@ public class RobotContainer {
         climb.setState(Climb.State.INACTIVE);
         shooter.setState(Shooter.State.SPINNING_UP);
         hopper.setState(Hopper.State.INACTIVE);
-        CommandScheduler.getInstance().schedule(hood.hoodToRotationsCommand(Constants.ShooterConstants.POSITION_HOOD_MIN));
+        CommandScheduler.getInstance().schedule(hood.downCommand());
     }
 }

@@ -4,17 +4,15 @@
   "holonomicMode": true,
   "pathFolders": [
     "AZ",
-    "Climb",
     "Devious NZ",
     "Lair testing",
     "Shoot 8",
     "Sincere NZ"
   ],
   "autoFolders": [
-    "Climb",
     "Devious NZ",
-    "NZ + Alliance",
     "Lair testing",
+    "NZ + Alliance",
     "Shoot 8",
     "Sincere NZ"
   ],
