@@ -80,6 +80,9 @@ public class RobotContainer {
         NamedCommands.registerCommand("spinUp", Commands.defer(() -> shooter.setStateCommand(Shooter.State.SPINNING_UP), Set.of(shooter)));
         NamedCommands.registerCommand("aim", aimCommand());
         NamedCommands.registerCommand("shoot", Commands.defer(() -> shootForAutoCommand(), Set.of(shooter, hopper, intake)));
+        // Single PathPlanner step avoids back-to-back wrapped named commands (aim + shoot) before a path.
+        NamedCommands.registerCommand("aimAndShoot",
+                Commands.defer(() -> aimThenShootForAutoCommand(), Set.of(drivetrain, hood, shooter, hopper, intake)));
         NamedCommands.registerCommand("intake", Commands.defer(() -> intake.setStateCommand(Intake.State.EXTENDED_INTAKING), Set.of(intake)));
         NamedCommands.registerCommand("intakeExtendedIdle", Commands.defer(() -> intake.setStateCommand(Intake.State.EXTENDED_IDLE), Set.of(intake)));
         NamedCommands.registerCommand("stopIntake", Commands.defer(() -> intake.setStateCommand(Intake.State.EXTENDED_IDLE), Set.of(intake)));
@@ -369,6 +372,11 @@ public class RobotContainer {
     /** Auto shoot: feed phase runs for 6 seconds. Locks wheels for stability during shoot. */
     private Command shootForAutoCommand() {
         return shootSequenceCommand(6.0);
+    }
+
+    /** PathPlanner: aim then auto-shoot as one named command (see aimAndShoot registration). */
+    private Command aimThenShootForAutoCommand() {
+        return aimCommand().andThen(shootForAutoCommand());
     }
 
     /** Teleop shoot: feed phase runs until trigger released. */
