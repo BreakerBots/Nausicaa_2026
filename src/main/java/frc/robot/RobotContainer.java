@@ -410,13 +410,18 @@ public class RobotContainer {
                     Commands.waitSeconds(0.3))
                     .repeatedly());
 
-        // Command jiggleSequence = Commands.sequence(
-        //     Commands.waitSeconds(2.0),
-        //     Commands.runOnce(() -> intake.setPivotDutyCycle(0.08)),
-        //     Commands.waitUntil(() -> intake.getPivotPositionRotations() >= Constants.IntakeConstants.POSITION_JIGGLE_HIGHER.getRotations()),
-        //     Commands.runOnce(() -> intake.setState(Intake.State.STOWED)));
-        //     Commands.run(() -> {}, intake);
-
+        Command jiggleSequenceProgressive = Commands.sequence(
+            Commands.waitSeconds(0.9),
+            Commands.sequence(
+                    Commands.runOnce(() -> intake.setState(Intake.State.FEED_JIGGLE_LOW)),
+                    Commands.waitSeconds(0.3),
+                    Commands.runOnce(() -> intake.setState(Intake.State.FEED_JIGGLE_MEDIUM)),
+                    Commands.waitSeconds(0.3),                        
+                    Commands.runOnce(() -> intake.setState(Intake.State.FEED_JIGGLE_HIGH)),
+                    Commands.waitSeconds(0.3),
+                    Commands.runOnce(() -> intake.setState(Intake.State.FEED_JIGGLE_HIGHER)),
+                    Commands.waitSeconds(0.3))                        
+                    .repeatedly());
 
         Command feedControl = Commands.run(() -> {
                     shooter.setState(Shooter.State.SHOOTING);
