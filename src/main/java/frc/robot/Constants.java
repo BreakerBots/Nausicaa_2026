@@ -314,9 +314,12 @@ public final class Constants {
         public static final double SPEED_INTAKE = -0.9; 
         public static final double SPEED_FEED_JIGGLE = -0.2;
 
+        // Max motor acceleration (rot/s²) for VelocityVoltage
+        public static final double ROLLER_ACCELERATION = 80.0;
+
         // Feedforward 
         public static final double ROLLER_kS = 0.1; // 0.1
-        public static final double ROLLER_kV = 0.12; //0.12
+        public static final double ROLLER_kV = 0.015; // 0.12
 
         // PID
         public static final double ROLLER_kP = 0.25; //0.25

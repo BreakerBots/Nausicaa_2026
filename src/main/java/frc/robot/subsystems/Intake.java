@@ -7,7 +7,7 @@ import com.ctre.phoenix6.configs.Slot0Configs;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.DutyCycleOut;
 import com.ctre.phoenix6.controls.MotionMagicDutyCycle;
-import com.ctre.phoenix6.controls.VelocityDutyCycle;
+import com.ctre.phoenix6.controls.VelocityVoltage;
 import com.ctre.phoenix6.hardware.CANcoder;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.NeutralModeValue;
@@ -248,9 +248,9 @@ public class Intake extends SubsystemBase {
         if (speed != 0) {
             double velocityRps = speed * Constants.IntakeConstants.ROLLER_MOTOR_RPS_AT_FULL_DUTY;
             lastCommandedRollerSpeedRps = velocityRps;
-            rollerMotor.setControl(new VelocityDutyCycle(velocityRps));
-            //rollerMotor.setControl(new DutyCycleOut(-1.0));
-            //rollerMotor.setControl(new DutyCycleOut(speed));
+            rollerMotor.setControl(new VelocityVoltage(velocityRps)
+                    .withAcceleration(Constants.IntakeConstants.ROLLER_ACCELERATION));
+            //rollerMotor.setControl(new VelocityDutyCycle(velocityRps));
         } else {
             lastCommandedRollerSpeedRps = 0;
             rollerMotor.setControl(new DutyCycleOut(0));
