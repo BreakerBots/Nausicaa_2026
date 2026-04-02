@@ -409,13 +409,17 @@ public class RobotContainer {
 
         // Jiggle 2.0
         Command jiggleProgressively = Commands.sequence(
-                Commands.waitSeconds(0.9),
+                Commands.waitSeconds(1.0),
                 Commands.sequence(
                         Commands.runOnce(() -> intake.setState(Intake.State.FEED_JIGGLE_LOW)),
                         Commands.waitSeconds(0.3),
                         Commands.runOnce(() -> intake.setState(Intake.State.FEED_JIGGLE_MEDIUM)),
                         Commands.waitSeconds(0.3),
+                        Commands.runOnce(() -> intake.setState(Intake.State.FEED_JIGGLE_LOW)),
+                        Commands.waitSeconds(0.3),
                         Commands.runOnce(() -> intake.setState(Intake.State.FEED_JIGGLE_HIGH)),
+                        Commands.waitSeconds(0.3),
+                        Commands.runOnce(() -> intake.setState(Intake.State.FEED_JIGGLE_LOW)),
                         Commands.waitSeconds(0.3),
                         Commands.runOnce(() -> intake.setState(Intake.State.FEED_JIGGLE_HIGHER)),
                         Commands.waitSeconds(0.3))
@@ -439,7 +443,7 @@ public class RobotContainer {
             }
         }, shooter, hopper); // intake
 
-        Command feedAndJiggle = Commands.parallel(feed, jiggle);
+        Command feedAndJiggle = Commands.parallel(feed, jiggleProgressively);
 
         Command feedForDuration = feedTimeoutSeconds != null
                 ? feedAndJiggle.withTimeout(feedTimeoutSeconds)
