@@ -219,7 +219,7 @@ public class RobotContainer {
         //controller.getButtonA().onTrue(aimCommand());
         
         // B --> Just Shoot
-        controller.getButtonB().onTrue(shootForTeleopCommand(false));
+        controller.getButtonB().onTrue(shootForTeleopCommand(true));
 
         // X --> Hood to Latch Position
         //controller.getButtonX().onTrue(shooter.hoodToRotationsCommand(Constants.ShooterConstants.POSITION_HOOD_LATCH));
@@ -398,14 +398,14 @@ public class RobotContainer {
     private Command shootSequenceCommand(Double feedTimeoutSeconds, boolean ignoreAimError) {
 
         // The OG Jiggle
-        Command jiggle = Commands.sequence(
-                Commands.waitSeconds(1.0),
-                Commands.sequence(
-                        Commands.runOnce(() -> intake.setState(Intake.State.FEED_JIGGLE_LOW)),
-                        Commands.waitSeconds(0.3),
-                        Commands.runOnce(() -> intake.setState(Intake.State.FEED_JIGGLE_HIGH)),
-                        Commands.waitSeconds(0.3))
-                        .repeatedly());
+        // Command jiggle = Commands.sequence(
+        //         Commands.waitSeconds(1.0),
+        //         Commands.sequence(
+        //                 Commands.runOnce(() -> intake.setState(Intake.State.FEED_JIGGLE_LOW)),
+        //                 Commands.waitSeconds(0.3),
+        //                 Commands.runOnce(() -> intake.setState(Intake.State.FEED_JIGGLE_HIGH)),
+        //                 Commands.waitSeconds(0.3))
+        //                 .repeatedly());
 
         // Jiggle 2.0
         Command jiggleProgressively = Commands.sequence(

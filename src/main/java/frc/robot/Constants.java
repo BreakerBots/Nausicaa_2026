@@ -284,7 +284,7 @@ public final class Constants {
         public static final Rotation2d POSITION_JIGGLE_LOW = Rotation2d.fromRotations(-0.27); // -0.27
         public static final Rotation2d POSITION_JIGGLE_MEDIUM = Rotation2d.fromRotations(-0.24); // -0.20
         public static final Rotation2d POSITION_JIGGLE_HIGH = Rotation2d.fromRotations(-0.20); // -0.15
-        public static final Rotation2d POSITION_JIGGLE_HIGHER = Rotation2d.fromRotations(-0.15); // -0.10     
+        public static final Rotation2d POSITION_JIGGLE_HIGHER = Rotation2d.fromRotations(-0.10); // -0.15   
 
         //Motion Magic
         public static final double PIVOT_MM_CRUISE_VELOCITY = 1.0; // 1.0
