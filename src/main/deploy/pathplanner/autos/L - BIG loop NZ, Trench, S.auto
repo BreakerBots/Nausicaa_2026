@@ -11,6 +11,12 @@
           }
         },
         {
+          "type": "named",
+          "data": {
+            "name": "wait2Seconds"
+          }
+        },
+        {
           "type": "path",
           "data": {
             "pathName": "L - BIG loop NZ, Trench, S"

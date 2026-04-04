@@ -11,9 +11,15 @@
           }
         },
         {
+          "type": "named",
+          "data": {
+            "name": "wait2Seconds"
+          }
+        },
+        {
           "type": "path",
           "data": {
-            "pathName": " R - NZ, Trench, S"
+            "pathName": "L - NZ, Trench, S"
           }
         },
         {

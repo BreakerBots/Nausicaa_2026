@@ -84,7 +84,7 @@ public class RobotContainer {
         //NamedCommands.registerCommand("intake", Commands.defer(() -> intake.setStateCommand(Intake.State.EXTENDED_INTAKING), Set.of(intake)));
         NamedCommands.registerCommand("intakeExtendedIdle", Commands.defer(() -> intake.setStateCommand(Intake.State.EXTENDED_IDLE), Set.of(intake)));
         NamedCommands.registerCommand("stopIntake", Commands.defer(() -> intake.setStateCommand(Intake.State.EXTENDED_IDLE), Set.of(intake)));
-        NamedCommands.registerCommand("wait1Seconds", Commands.waitSeconds(1.0));
+        NamedCommands.registerCommand("wait2Seconds", Commands.waitSeconds(2.0));
         NamedCommands.registerCommand("hoodDown", Commands.defer(() -> hood.downCommand().withTimeout(0.8), Set.of(hood)));
         NamedCommands.registerCommand("unclog", Commands.defer(() -> unclogCommand().withTimeout(3.0), Set.of(hopper, intake)));
 
@@ -367,7 +367,7 @@ public class RobotContainer {
     
     /** Auto shoot: feed phase runs for 6 seconds. Locks wheels for stability during shoot. */
     private Command shootForAutoCommand() {
-        return shootSequenceCommand(4.0);
+        return shootSequenceCommand(6.5, true);
     }
 
     /** PathPlanner: aim then auto-shoot as one named command (see aimAndShoot registration). */
@@ -419,7 +419,7 @@ public class RobotContainer {
                         Commands.waitSeconds(0.3),
                         Commands.runOnce(() -> intake.setState(Intake.State.FEED_JIGGLE_HIGH)),
                         Commands.waitSeconds(0.3),
-                        Commands.runOnce(() -> intake.setState(Intake.State.FEED_JIGGLE_LOW)),
+                        Commands.runOnce(() -> intake.setState(Intake.State.FEED_JIGGLE_MEDIUM)),
                         Commands.waitSeconds(0.3),
                         Commands.runOnce(() -> intake.setState(Intake.State.FEED_JIGGLE_HIGHER)),
                         Commands.waitSeconds(0.3))
