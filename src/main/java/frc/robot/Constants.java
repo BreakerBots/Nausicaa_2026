@@ -284,7 +284,7 @@ public final class Constants {
         public static final Rotation2d POSITION_JIGGLE_LOW = Rotation2d.fromRotations(-0.27); // -0.27
         public static final Rotation2d POSITION_JIGGLE_MEDIUM = Rotation2d.fromRotations(-0.24); // -0.20
         public static final Rotation2d POSITION_JIGGLE_HIGH = Rotation2d.fromRotations(-0.20); // -0.15
-        public static final Rotation2d POSITION_JIGGLE_HIGHER = Rotation2d.fromRotations(-0.10); // -0.15   
+        public static final Rotation2d POSITION_JIGGLE_HIGHER = Rotation2d.fromRotations(-0.1); // -0.15   
 
         //Motion Magic
         public static final double PIVOT_MM_CRUISE_VELOCITY = 1.0; // 1.0
@@ -303,8 +303,8 @@ public final class Constants {
         public static final double PIVOT_kD = 0.08;
 
         /** Stator current limit (A) for pivot */
-        public static final int PIVOT_STATOR_CURRENT_LIMIT = 70; //70
-        public static final int PIVOT_SUPPLY_CURRENT_LIMIT = 60; //60
+        public static final int PIVOT_STATOR_CURRENT_LIMIT = 25; //70
+        public static final int PIVOT_SUPPLY_CURRENT_LIMIT = 10; //60
 
 
         // ---------- Roller ----------
@@ -340,8 +340,8 @@ public final class Constants {
         // Example: |0.52| duty → ~40 roller rev/s; meets 2 rev per C at ~2.4 m/s forward (see intake tuning).
         
         /** Stator current limit (A) for roller */
-        public static final int ROLLER_STATOR_CURRENT_LIMIT = 80;
-        public static final int ROLLER_SUPPLY_CURRENT_LIMIT = 60;
+        public static final int ROLLER_STATOR_CURRENT_LIMIT = 70;
+        public static final int ROLLER_SUPPLY_CURRENT_LIMIT = 50;
     }
 
 
@@ -378,8 +378,8 @@ public final class Constants {
         /** Shooter center offset from robot center: 3" to the right. In robot frame +Y is left, so right = -Y. */
         public static final double SHOOTER_OFFSET_RIGHT_METERS = 4.0 * 0.0254;
 
-        public static final int FLYWHEEL_STATOR_CURRENT_LIMIT = 80; // 80, 40
-        public static final int FLYWHEEL_SUPPLY_CURRENT_LIMIT = 50; // 50, 25
+        public static final int FLYWHEEL_STATOR_CURRENT_LIMIT = 70; // 80, 
+        public static final int FLYWHEEL_SUPPLY_CURRENT_LIMIT = 50; // 50, 
 
 
         // --------------- HOOD --------------
@@ -429,8 +429,8 @@ public final class Constants {
         public static final double HOOD_kI = 0.0;
         public static final double HOOD_kD = 0.0;
 
-        public static final int HOOD_STATOR_CURRENT_LIMIT = 50;
-        public static final int HOOD_SUPPLY_CURRENT_LIMIT = 50;
+        public static final int HOOD_STATOR_CURRENT_LIMIT = 25; //50
+        public static final int HOOD_SUPPLY_CURRENT_LIMIT = 15; //50
     }
 
     // --------------- HOPPER --------------
@@ -445,10 +445,10 @@ public final class Constants {
         public static final double SPEED_UNCLOG_INDEXER = -0.1;
         public static final double SPEED_UNCLOG_FEEDER = -0.12;
 
-        public static final int INDEXER_STATOR_CURRENT_LIMIT = 90; //90
-        public static final int INDEXER_SUPPLY_CURRENT_LIMIT = 70; //70
-        public static final int FEEDER_STATOR_CURRENT_LIMIT = 90; //90
-        public static final int FEEDER_SUPPLY_CURRENT_LIMIT = 70; //70
+        public static final int INDEXER_STATOR_CURRENT_LIMIT = 70; //90
+        public static final int INDEXER_SUPPLY_CURRENT_LIMIT = 40; //70
+        public static final int FEEDER_STATOR_CURRENT_LIMIT = 75; //90
+        public static final int FEEDER_SUPPLY_CURRENT_LIMIT = 50; //70
     }
 
     // --------------- CLIMB --------------
@@ -580,10 +580,10 @@ public final class Constants {
         // Neutral mode = what happens when motor receives 0% power (Brake = stops, Coast = free-spins)
 
         // Current limits = adjust if motors brown out (lower) or need more power (higher)
-        private static final int DRIVE_STATOR_CURRENT_LIMIT = 90; //90
-        private static final int DRIVE_SUPPLY_CURRENT_LIMIT = 80; //80
+        private static final int DRIVE_STATOR_CURRENT_LIMIT = 80; //90
+        private static final int DRIVE_SUPPLY_CURRENT_LIMIT = 60; //80
         private static final int STEER_STATOR_CURRENT_LIMIT = 60; //60
-        private static final int STEER_SUPPLY_CURRENT_LIMIT = 50; //60
+        private static final int STEER_SUPPLY_CURRENT_LIMIT = 45; //60
         
         private static final TalonFXConfiguration driveInitialConfigs = new TalonFXConfiguration()
             .withMotorOutput(new MotorOutputConfigs().withNeutralMode(NeutralModeValue.Brake))
