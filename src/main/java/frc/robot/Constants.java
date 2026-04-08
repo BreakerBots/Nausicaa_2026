@@ -618,7 +618,7 @@ public final class Constants {
         private static final double kSteerGearRatio_MK4n = 18.75; // Narrow
 
         // The radius of the wheel (in inches) - measure with clamp and calipers, can change through the season
-        private static final Distance kWheelRadius = Units.Inches.of(1.9655);
+        private static final Distance kWheelRadius = Units.Inches.of(1.9915);
 
         // These are only used for simulation - adjust if simulation doesn't match real robot
         // Inertia = how much the motor resists changes in speed (higher = slower to change speed)
