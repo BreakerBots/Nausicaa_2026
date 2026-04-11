@@ -298,9 +298,9 @@ public final class Constants {
         public static final double PIVOT_kA = 0.01;
 
          // PID
-        public static final double PIVOT_kP = 2.0;
+        public static final double PIVOT_kP = 2.5;
         public static final double PIVOT_kI = 0.00;
-        public static final double PIVOT_kD = 0.08;
+        public static final double PIVOT_kD = 0.0;
 
         /** Stator current limit (A) for pivot */
         public static final int PIVOT_STATOR_CURRENT_LIMIT = 25; //70
@@ -315,7 +315,7 @@ public final class Constants {
         public static final double SPEED_FEED_JIGGLE = -0.2;
 
         // Max motor acceleration (rot/s²) for VelocityVoltage
-        public static final double ROLLER_ACCELERATION = 80.0;
+        public static final double ROLLER_ACCELERATION = 50.0;
 
         // Feedforward 
         public static final double ROLLER_kS = 0.1; // 0.1
@@ -324,7 +324,7 @@ public final class Constants {
         // PID
         public static final double ROLLER_kP = 0.25; //0.25
         public static final double ROLLER_kI = 0.00; //0.0
-        public static final double ROLLER_kD = 0.00; //0.0
+        public static final double ROLLER_kD = 0.0;                                                                                                                                                          ; //0.0
 
         /** Used to adjust roller speed based on drivetrain velocity. */
         public static final double ROLLER_DIAMETER_METERS = 1.5 * 0.0254;
@@ -580,10 +580,10 @@ public final class Constants {
         // Neutral mode = what happens when motor receives 0% power (Brake = stops, Coast = free-spins)
 
         // Current limits = adjust if motors brown out (lower) or need more power (higher)
-        private static final int DRIVE_STATOR_CURRENT_LIMIT = 80; //90
-        private static final int DRIVE_SUPPLY_CURRENT_LIMIT = 60; //80
+        private static final int DRIVE_STATOR_CURRENT_LIMIT = 65; //90 ,80
+        private static final int DRIVE_SUPPLY_CURRENT_LIMIT = 50; //80 ,60
         private static final int STEER_STATOR_CURRENT_LIMIT = 60; //60
-        private static final int STEER_SUPPLY_CURRENT_LIMIT = 45; //60
+        private static final int STEER_SUPPLY_CURRENT_LIMIT = 45; //60, 45
         
         private static final TalonFXConfiguration driveInitialConfigs = new TalonFXConfiguration()
             .withMotorOutput(new MotorOutputConfigs().withNeutralMode(NeutralModeValue.Brake))

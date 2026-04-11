@@ -29,9 +29,9 @@ public class TrajectoryManager extends SubsystemBase {
         new ShootEntry(1.47, 0.03, 50),  // MHS
         new ShootEntry(1.5902686, 0.04, 52),       
         new ShootEntry(1.8950686, 0.07, 54),       
-        new ShootEntry(2.1998686, 0.1, 56),      
-        new ShootEntry(3.1143686, 0.19, 60),  
-        new ShootEntry(4.0286686, 0.26, 63),  
+        new ShootEntry(2.1998686, 0.1, 54),   //56  
+        new ShootEntry(3.1143686, 0.19, 58),  //60
+        new ShootEntry(4.0286686, 0.26, 62),  //63
         new ShootEntry(4.9430686, 0.3, 66),   
     };
 

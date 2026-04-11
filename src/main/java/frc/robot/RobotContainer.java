@@ -102,7 +102,7 @@ public class RobotContainer {
         configureLogging();
         // Disable verbose logging to reduce noise
         // Flip this back on when debugging/troubleshooting
-        BreakerLog.setVerboseLogging(false);
+        BreakerLog.setVerboseLogging(true);
 
         // Bind our controller buttons
         configureBindings();
