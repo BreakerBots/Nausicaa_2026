@@ -189,7 +189,7 @@
   "eventMarkers": [
     {
       "name": "intake",
-      "waypointRelativePos": 0.583389601620533,
+      "waypointRelativePos": 0.2592842673869106,
       "endWaypointRelativePos": 2.7548953409857866,
       "command": {
         "type": "named",
@@ -200,7 +200,7 @@
     }
   ],
   "globalConstraints": {
-    "maxVelocity": 2.5,
+    "maxVelocity": 2.6,
     "maxAcceleration": 5.0,
     "maxAngularVelocity": 720.0,
     "maxAngularAcceleration": 720.0,

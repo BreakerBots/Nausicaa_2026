@@ -342,6 +342,7 @@ public final class Constants {
         /** Stator current limit (A) for roller */
         public static final int ROLLER_STATOR_CURRENT_LIMIT = 60; //70
         public static final int ROLLER_SUPPLY_CURRENT_LIMIT = 45; //50
+        
     }
 
 
@@ -445,8 +446,8 @@ public final class Constants {
         public static final double SPEED_UNCLOG_INDEXER = -0.1;
         public static final double SPEED_UNCLOG_FEEDER = -0.12;
 
-        public static final int INDEXER_STATOR_CURRENT_LIMIT = 70; //90
-        public static final int INDEXER_SUPPLY_CURRENT_LIMIT = 40; //70
+        public static final int INDEXER_STATOR_CURRENT_LIMIT = 55; //90, 70
+        public static final int INDEXER_SUPPLY_CURRENT_LIMIT = 30; //70, 40
         public static final int FEEDER_STATOR_CURRENT_LIMIT = 75; //90
         public static final int FEEDER_SUPPLY_CURRENT_LIMIT = 50; //70
     }
@@ -583,7 +584,7 @@ public final class Constants {
         private static final int DRIVE_STATOR_CURRENT_LIMIT = 65; //90 ,80
         private static final int DRIVE_SUPPLY_CURRENT_LIMIT = 50; //80 ,60
         private static final int STEER_STATOR_CURRENT_LIMIT = 60; //60
-        private static final int STEER_SUPPLY_CURRENT_LIMIT = 45; //60, 45
+        private static final int STEER_SUPPLY_CURRENT_LIMIT = 40; //60, 45
         
         private static final TalonFXConfiguration driveInitialConfigs = new TalonFXConfiguration()
             .withMotorOutput(new MotorOutputConfigs().withNeutralMode(NeutralModeValue.Brake))
