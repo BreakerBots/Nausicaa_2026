@@ -311,11 +311,11 @@ public final class Constants {
 
         public static final double SPEED_IDLE = 0;
         public static final double SPEED_EXTAKE = 0.4;
-        public static final double SPEED_INTAKE = -0.9; 
+        public static final double SPEED_INTAKE = -0.8; 
         public static final double SPEED_FEED_JIGGLE = -0.2;
 
         // Max motor acceleration (rot/s²) for VelocityVoltage
-        public static final double ROLLER_ACCELERATION = 50.0;
+        //public static final double ROLLER_ACCELERATION = 50.0;
 
         // Feedforward 
         public static final double ROLLER_kS = 0.1; // 0.1
@@ -340,8 +340,8 @@ public final class Constants {
         // Example: |0.52| duty → ~40 roller rev/s; meets 2 rev per C at ~2.4 m/s forward (see intake tuning).
         
         /** Stator current limit (A) for roller */
-        public static final int ROLLER_STATOR_CURRENT_LIMIT = 70;
-        public static final int ROLLER_SUPPLY_CURRENT_LIMIT = 50;
+        public static final int ROLLER_STATOR_CURRENT_LIMIT = 60; //70
+        public static final int ROLLER_SUPPLY_CURRENT_LIMIT = 45; //50
     }
 
 

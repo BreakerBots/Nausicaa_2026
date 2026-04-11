@@ -244,28 +244,28 @@ public class Intake extends SubsystemBase {
     }
 
     /** Speed passed in as a duty cycle (-1 to 1). */
-    private void setRollerSpeed(double speed) {
-        lastCommandedRollerSpeedDuty = speed;
-        if (speed != 0) {
-            double velocityRps = speed * Constants.IntakeConstants.ROLLER_MOTOR_RPS_AT_FULL_DUTY;
-            lastCommandedRollerSpeedRps = velocityRps;
-            // rollerMotor.setControl(new VelocityVoltage(velocityRps)
-            //         .withAcceleration(Constants.IntakeConstants.ROLLER_ACCELERATION));
-            rollerMotor.setControl(new VelocityDutyCycle(velocityRps));
-        } else {
-            lastCommandedRollerSpeedRps = 0;
-            rollerMotor.setControl(new DutyCycleOut(0));
-        }
-    }
-
-    //    private void setRollerSpeed(double speed) {
+    // private void setRollerSpeed(double speed) {
+    //     lastCommandedRollerSpeedDuty = speed;
     //     if (speed != 0) {
-    //         rollerMotor.setControl(new DutyCycleOut(speed));
-    //     }
-    //     else {
+    //         double velocityRps = speed * Constants.IntakeConstants.ROLLER_MOTOR_RPS_AT_FULL_DUTY;
+    //         lastCommandedRollerSpeedRps = velocityRps;
+    //         // rollerMotor.setControl(new VelocityVoltage(velocityRps)
+    //         //         .withAcceleration(Constants.IntakeConstants.ROLLER_ACCELERATION));
+    //         rollerMotor.setControl(new VelocityDutyCycle(velocityRps));
+    //     } else {
+    //         lastCommandedRollerSpeedRps = 0;
     //         rollerMotor.setControl(new DutyCycleOut(0));
     //     }
     // }
+
+       private void setRollerSpeed(double speed) {
+        if (speed != 0) {
+            rollerMotor.setControl(new DutyCycleOut(speed));
+        }
+        else {
+            rollerMotor.setControl(new DutyCycleOut(0));
+        }
+    }
 
 
 }
