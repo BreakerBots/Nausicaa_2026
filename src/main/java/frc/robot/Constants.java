@@ -298,9 +298,9 @@ public final class Constants {
         public static final double PIVOT_kA = 0.01;
 
          // PID
-        public static final double PIVOT_kP = 2.5;
+        public static final double PIVOT_kP = 2.0;
         public static final double PIVOT_kI = 0.00;
-        public static final double PIVOT_kD = 0.0;
+        public static final double PIVOT_kD = 0.08;
 
         /** Stator current limit (A) for pivot */
         public static final int PIVOT_STATOR_CURRENT_LIMIT = 25; //70
