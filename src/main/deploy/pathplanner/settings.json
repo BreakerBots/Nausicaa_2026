@@ -16,7 +16,7 @@
     "Shoot 8",
     "Sincere NZ"
   ],
-  "defaultMaxVel": 4.5,
+  "defaultMaxVel": 2.6,
   "defaultMaxAccel": 5.0,
   "defaultMaxAngVel": 720.0,
   "defaultMaxAngAccel": 720.0,
