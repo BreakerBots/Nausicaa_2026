@@ -106,10 +106,8 @@ public class Hopper extends SubsystemBase {
 
         double vel = indexerMotor.getVelocity().getValueAsDouble();
         double cur = indexerMotor.getStatorCurrent().getValueAsDouble();
-        if (BreakerLog.isVerboseLogging()) {
-            BreakerLog.log("Electrical/Hopper/indexer", indexerMotor);
-            BreakerLog.log("Electrical/Hopper/feeder", feederMotor);
-        }
+        BreakerLog.log("Electrical/Hopper/indexer", indexerMotor, true);
+        BreakerLog.log("Electrical/Hopper/feeder", feederMotor, true);
     }
 
 

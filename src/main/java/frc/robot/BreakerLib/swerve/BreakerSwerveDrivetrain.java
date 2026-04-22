@@ -150,8 +150,8 @@ public class BreakerSwerveDrivetrain extends SwerveDrivetrain<TalonFX, TalonFX, 
       BreakerLog.log("SwerveDrivetrain/Pigeon2", getPigeon2());
     }
   }
-  
-    /**
+
+  /**
    * Register the specified lambda to be executed whenever our SwerveDriveState function
    * is updated in our odometry thread.
    * <p>
@@ -296,20 +296,30 @@ public class BreakerSwerveDrivetrain extends SwerveDrivetrain<TalonFX, TalonFX, 
 
   @Override
   public void periodic() {
-    lowFrequencyTelemetry();
-   /* Periodically try to apply the operator perspective */
-        /* If we haven't applied the operator perspective before, then we should apply it regardless of DS state */
-        /* This allows us to correct the perspective in case the robot code restarts mid-match */
-        /* Otherwise, only check and apply the operator perspective if the DS is disabled */
-        /* This ensures driving behavior doesn't change until an explicit disable event occurs during testing*/
-        if (!hasAppliedOperatorPerspective || DriverStation.isDisabled()) {
+      lowFrequencyTelemetry();
+
+      // Log Energy Usage
+      String[] moduleNames = { "FrontLeft", "FrontRight", "BackLeft", "BackRight" };
+      var drivetrainModules = getModules();
+      for (int i = 0; i < drivetrainModules.length; i++) {
+          String moduleName = i < moduleNames.length ? moduleNames[i] : "Module" + i;
+          BreakerLog.log("Electrical/Drivetrain/" + moduleName + "/Drive", drivetrainModules[i].getDriveMotor(), true);
+          BreakerLog.log("Electrical/Drivetrain/" + moduleName + "/Steer", drivetrainModules[i].getSteerMotor(), true);
+      }
+
+      /* Periodically try to apply the operator perspective */
+      /* If we haven't applied the operator perspective before, then we should apply it regardless of DS state */
+      /* This allows us to correct the perspective in case the robot code restarts mid-match */
+      /* Otherwise, only check and apply the operator perspective if the DS is disabled */
+      /* This ensures driving behavior doesn't change until an explicit disable event occurs during testing*/
+      if (!hasAppliedOperatorPerspective || DriverStation.isDisabled()) {
           DriverStation.getAlliance().ifPresent((allianceColor) -> {
               this.setOperatorPerspectiveForward(
-                      allianceColor == Alliance.Red ? constants.redAlliancePerspectiveRotation
-                              : constants.blueAlliancePerspectiveRotation);
-              hasAppliedOperatorPerspective = true;
-        });
-      }
+                    allianceColor == Alliance.Red ? constants.redAlliancePerspectiveRotation
+                            : constants.blueAlliancePerspectiveRotation);
+                    hasAppliedOperatorPerspective = true;
+              });
+          }
       
   }
 

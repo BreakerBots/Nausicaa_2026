@@ -5,6 +5,7 @@
 package frc.robot.BreakerLib.util.logging;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -64,6 +65,7 @@ import frc.robot.BreakerLib.util.BreakerLibVersion;
 */
 public class BreakerLog extends DogLog implements Subsystem {
     private static ArrayList<CANBus> loggedCANBuses = new ArrayList<>();
+    private static final Map<String, EnergyTracker> trackedMotorEnergy = new ConcurrentHashMap<>();
 
     /** Global verbose logging control - when false, high-frequency logging is disabled */
     private static boolean verboseLogging = true;
@@ -71,6 +73,17 @@ public class BreakerLog extends DogLog implements Subsystem {
     /** Interval (seconds) for throttled logs - limits to 2 Hz per key */
     private static final double THROTTLE_INTERVAL_SEC = 0.5;
     private static final Map<String, Double> lastThrottledLogTime = new ConcurrentHashMap<>();
+    private static double lastEnergySummaryLoggedAtSec = Double.NEGATIVE_INFINITY;
+
+    /** Tracks cumulative motor energy for a given motor. */
+    private static class EnergyTracker {
+        private double cumulativeJoules = 0.0;
+        private double lastSampleAtSec = Double.NaN;
+        private double lastLoggedAtSec = Double.NEGATIVE_INFINITY;
+        private boolean wasEnabledLastCall = false;
+
+        private EnergyTracker() {}
+    }
 
     private BreakerLog() {
         CommandScheduler.getInstance().registerSubsystem(this);
@@ -179,6 +192,17 @@ public class BreakerLog extends DogLog implements Subsystem {
         log(key + "/Velocity", value.getVelocity().getValueAsDouble());
     }
 
+    /**
+     * Logs cumulative motor energy always, and detailed TalonFX telemetry when verbose logging is enabled.
+     */
+    public static void log(String key, TalonFX value, boolean throttle) {
+        if (isVerboseLogging()) {
+            log(key, value);
+        }
+        logCumulativeEnergy(key, value, throttle);
+        logEnergySummary(throttle);
+    }
+
     public static void log(String key, CANcoder value) {
         log(key + "/AbsolutePosition", value.getAbsolutePosition().getValueAsDouble());
         log(key + "/PositionSinceBoot", value.getPositionSinceBoot().getValueAsDouble());
@@ -238,6 +262,97 @@ public class BreakerLog extends DogLog implements Subsystem {
     public static void addCANBus(CANBus value) {
         loggedCANBuses.add(value);
         
+    }
+
+    /**
+     * Logs cumulative motor electrical energy in Joules since the most recent enable transition.
+     * Key should be full path prefix (e.g. "Electrical/Intake/roller").
+     */
+    private static void logCumulativeEnergy(String key, TalonFX motor, boolean throttle) {
+        EnergyTracker tracker = trackedMotorEnergy.computeIfAbsent(key, unused -> new EnergyTracker());
+        double nowSec = Timer.getFPGATimestamp();
+        boolean enabled = DriverStation.isEnabled();
+
+        // First call for this key: seed timestamp so dt starts from "now" instead of NaN/garbage.
+        if (Double.isNaN(tracker.lastSampleAtSec)) {
+            tracker.lastSampleAtSec = nowSec;
+        }
+
+        // Disable -> enable transition means "new match", so zero cumulative energy for this motor.
+        if (enabled && !tracker.wasEnabledLastCall) {
+            tracker.cumulativeJoules = 0.0;
+            tracker.lastSampleAtSec = nowSec;
+            tracker.lastLoggedAtSec = Double.NEGATIVE_INFINITY;
+        }
+
+        double dtSec = Math.max(0.0, nowSec - tracker.lastSampleAtSec);
+        tracker.lastSampleAtSec = nowSec;
+
+        if (enabled && dtSec > 0.0) {
+            double supplyVoltage = motor.getSupplyVoltage().getValueAsDouble();
+            double supplyCurrent = motor.getSupplyCurrent().getValueAsDouble();
+            double powerWatts = Math.max(0.0, supplyVoltage * supplyCurrent);
+            tracker.cumulativeJoules += powerWatts * dtSec;
+        }
+
+        tracker.wasEnabledLastCall = enabled;
+
+        String cumulativeKey = key + "CumulativeJoules";
+        if (!throttle) {
+            log(cumulativeKey, tracker.cumulativeJoules);
+            return;
+        }
+
+        // Match the standard BreakerLog throttle cadence (2 Hz, twice per second).
+        if (nowSec - tracker.lastLoggedAtSec >= THROTTLE_INTERVAL_SEC) {
+            log(cumulativeKey, tracker.cumulativeJoules);
+            tracker.lastLoggedAtSec = nowSec;
+        }
+    }
+
+    /** Pull subsystem name from keys in form Electrical/<Subsystem>/<Motor...>. */
+    private static String getSubsystemFromElectricalKey(String motorKey) {
+        String[] pathParts = motorKey.split("/");
+        if (pathParts.length >= 2) {
+            return pathParts[1];
+        }
+        return "Unknown";
+    }
+
+    /** Logs robot-wide/subsystem totals and percent-of-total derived from per-motor cumulative Joules. */
+    private static void logEnergySummary(boolean throttle) {
+        double nowSec = Timer.getFPGATimestamp();
+        if (throttle && nowSec - lastEnergySummaryLoggedAtSec < THROTTLE_INTERVAL_SEC) {
+            return;
+        }
+        lastEnergySummaryLoggedAtSec = nowSec;
+
+        Map<String, Double> subsystemTotalsJoules = new HashMap<>();
+        double robotTotalJoules = 0.0;
+
+        for (Map.Entry<String, EnergyTracker> trackedMotor : trackedMotorEnergy.entrySet()) {
+            String motorKey = trackedMotor.getKey();
+            double motorJoules = trackedMotor.getValue().cumulativeJoules;
+            robotTotalJoules += motorJoules;
+            subsystemTotalsJoules.merge(getSubsystemFromElectricalKey(motorKey), motorJoules, Double::sum);
+        }
+
+        log("Electrical/Summary/CumulativeJoules", robotTotalJoules);
+
+        for (Map.Entry<String, EnergyTracker> trackedMotor : trackedMotorEnergy.entrySet()) {
+            String motorKey = trackedMotor.getKey();
+            double motorJoules = trackedMotor.getValue().cumulativeJoules;
+            double motorPercentOfTotal = robotTotalJoules > 0.0 ? (100.0 * motorJoules / robotTotalJoules) : 0.0;
+            log(motorKey + "PercentOfTotal", motorPercentOfTotal);
+        }
+
+        for (Map.Entry<String, Double> subsystemTotal : subsystemTotalsJoules.entrySet()) {
+            String subsystem = subsystemTotal.getKey();
+            double subsystemJoules = subsystemTotal.getValue();
+            double subsystemPercentOfTotal = robotTotalJoules > 0.0 ? (100.0 * subsystemJoules / robotTotalJoules) : 0.0;
+            log("Electrical/Summary/Subsystem/" + subsystem + "/CumulativeJoules", subsystemJoules);
+            log("Electrical/Summary/Subsystem/" + subsystem + "/PercentOfTotal", subsystemPercentOfTotal);
+        }
     }
 
     private static void logCANBuses() {{

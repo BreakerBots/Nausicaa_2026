@@ -192,13 +192,10 @@ public class Intake extends SubsystemBase {
         BreakerLog.log("Intake/RollerSpeedTargetDuty", lastCommandedRollerSpeedDuty, true); // Target duty cycle (-1 to 1)
         BreakerLog.log("Intake/RollerSpeedTargetRps", lastCommandedRollerSpeedRps, true); // Target velocity (rotations per second)
         BreakerLog.log("Intake/PivotTargetPosition", state.getRotation2d().getRotations(), true); // Setpoint, not from the encoder.
-        BreakerLog.log("Intake/PivotEncoderAbsolutePosition", pivotEncoder.getAbsolutePosition().getValueAsDouble(), true);
         BreakerLog.log("Intake/PivotEncoderAbsolutePosition", pivotEncoder.getAbsolutePosition().getValueAsDouble(), true); // CANcoder absolute position (magnet angle)
         BreakerLog.log("Intake/PivotEncoderPosition", this.getPivotPositionRotations(), true); // The one we actually use, compare to the Motion Magic target.
-        if (BreakerLog.isVerboseLogging()) {
-            BreakerLog.log("Electrical/Intake/roller", rollerMotor);
-            BreakerLog.log("Electrical/Intake/pivot", pivotMotor);
-        }
+        BreakerLog.log("Electrical/Intake/roller", rollerMotor, true);
+        BreakerLog.log("Electrical/Intake/pivot", pivotMotor, true);
     }
 
 
@@ -244,28 +241,18 @@ public class Intake extends SubsystemBase {
     }
 
     /** Speed passed in as a duty cycle (-1 to 1). */
-    // private void setRollerSpeed(double speed) {
-    //     lastCommandedRollerSpeedDuty = speed;
-    //     if (speed != 0) {
-    //         double velocityRps = speed * Constants.IntakeConstants.ROLLER_MOTOR_RPS_AT_FULL_DUTY;
-    //         lastCommandedRollerSpeedRps = velocityRps;
-    //         // rollerMotor.setControl(new VelocityVoltage(velocityRps)
-    //         //         .withAcceleration(Constants.IntakeConstants.ROLLER_ACCELERATION));
-    //         rollerMotor.setControl(new VelocityDutyCycle(velocityRps));
-    //     } else {
-    //         lastCommandedRollerSpeedRps = 0;
-    //         rollerMotor.setControl(new DutyCycleOut(0));
-    //     }
-    // }
-
-       private void setRollerSpeed(double speed) {
+    private void setRollerSpeed(double speed) {
+        lastCommandedRollerSpeedDuty = speed;
         if (speed != 0) {
             rollerMotor.setControl(new DutyCycleOut(speed));
-        }
-        else {
+            //double velocityRps = speed * Constants.IntakeConstants.ROLLER_MOTOR_RPS_AT_FULL_DUTY;
+            //lastCommandedRollerSpeedRps = velocityRps;
+            //rollerMotor.setControl(new VelocityVoltage(velocityRps)
+            //         .withAcceleration(Constants.IntakeConstants.ROLLER_ACCELERATION));
+            //rollerMotor.setControl(new VelocityDutyCycle(velocityRps));
+        } else {
+            lastCommandedRollerSpeedRps = 0;
             rollerMotor.setControl(new DutyCycleOut(0));
         }
     }
-
-
 }

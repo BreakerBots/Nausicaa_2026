@@ -109,11 +109,9 @@ public class Shooter extends SubsystemBase {
         BreakerLog.log("Shooter/Flywheel1Speed", v1, true);
         BreakerLog.log("Shooter/Flywheel2Speed", v2, true);
         BreakerLog.log("Shooter/Flywheel3Speed", v3, true);
-        if (BreakerLog.isVerboseLogging()) {
-            BreakerLog.log("Electrical/Shooter/flywheel1", shooterFlywheel1Motor);
-            BreakerLog.log("Electrical/Shooter/flywheel2", shooterFlywheel2Motor);
-            BreakerLog.log("Electrical/Shooter/flywheel3", shooterFlywheel3Motor);
-        }
+        BreakerLog.log("Electrical/Shooter/flywheel1", shooterFlywheel1Motor, true);
+        BreakerLog.log("Electrical/Shooter/flywheel2", shooterFlywheel2Motor, true);
+        BreakerLog.log("Electrical/Shooter/flywheel3", shooterFlywheel3Motor, true);
     }
 
 
