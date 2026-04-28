@@ -29,6 +29,8 @@ import edu.wpi.first.math.util.Units;
 import edu.wpi.first.units.Measure;
 import edu.wpi.first.wpilibj.Alert;
 import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.PowerDistribution;
+import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.util.WPILibVersion;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
@@ -65,6 +67,7 @@ import frc.robot.BreakerLib.util.BreakerLibVersion;
 */
 public class BreakerLog extends DogLog implements Subsystem {
     private static ArrayList<CANBus> loggedCANBuses = new ArrayList<>();
+    private static final PowerDistribution powerDistribution = new PowerDistribution();
     private static final Map<String, EnergyTracker> trackedMotorEnergy = new ConcurrentHashMap<>();
 
     /** Global verbose logging control - when false, high-frequency logging is disabled */
@@ -73,17 +76,27 @@ public class BreakerLog extends DogLog implements Subsystem {
     /** Interval (seconds) for throttled logs - limits to 2 Hz per key */
     private static final double THROTTLE_INTERVAL_SEC = 0.5;
     private static final Map<String, Double> lastThrottledLogTime = new ConcurrentHashMap<>();
+
+    // Electrical
+    private static final double EFFECTIVE_RESISTANCE_MIN_CURRENT_AMPS = 50.0;
+    private static final double EFFECTIVE_RESISTANCE_FILTER_ALPHA = 0.1;
+    private static final double BROWNOUT_VOLTAGE_THRESHOLD = 6.3;
     private static double lastEnergySummaryLoggedAtSec = Double.NEGATIVE_INFINITY;
+    private static boolean wasBrownedOut = false;
+    private static int brownoutCount = 0;
+    private static double currentBrownoutStartSec = Double.NaN;
+    private static boolean wasEnabledForCurrentTracking = false;
+    private static double lastCurrentSampleAtSec = Double.NaN;
+    private static double cumulativeCurrentAmpSeconds = 0.0;
+    private static double currentTrackingElapsedSec = 0.0;
+    private static double maxTotalCurrent = 0.0;
+    private static double minBatteryVoltage = 0.0;
+    private static double maxBatteryVoltage = 0.0;
+    private static double currentAtMinBatteryVoltage = 0.0;
+    private static double voltageAtMaxTotalCurrent = 0.0;
+    private static double filteredEffectiveResistance = 0.0;
+    private static boolean hasFilteredEffectiveResistance = false;
 
-    /** Tracks cumulative motor energy for a given motor. */
-    private static class EnergyTracker {
-        private double cumulativeJoules = 0.0;
-        private double lastSampleAtSec = Double.NaN;
-        private double lastLoggedAtSec = Double.NEGATIVE_INFINITY;
-        private boolean wasEnabledLastCall = false;
-
-        private EnergyTracker() {}
-    }
 
     private BreakerLog() {
         CommandScheduler.getInstance().registerSubsystem(this);
@@ -144,7 +157,6 @@ public class BreakerLog extends DogLog implements Subsystem {
         log(key + "/Units", value.unit().toString());
     }
 
-    
     public static void log(String key, BreakerVector2 value) {
         log(key + "/X", value.getX());
         log(key + "/Y", value.getY());
@@ -196,11 +208,14 @@ public class BreakerLog extends DogLog implements Subsystem {
      * Logs cumulative motor energy always, and detailed TalonFX telemetry when verbose logging is enabled.
      */
     public static void log(String key, TalonFX value, boolean throttle) {
+        
         if (isVerboseLogging()) {
             log(key, value);
         }
-        logCumulativeEnergy(key, value, throttle);
-        logEnergySummary(throttle);
+
+        // Update and log motor energy
+        updateAndLogMotorEnergy(key, value, throttle);
+        logMotorEnergySummary(throttle);
     }
 
     public static void log(String key, CANcoder value) {
@@ -264,97 +279,7 @@ public class BreakerLog extends DogLog implements Subsystem {
         
     }
 
-    /**
-     * Logs cumulative motor electrical energy in Joules since the most recent enable transition.
-     * Key should be full path prefix (e.g. "Electrical/Intake/roller").
-     */
-    private static void logCumulativeEnergy(String key, TalonFX motor, boolean throttle) {
-        EnergyTracker tracker = trackedMotorEnergy.computeIfAbsent(key, unused -> new EnergyTracker());
-        double nowSec = Timer.getFPGATimestamp();
-        boolean enabled = DriverStation.isEnabled();
-
-        // First call for this key: seed timestamp so dt starts from "now" instead of NaN/garbage.
-        if (Double.isNaN(tracker.lastSampleAtSec)) {
-            tracker.lastSampleAtSec = nowSec;
-        }
-
-        // Disable -> enable transition means "new match", so zero cumulative energy for this motor.
-        if (enabled && !tracker.wasEnabledLastCall) {
-            tracker.cumulativeJoules = 0.0;
-            tracker.lastSampleAtSec = nowSec;
-            tracker.lastLoggedAtSec = Double.NEGATIVE_INFINITY;
-        }
-
-        double dtSec = Math.max(0.0, nowSec - tracker.lastSampleAtSec);
-        tracker.lastSampleAtSec = nowSec;
-
-        if (enabled && dtSec > 0.0) {
-            double supplyVoltage = motor.getSupplyVoltage().getValueAsDouble();
-            double supplyCurrent = motor.getSupplyCurrent().getValueAsDouble();
-            double powerWatts = Math.max(0.0, supplyVoltage * supplyCurrent);
-            tracker.cumulativeJoules += powerWatts * dtSec;
-        }
-
-        tracker.wasEnabledLastCall = enabled;
-
-        String cumulativeKey = key + "CumulativeJoules";
-        if (!throttle) {
-            log(cumulativeKey, tracker.cumulativeJoules);
-            return;
-        }
-
-        // Match the standard BreakerLog throttle cadence (2 Hz, twice per second).
-        if (nowSec - tracker.lastLoggedAtSec >= THROTTLE_INTERVAL_SEC) {
-            log(cumulativeKey, tracker.cumulativeJoules);
-            tracker.lastLoggedAtSec = nowSec;
-        }
-    }
-
-    /** Pull subsystem name from keys in form Electrical/<Subsystem>/<Motor...>. */
-    private static String getSubsystemFromElectricalKey(String motorKey) {
-        String[] pathParts = motorKey.split("/");
-        if (pathParts.length >= 2) {
-            return pathParts[1];
-        }
-        return "Unknown";
-    }
-
-    /** Logs robot-wide/subsystem totals and percent-of-total derived from per-motor cumulative Joules. */
-    private static void logEnergySummary(boolean throttle) {
-        double nowSec = Timer.getFPGATimestamp();
-        if (throttle && nowSec - lastEnergySummaryLoggedAtSec < THROTTLE_INTERVAL_SEC) {
-            return;
-        }
-        lastEnergySummaryLoggedAtSec = nowSec;
-
-        Map<String, Double> subsystemTotalsJoules = new HashMap<>();
-        double robotTotalJoules = 0.0;
-
-        for (Map.Entry<String, EnergyTracker> trackedMotor : trackedMotorEnergy.entrySet()) {
-            String motorKey = trackedMotor.getKey();
-            double motorJoules = trackedMotor.getValue().cumulativeJoules;
-            robotTotalJoules += motorJoules;
-            subsystemTotalsJoules.merge(getSubsystemFromElectricalKey(motorKey), motorJoules, Double::sum);
-        }
-
-        log("Electrical/Summary/CumulativeJoules", robotTotalJoules);
-
-        for (Map.Entry<String, EnergyTracker> trackedMotor : trackedMotorEnergy.entrySet()) {
-            String motorKey = trackedMotor.getKey();
-            double motorJoules = trackedMotor.getValue().cumulativeJoules;
-            double motorPercentOfTotal = robotTotalJoules > 0.0 ? (100.0 * motorJoules / robotTotalJoules) : 0.0;
-            log(motorKey + "PercentOfTotal", motorPercentOfTotal);
-        }
-
-        for (Map.Entry<String, Double> subsystemTotal : subsystemTotalsJoules.entrySet()) {
-            String subsystem = subsystemTotal.getKey();
-            double subsystemJoules = subsystemTotal.getValue();
-            double subsystemPercentOfTotal = robotTotalJoules > 0.0 ? (100.0 * subsystemJoules / robotTotalJoules) : 0.0;
-            log("Electrical/Summary/Subsystem/" + subsystem + "/CumulativeJoules", subsystemJoules);
-            log("Electrical/Summary/Subsystem/" + subsystem + "/PercentOfTotal", subsystemPercentOfTotal);
-        }
-    }
-
+ 
     private static void logCANBuses() {{
         for (CANBus bus: loggedCANBuses) 
             log("SystemStats/CanivoreBuses/" + bus.getName(), bus);
@@ -362,6 +287,10 @@ public class BreakerLog extends DogLog implements Subsystem {
     }
 
     private static void periodicLog() {
+        
+        // Log robot-wide electrical telemetry
+        logRobotElectrical();
+        
         // Only log CAN buses if both DogLog extras are enabled AND our verbose flag is true
         if (options.logExtras() && verboseLogging) {
             logCANBuses();
@@ -442,4 +371,226 @@ public class BreakerLog extends DogLog implements Subsystem {
     public static boolean isVerboseLogging() {
         return verboseLogging;
     }
+
+
+    // ----------------- ELECTRICAL TELEMETRY -----------------
+
+    /** Tracks cumulative motor energy for a given motor. */
+    private static class EnergyTracker {
+        private double cumulativeWattHours = 0.0;
+        private double lastSampleAtSec = Double.NaN;
+        private double lastLoggedAtSec = Double.NEGATIVE_INFINITY;
+        private boolean wasEnabledLastCall = false;
+
+        private EnergyTracker() {}
+    }
+
+    /**
+     * Called by the TalonFX log overload once per motor periodic call.
+     * Integrates that motor's supply power into match-to-date Watt Hours, then publishes the motor total.
+     */
+    private static void updateAndLogMotorEnergy(String key, TalonFX motor, boolean throttle) {
+        EnergyTracker tracker = trackedMotorEnergy.computeIfAbsent(key, unused -> new EnergyTracker());
+        double nowSec = Timer.getFPGATimestamp();
+        boolean enabled = DriverStation.isEnabled();
+
+        // First call for this key: seed timestamp so dt starts from "now" instead of NaN/garbage.
+        if (Double.isNaN(tracker.lastSampleAtSec)) {
+            tracker.lastSampleAtSec = nowSec;
+        }
+
+        // Disable -> enable transition means "new match", so zero cumulative energy for this motor.
+        if (enabled && !tracker.wasEnabledLastCall) {
+            tracker.cumulativeWattHours = 0.0;
+            tracker.lastSampleAtSec = nowSec;
+            tracker.lastLoggedAtSec = Double.NEGATIVE_INFINITY;
+        }
+
+        double dtSec = Math.max(0.0, nowSec - tracker.lastSampleAtSec);
+        tracker.lastSampleAtSec = nowSec;
+
+        if (enabled && dtSec > 0.0) {
+            double supplyVoltage = motor.getSupplyVoltage().getValueAsDouble();
+            double supplyCurrent = motor.getSupplyCurrent().getValueAsDouble();
+            double powerWatts = Math.max(0.0, supplyVoltage * supplyCurrent);
+            // Wh = W * seconds / 3600. Integrate every motor periodic call, even if publishing is throttled.
+            tracker.cumulativeWattHours += powerWatts * dtSec / 3600.0;
+        }
+
+        tracker.wasEnabledLastCall = enabled;
+
+        String cumulativeWattHoursKey = key + "CumulativeWattHours";
+        if (!throttle) {
+            log(cumulativeWattHoursKey, tracker.cumulativeWattHours);
+            return;
+        }
+
+        // Match the standard BreakerLog throttle cadence (2 Hz, twice per second).
+        if (nowSec - tracker.lastLoggedAtSec >= THROTTLE_INTERVAL_SEC) {
+            log(cumulativeWattHoursKey, tracker.cumulativeWattHours);
+            tracker.lastLoggedAtSec = nowSec;
+        }
+    }
+
+    /** Pull subsystem name from keys in form Electrical/<Subsystem>/<Motor...>. */
+    private static String getSubsystemFromElectricalKey(String motorKey) {
+        String[] pathParts = motorKey.split("/");
+        if (pathParts.length >= 2) {
+            return pathParts[1];
+        }
+        return "Unknown";
+    }
+
+    /**
+     * Recomputes robot/subsystem energy totals from all tracked motor energy values.
+     * This is summary-only: it does not sample motors or integrate any new energy.
+     */
+    private static void logMotorEnergySummary(boolean throttle) {
+        double nowSec = Timer.getFPGATimestamp();
+        if (throttle && nowSec - lastEnergySummaryLoggedAtSec < THROTTLE_INTERVAL_SEC) {
+            return;
+        }
+        lastEnergySummaryLoggedAtSec = nowSec;
+
+        Map<String, Double> subsystemTotalsWattHours = new HashMap<>();
+        double robotTotalWattHours = 0.0;
+
+        // First pass builds robot and subsystem totals from the latest per-motor accumulators.
+        for (Map.Entry<String, EnergyTracker> trackedMotor : trackedMotorEnergy.entrySet()) {
+            String motorKey = trackedMotor.getKey();
+            double motorWattHours = trackedMotor.getValue().cumulativeWattHours;
+            robotTotalWattHours += motorWattHours;
+            subsystemTotalsWattHours.merge(getSubsystemFromElectricalKey(motorKey), motorWattHours, Double::sum);
+        }
+
+        log("Electrical/Summary/CumulativeWattHours", robotTotalWattHours);
+
+        // Second pass logs each motor's share of the robot total.
+        for (Map.Entry<String, EnergyTracker> trackedMotor : trackedMotorEnergy.entrySet()) {
+            String motorKey = trackedMotor.getKey();
+            double motorWattHours = trackedMotor.getValue().cumulativeWattHours;
+            double motorPercentOfTotal = robotTotalWattHours > 0.0 ? (100.0 * motorWattHours / robotTotalWattHours) : 0.0;
+            log(motorKey + "PercentOfTotal", motorPercentOfTotal);
+        }
+
+        // Log subsystem totals and shares for dashboards that don't want every motor shown.
+        for (Map.Entry<String, Double> subsystemTotal : subsystemTotalsWattHours.entrySet()) {
+            String subsystem = subsystemTotal.getKey();
+            double subsystemWattHours = subsystemTotal.getValue();
+            double subsystemPercentOfTotal = robotTotalWattHours > 0.0 ? (100.0 * subsystemWattHours / robotTotalWattHours) : 0.0;
+            log("Electrical/Summary/Subsystem/" + subsystem + "/CumulativeWattHours", subsystemWattHours);
+            log("Electrical/Summary/Subsystem/" + subsystem + "/PercentOfTotal", subsystemPercentOfTotal);
+        }
+    }
+
+    /**
+     * Runs once per BreakerLog periodic cycle for robot-wide battery/PDH telemetry.
+     * High-rate samples update min/max/average/brownout state; slower fields are only published at 2 Hz.
+     */
+    private static void logRobotElectrical() {
+        double nowSec = Timer.getFPGATimestamp();
+        boolean enabled = DriverStation.isEnabled();
+        boolean isBrownedOut = RobotController.isBrownedOut();
+        double batteryVoltage = RobotController.getBatteryVoltage();
+        double totalCurrent = powerDistribution.getTotalCurrent();
+
+        // Current and voltage statistics are match/run scoped, so reset on the first enabled cycle.
+        if (enabled && !wasEnabledForCurrentTracking) {
+            cumulativeCurrentAmpSeconds = 0.0;
+            currentTrackingElapsedSec = 0.0;
+            maxTotalCurrent = 0.0;
+            minBatteryVoltage = batteryVoltage;
+            maxBatteryVoltage = batteryVoltage;
+            currentAtMinBatteryVoltage = totalCurrent;
+            voltageAtMaxTotalCurrent = batteryVoltage;
+            filteredEffectiveResistance = 0.0;
+            hasFilteredEffectiveResistance = false;
+            lastCurrentSampleAtSec = nowSec;
+        }
+
+        if (Double.isNaN(lastCurrentSampleAtSec)) {
+            lastCurrentSampleAtSec = nowSec;
+        }
+
+        double dtSec = Math.max(0.0, nowSec - lastCurrentSampleAtSec);
+        lastCurrentSampleAtSec = nowSec;
+
+        if (enabled && dtSec > 0.0) {
+            // Average current is time-weighted, not an average of the throttled published samples.
+            cumulativeCurrentAmpSeconds += totalCurrent * dtSec;
+            currentTrackingElapsedSec += dtSec;
+
+            // Keep the voltage observed at peak current; worst current and worst voltage may not coincide.
+            if (totalCurrent > maxTotalCurrent) {
+                maxTotalCurrent = totalCurrent;
+                voltageAtMaxTotalCurrent = batteryVoltage;
+            }
+
+            // Keep the current observed at lowest voltage for brownout postmortems.
+            if (batteryVoltage < minBatteryVoltage) {
+                minBatteryVoltage = batteryVoltage;
+                currentAtMinBatteryVoltage = totalCurrent;
+            }
+            maxBatteryVoltage = Math.max(maxBatteryVoltage, batteryVoltage);
+        }
+
+        wasEnabledForCurrentTracking = enabled;
+        double averageTotalCurrent = currentTrackingElapsedSec > 0.0
+            ? cumulativeCurrentAmpSeconds / currentTrackingElapsedSec
+            : 0.0;
+        // Use the best enabled voltage seen this run as the no-load-ish reference for sag.
+        double voltageSag = Math.max(0.0, maxBatteryVoltage - batteryVoltage);
+
+        // Ignore low-current samples; tiny voltage/current changes make resistance estimates noisy.
+        double effectiveResistanceInstant = (enabled && totalCurrent >= EFFECTIVE_RESISTANCE_MIN_CURRENT_AMPS)
+            ? voltageSag / totalCurrent
+            : 0.0;
+
+        // EMA smooths the noisy instant estimate while still tracking wiring/battery condition changes.
+        if (effectiveResistanceInstant > 0.0) {
+            filteredEffectiveResistance = hasFilteredEffectiveResistance
+                ? filteredEffectiveResistance
+                    + EFFECTIVE_RESISTANCE_FILTER_ALPHA * (effectiveResistanceInstant - filteredEffectiveResistance)
+                : effectiveResistanceInstant;
+            hasFilteredEffectiveResistance = true;
+        }
+
+        // Estimate the current where sag would pull the robot down to the brownout threshold.
+        double predictedBrownoutCurrent = filteredEffectiveResistance > 0.0
+            ? Math.max(0.0, (maxBatteryVoltage - BROWNOUT_VOLTAGE_THRESHOLD) / filteredEffectiveResistance)
+            : 0.0;
+
+        log("Electrical/TotalCurrent", totalCurrent);
+        log("Electrical/TotalCurrentAverage", averageTotalCurrent, true);
+        log("Electrical/TotalCurrentMax", maxTotalCurrent, true);
+        
+        log("Electrical/Battery/Voltage", batteryVoltage);
+        log("Electrical/Battery/VoltageMin", minBatteryVoltage, true);
+        log("Electrical/Battery/VoltageMax", maxBatteryVoltage, true);
+        
+        log("Electrical/Brownout/IsBrownedOut", isBrownedOut);
+        log("Electrical/Brownout/VoltageSag", voltageSag);
+        log("Electrical/Brownout/EffectiveResistanceOhmsInstant", effectiveResistanceInstant);
+        log("Electrical/Brownout/EffectiveResistanceOhmsFiltered", filteredEffectiveResistance, true);
+        log("Electrical/Brownout/EffectiveResistanceMilliohmsFiltered", filteredEffectiveResistance * 1000.0, true);
+        log("Electrical/Brownout/PredictedBrownoutCurrent", predictedBrownoutCurrent, true);
+        log("Electrical/Brownout/LowestVoltageThisMatch", minBatteryVoltage, true);
+        log("Electrical/Brownout/PeakCurrentThisMatch", maxTotalCurrent, true);
+        log("Electrical/Brownout/CurrentAtLowestVoltage", currentAtMinBatteryVoltage, true);
+        log("Electrical/Brownout/VoltageAtPeakCurrent", voltageAtMaxTotalCurrent, true);
+
+        // Edge logs make it easy to count and measure brownout windows without post-processing booleans.
+        if (isBrownedOut && !wasBrownedOut) {
+            brownoutCount++;
+            currentBrownoutStartSec = nowSec;
+            log("Electrical/Brownout/Count", brownoutCount);
+            log("Electrical/Brownout/LastStartTimestampSec", currentBrownoutStartSec);
+        } else if (!isBrownedOut && wasBrownedOut) {
+            log("Electrical/Brownout/LastEndTimestampSec", nowSec);
+            log("Electrical/Brownout/LastDurationSec", nowSec - currentBrownoutStartSec);
+        }
+
+        wasBrownedOut = isBrownedOut;
+    }
+
 }
