@@ -1,5 +1,6 @@
 package frc.robot.subsystems;
 
+import edu.wpi.first.hal.FRCNetComm.tResourceType;
 import edu.wpi.first.math.Matrix;
 import edu.wpi.first.math.VecBuilder;
 import edu.wpi.first.math.geometry.Pose2d;
@@ -53,16 +54,17 @@ public class Vision extends SubsystemBase {
         new Camera(VisionConstants.BACK_LEFT_CAMERA, VisionConstants.BACK_LEFT_CAMERA_POSE, null, null, "No data", "None"),
         new Camera(VisionConstants.BACK_RIGHT_CAMERA, VisionConstants.BACK_RIGHT_CAMERA_POSE, null, null, "No data", "None")
     };
-    // Store latest vision poses for visualization
+
+    // // Store latest combined vision pose for visualization
     private Pose2d fusedPose = null;
-    private Pose2d frontCameraPose = null;
-    private Pose2d backLeftCameraPose = null;
-    private Pose2d backRightCameraPose = null;
+    // private Pose2d frontCameraPose = null;
+    // private Pose2d backLeftCameraPose = null;
+    // private Pose2d backRightCameraPose = null;
     
-    // Store latest pose estimates for metadata
-    private PoseEstimate frontCameraEstimate = null;
-    private PoseEstimate backLeftCameraEstimate = null;
-    private PoseEstimate backRightCameraEstimate = null;
+    // // Store latest pose estimates for metadata
+    // private PoseEstimate frontCameraEstimate = null;
+    // private PoseEstimate backLeftCameraEstimate = null;
+    // private PoseEstimate backRightCameraEstimate = null;
 
     // Timer for periodic logging (once per second)
     private double lastLogTime = 0.0;
@@ -557,18 +559,18 @@ public class Vision extends SubsystemBase {
     private void logVisionData() {
 
         // Get tag IDs from pose estimates
-        int[] frontTags = getTagIdsFromEstimate(frontCameraEstimate);
-        int[] backLeftTags = getTagIdsFromEstimate(backLeftCameraEstimate);
-        int[] backRightTags = getTagIdsFromEstimate(backRightCameraEstimate);
-        String frontTagsStr = formatTagArray(frontTags);
-        String backLeftTagsStr = formatTagArray(backLeftTags);
-        String backRightTagsStr = formatTagArray(backRightTags);
+        // int[] frontTags = getTagIdsFromEstimate(frontCameraEstimate);
+        // int[] backLeftTags = getTagIdsFromEstimate(backLeftCameraEstimate);
+        // int[] backRightTags = getTagIdsFromEstimate(backRightCameraEstimate);
+        // String frontTagsStr = formatTagArray(frontTags);
+        // String backLeftTagsStr = formatTagArray(backLeftTags);
+        // String backRightTagsStr = formatTagArray(backRightTags);
 
-        // Format poses with 2 decimal places
-        String frontPoseStr = formatPose(frontCameraPose);
-        String backLeftPoseStr = formatPose(backLeftCameraPose);
-        String backRightPoseStr = formatPose(backRightCameraPose);
+        // Format pose with 2 decimal places
         String fusedPoseStr = formatPose(fusedPose);
+        // String frontPoseStr = formatPose(frontCameraPose);
+        // String backLeftPoseStr = formatPose(backLeftCameraPose);
+        // String backRightPoseStr = formatPose(backRightCameraPose);
 
         // Fused pose (odometry + vision): X, Y, yaw - always log for dashboard
         if (fusedPose != null) {
@@ -597,8 +599,8 @@ public class Vision extends SubsystemBase {
             BreakerLog.log("Vision/Timestamp/PhoenixNow", phoenixNow);
             BreakerLog.log("Vision/Timestamp/FPGANow", fpgaNow);
             BreakerLog.log("Vision/Timestamp/PhoenixVsFPGADelta", phoenixVsFpgaStatus);
-            if (frontCameraEstimate != null) {
-                double camTs = frontCameraEstimate.timestampSeconds;
+            if (cameras[0].estimate != null) {
+                double camTs = cameras[1].estimate.timestampSeconds;
                 double frontCamVsPhoenixDeltaSec = Math.abs(phoenixNow - camTs);
                 String frontCamVsPhoenixStatus = frontCamVsPhoenixDeltaSec > 1000.0
                         ? String.format("%.2es (WARNING: different epoch - use corrected ts)", frontCamVsPhoenixDeltaSec)
@@ -606,7 +608,7 @@ public class Vision extends SubsystemBase {
                 BreakerLog.log("Vision/Timestamp/FrontCameraTimestamp", camTs);
                 BreakerLog.log("Vision/Timestamp/FrontCameravsPhoenixDelta", frontCamVsPhoenixStatus);
 
-                double correctedTs = Utils.fpgaToCurrentTime(frontCameraEstimate.timestampSeconds);
+                double correctedTs = Utils.fpgaToCurrentTime(cameras[0].estimate.timestampSeconds);
                 double correctedVsPhoenixDeltaSec = Math.abs(phoenixNow - correctedTs);
                 String correctedVsPhoenixStatus = correctedVsPhoenixDeltaSec > 2.0
                         ? String.format("%.3fs (WARNING: >2s - check latency)", correctedVsPhoenixDeltaSec)
@@ -615,86 +617,100 @@ public class Vision extends SubsystemBase {
             }
         }
 
-        double frontTrustScore = frontCameraEstimate != null
-                ? getTrustScore(frontCameraEstimate.tagCount, frontCameraEstimate.avgTagDist)
-                : Double.NaN;
-        double backLeftTrustScore = backLeftCameraEstimate != null
-                ? getTrustScore(backLeftCameraEstimate.tagCount, backLeftCameraEstimate.avgTagDist)
-                : Double.NaN;
-        double backRightTrustScore = backRightCameraEstimate != null
-                ? getTrustScore(backRightCameraEstimate.tagCount, backRightCameraEstimate.avgTagDist)
-                : Double.NaN;
+        // double frontTrustScore = frontCameraEstimate != null
+        //         ? getTrustScore(frontCameraEstimate.tagCount, frontCameraEstimate.avgTagDist)
+        //         : Double.NaN;
+        // double backLeftTrustScore = backLeftCameraEstimate != null
+        //         ? getTrustScore(backLeftCameraEstimate.tagCount, backLeftCameraEstimate.avgTagDist)
+        //         : Double.NaN;
+        // double backRightTrustScore = backRightCameraEstimate != null
+        //         ? getTrustScore(backRightCameraEstimate.tagCount, backRightCameraEstimate.avgTagDist)
+        //         : Double.NaN;
 
-        double frontDistToFused = (frontCameraPose != null && fusedPose != null)
-                ? frontCameraPose.getTranslation().getDistance(fusedPose.getTranslation())
-                : Double.NaN;
-        double backLeftDistToFused = (backLeftCameraPose != null && fusedPose != null)
-                ? backLeftCameraPose.getTranslation().getDistance(fusedPose.getTranslation())
-                : Double.NaN;
-        double backRightDistToFused = (backRightCameraPose != null && fusedPose != null)
-                ? backRightCameraPose.getTranslation().getDistance(fusedPose.getTranslation())
-                : Double.NaN;
+        // double frontDistToFused = (frontCameraPose != null && fusedPose != null)
+        //         ? frontCameraPose.getTranslation().getDistance(fusedPose.getTranslation())
+        //         : Double.NaN;
+        // double backLeftDistToFused = (backLeftCameraPose != null && fusedPose != null)
+        //         ? backLeftCameraPose.getTranslation().getDistance(fusedPose.getTranslation())
+        //         : Double.NaN;
+        // double backRightDistToFused = (backRightCameraPose != null && fusedPose != null)
+        //         ? backRightCameraPose.getTranslation().getDistance(fusedPose.getTranslation())
+        //         : Double.NaN;
 
         if (BreakerLog.isVerboseLogging()) {
-            BreakerLog.log("Vision/FrontCamera/Tags", frontTagsStr);
-            BreakerLog.log("Vision/FrontCamera/Pose", frontPoseStr);
-            BreakerLog.log("Vision/FrontCamera/TrustScore", frontTrustScore);
-            BreakerLog.log("Vision/FrontCamera/DistToFusedM", frontDistToFused);
-            BreakerLog.log("Vision/FrontCamera/LastRejection", frontCameraLastRejection);
+            for (Camera camera : cameras) {
+                BreakerLog.log(String.format("Vision/%n/Tags", camera.name), formatTagArray(getTagIdsFromEstimate(camera.estimate)));
+                BreakerLog.log(String.format("Vision/%n/Pose", camera.name), formatPose(camera.visionPose));
+                BreakerLog.log(String.format("Vision/%n/TrustScore", camera.name), (
+                    camera.estimate != null
+                    ? getTrustScore(camera.estimate.tagCount, camera.estimate.avgTagDist)
+                    : Double.NaN)
+                );
+                BreakerLog.log(String.format("Vision/%n/DistToFusedM", camera.name), (
+                    (camera.visionPose != null && fusedPose != null)
+                    ? camera.visionPose.getTranslation().getDistance(fusedPose.getTranslation())
+                    : Double.NaN)
+                );
+                BreakerLog.log(String.format("Vision/%n/LastRejection", camera.name), camera.lastRejection);
+            }
+            // BreakerLog.log("Vision/FrontCamera/Tags", frontTagsStr);
+            // BreakerLog.log("Vision/FrontCamera/Pose", frontPoseStr);
+            // BreakerLog.log("Vision/FrontCamera/TrustScore", frontTrustScore);
+            // BreakerLog.log("Vision/FrontCamera/DistToFusedM", frontDistToFused);
+            // BreakerLog.log("Vision/FrontCamera/LastRejection", frontCameraLastRejection);
 
-            BreakerLog.log("Vision/BackLeftCamera/Tags", backLeftTagsStr);
-            BreakerLog.log("Vision/BackLeftCamera/Pose", backLeftPoseStr);
-            BreakerLog.log("Vision/BackLeftCamera/TrustScore", backLeftTrustScore);
-            BreakerLog.log("Vision/BackLeftCamera/DistToFusedM", backLeftDistToFused);
-            BreakerLog.log("Vision/BackLeftCamera/LastRejection", backLeftCameraLastRejection);
+            // BreakerLog.log("Vision/BackLeftCamera/Tags", backLeftTagsStr);
+            // BreakerLog.log("Vision/BackLeftCamera/Pose", backLeftPoseStr);
+            // BreakerLog.log("Vision/BackLeftCamera/TrustScore", backLeftTrustScore);
+            // BreakerLog.log("Vision/BackLeftCamera/DistToFusedM", backLeftDistToFused);
+            // BreakerLog.log("Vision/BackLeftCamera/LastRejection", backLeftCameraLastRejection);
 
-            BreakerLog.log("Vision/BackRightCamera/Tags", backRightTagsStr);
-            BreakerLog.log("Vision/BackRightCamera/Pose", backRightPoseStr);
-            BreakerLog.log("Vision/BackRightCamera/TrustScore", backRightTrustScore);
-            BreakerLog.log("Vision/BackRightCamera/DistToFusedM", backRightDistToFused);
-            BreakerLog.log("Vision/BackRightCamera/LastRejection", backRightCameraLastRejection);
+            // BreakerLog.log("Vision/BackRightCamera/Tags", backRightTagsStr);
+            // BreakerLog.log("Vision/BackRightCamera/Pose", backRightPoseStr);
+            // BreakerLog.log("Vision/BackRightCamera/TrustScore", backRightTrustScore);
+            // BreakerLog.log("Vision/BackRightCamera/DistToFusedM", backRightDistToFused);
+            // BreakerLog.log("Vision/BackRightCamera/LastRejection", backRightCameraLastRejection);
         }
-
-        BreakerLog.log("Vision/FrontCamera/Status", frontCameraStatus, true);
-        BreakerLog.log("Vision/BackLeftCamera/Status", backLeftCameraStatus, true);
-        BreakerLog.log("Vision/BackRightCamera/Status", backRightCameraStatus, true);
+        for (Camera camera : cameras) {
+            BreakerLog.log(String.format("Vision/%n/Status", camera.name), camera.status, true);
+        }
         BreakerLog.log("Vision/FusedPose/Pose", fusedPoseStr, true);
 
-        double imuYawForLog = Double.NaN;
-        try {
-            imuYawForLog = drivetrain.getPigeon2().getRotation2d().getDegrees();
-        } catch (Exception ignored) {
-        }
-        String frontTrustStr = Double.isNaN(frontTrustScore) ? "—" : String.format("%.3f", frontTrustScore);
-        String backLeftTrustStr = Double.isNaN(backLeftTrustScore) ? "—" : String.format("%.3f", backLeftTrustScore);
-        String backRightTrustStr = Double.isNaN(backRightTrustScore) ? "—" : String.format("%.3f", backRightTrustScore);
-        String frontDistStr = Double.isNaN(frontDistToFused) ? "—" : String.format("%.3fm", frontDistToFused);
-        String backLeftDistStr = Double.isNaN(backLeftDistToFused) ? "—" : String.format("%.3fm", backLeftDistToFused);
-        String backRightDistStr = Double.isNaN(backRightDistToFused) ? "—" : String.format("%.3fm", backRightDistToFused);
-        String timestampVerifyStr = frontCameraEstimate != null
-                ? String.format("Phoenix=%.2f FPGA=%.2f CamTs=%.2f Δ=%.3fs",
-                        phoenixNow, fpgaNow, frontCameraEstimate.timestampSeconds, phoenixNow - frontCameraEstimate.timestampSeconds)
-                : String.format("Phoenix=%.2f FPGA=%.2f (no cam data)", phoenixNow, fpgaNow);
-        if (BreakerLog.isVerboseLogging()) {
-            String logMessage = String.format(
-                    "------------------------------------------------------\n" +
-                    "- Timestamp (verify Phoenix epoch): %s\n" +
-                    "- Front Camera: Tags %s, Pose %s, Trust %s, ΔFused %s\n" +
-                    "- Back-Left Camera: Tags %s, Pose %s, Trust %s, ΔFused %s\n" +
-                    "- Back-Right Camera: Tags %s, Pose %s, Trust %s, ΔFused %s\n" +
-                    "- Fused: Pose %s (X=%.2f Y=%.2f Yaw=%.2f)\n" +
-                    "- IMU Yaw: %.2f deg",
-                    timestampVerifyStr,
-                    frontTagsStr, frontPoseStr, frontTrustStr, frontDistStr,
-                    backLeftTagsStr, backLeftPoseStr, backLeftTrustStr, backLeftDistStr,
-                    backRightTagsStr, backRightPoseStr, backRightTrustStr, backRightDistStr,
-                    fusedPoseStr,
-                    fusedPose != null ? fusedPose.getX() : Double.NaN,
-                    fusedPose != null ? fusedPose.getY() : Double.NaN,
-                    fusedPose != null ? fusedPose.getRotation().getDegrees() : Double.NaN,
-                    imuYawForLog);
-            BreakerLog.log("Vision/Log", logMessage);
-        }
+        // double imuYawForLog = Double.NaN;
+        // try {
+        //     imuYawForLog = drivetrain.getPigeon2().getRotation2d().getDegrees();
+        // } catch (Exception ignored) {
+        // }
+        // String frontTrustStr = Double.isNaN(frontTrustScore) ? "—" : String.format("%.3f", frontTrustScore);
+        // String backLeftTrustStr = Double.isNaN(backLeftTrustScore) ? "—" : String.format("%.3f", backLeftTrustScore);
+        // String backRightTrustStr = Double.isNaN(backRightTrustScore) ? "—" : String.format("%.3f", backRightTrustScore);
+        // String frontDistStr = Double.isNaN(frontDistToFused) ? "—" : String.format("%.3fm", frontDistToFused);
+        // String backLeftDistStr = Double.isNaN(backLeftDistToFused) ? "—" : String.format("%.3fm", backLeftDistToFused);
+        // String backRightDistStr = Double.isNaN(backRightDistToFused) ? "—" : String.format("%.3fm", backRightDistToFused);
+        // String timestampVerifyStr = frontCameraEstimate != null
+        //         ? String.format("Phoenix=%.2f FPGA=%.2f CamTs=%.2f Δ=%.3fs",
+        //                 phoenixNow, fpgaNow, frontCameraEstimate.timestampSeconds, phoenixNow - frontCameraEstimate.timestampSeconds)
+        //         : String.format("Phoenix=%.2f FPGA=%.2f (no cam data)", phoenixNow, fpgaNow);
+        // if (BreakerLog.isVerboseLogging()) {
+        //     String logMessage = String.format(
+        //             "------------------------------------------------------\n" +
+        //             "- Timestamp (verify Phoenix epoch): %s\n" +
+        //             "- Front Camera: Tags %s, Pose %s, Trust %s, ΔFused %s\n" +
+        //             "- Back-Left Camera: Tags %s, Pose %s, Trust %s, ΔFused %s\n" +
+        //             "- Back-Right Camera: Tags %s, Pose %s, Trust %s, ΔFused %s\n" +
+        //             "- Fused: Pose %s (X=%.2f Y=%.2f Yaw=%.2f)\n" +
+        //             "- IMU Yaw: %.2f deg",
+        //             timestampVerifyStr,
+        //             frontTagsStr, frontPoseStr, frontTrustStr, frontDistStr,
+        //             backLeftTagsStr, backLeftPoseStr, backLeftTrustStr, backLeftDistStr,
+        //             backRightTagsStr, backRightPoseStr, backRightTrustStr, backRightDistStr,
+        //             fusedPoseStr,
+        //             fusedPose != null ? fusedPose.getX() : Double.NaN,
+        //             fusedPose != null ? fusedPose.getY() : Double.NaN,
+        //             fusedPose != null ? fusedPose.getRotation().getDegrees() : Double.NaN,
+        //             imuYawForLog);
+        //     BreakerLog.log("Vision/Log", logMessage);
+        // }
     }
 
     /**
