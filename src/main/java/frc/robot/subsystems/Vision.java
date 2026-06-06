@@ -30,6 +30,29 @@ public class Vision extends SubsystemBase {
     private final Drivetrain drivetrain;
     private final Field2d field;
 
+    // A class that allows new cameras to be created / deleted more easily.
+    public class Camera {
+        public String name;
+        public double[] position;
+        public Pose2d visionPose;
+        public PoseEstimate estimate;
+        public String status;
+        public String lastRejection;
+        public Camera(String name, double[] position, Pose2d visionPose, PoseEstimate estimate, String status, String lastRejection) {
+            this.name = name;
+            this.position = position;
+            this.visionPose = visionPose;
+            this.estimate = estimate;
+            this.status = status;
+            this.lastRejection = lastRejection;
+        }
+    }
+
+    private Camera[] cameras = {
+        new Camera(VisionConstants.FRONT_CAMERA, VisionConstants.FRONT_CAMERA_POSE, null, null, "No data", "None"),
+        new Camera(VisionConstants.BACK_LEFT_CAMERA, VisionConstants.BACK_LEFT_CAMERA_POSE, null, null, "No data", "None"),
+        new Camera(VisionConstants.BACK_RIGHT_CAMERA, VisionConstants.BACK_RIGHT_CAMERA_POSE, null, null, "No data", "None")
+    };
     // Store latest vision poses for visualization
     private Pose2d fusedPose = null;
     private Pose2d frontCameraPose = null;
@@ -56,35 +79,18 @@ public class Vision extends SubsystemBase {
     public Vision(Drivetrain drivetrain) {
         this.drivetrain = drivetrain;
 
-        // Configure camera poses relative to robot center
-        LimelightHelpers.setCameraPose_RobotSpace(
-            VisionConstants.FRONT_CAMERA,
-            VisionConstants.FRONT_CAMERA_POSE[0], // forward
-            VisionConstants.FRONT_CAMERA_POSE[1], // side
-            VisionConstants.FRONT_CAMERA_POSE[2], // up
-            VisionConstants.FRONT_CAMERA_POSE[3], // roll
-            VisionConstants.FRONT_CAMERA_POSE[4], // pitch
-            VisionConstants.FRONT_CAMERA_POSE[5]  // yaw
-        );
-        
-        LimelightHelpers.setCameraPose_RobotSpace(
-            VisionConstants.BACK_LEFT_CAMERA,
-            VisionConstants.BACK_LEFT_CAMERA_POSE[0], // forward
-            VisionConstants.BACK_LEFT_CAMERA_POSE[1], // side
-            VisionConstants.BACK_LEFT_CAMERA_POSE[2], // up
-            VisionConstants.BACK_LEFT_CAMERA_POSE[3], // roll
-            VisionConstants.BACK_LEFT_CAMERA_POSE[4], // pitch
-            VisionConstants.BACK_LEFT_CAMERA_POSE[5]  // yaw
-        );
-        LimelightHelpers.setCameraPose_RobotSpace(
-            VisionConstants.BACK_RIGHT_CAMERA,
-            VisionConstants.BACK_RIGHT_CAMERA_POSE[0], // forward
-            VisionConstants.BACK_RIGHT_CAMERA_POSE[1], // side
-            VisionConstants.BACK_RIGHT_CAMERA_POSE[2], // up
-            VisionConstants.BACK_RIGHT_CAMERA_POSE[3], // roll
-            VisionConstants.BACK_RIGHT_CAMERA_POSE[4], // pitch
-            VisionConstants.BACK_RIGHT_CAMERA_POSE[5]  // yaw
-        );
+        // For each camera, sets the pose relative to the robot center.
+        for (Camera camera : cameras) {
+            LimelightHelpers.setCameraPose_RobotSpace(
+                camera.name,
+                camera.position[0], // forward
+                camera.position[1], // side
+                camera.position[2], // up
+                camera.position[3], // roll
+                camera.position[4], // pitch
+                camera.position[5]  // yaw
+            );
+        }
 
         // Set up the field and start sending its info to Elastic
         field = new Field2d();
@@ -95,29 +101,40 @@ public class Vision extends SubsystemBase {
     public void periodic() {
         // Send robot orientation (IMU data) to Limelights for MegaTag2 (only needed for MegaTag2)
         if (VisionConstants.USE_MEGATAG2) {
-            sendRobotOrientationToLimelight(VisionConstants.FRONT_CAMERA);
-            sendRobotOrientationToLimelight(VisionConstants.BACK_LEFT_CAMERA);
-            sendRobotOrientationToLimelight(VisionConstants.BACK_RIGHT_CAMERA);
+            for (Camera camera : cameras) {
+                sendRobotOrientationToLimelight(camera.name);
+            };
+            // sendRobotOrientationToLimelight(VisionConstants.FRONT_CAMERA);
+            // sendRobotOrientationToLimelight(VisionConstants.BACK_LEFT_CAMERA);
+            // sendRobotOrientationToLimelight(VisionConstants.BACK_RIGHT_CAMERA);
         }
-
+        
         // Process vision poses from all three cameras
-        updatePoseEstimate(VisionConstants.FRONT_CAMERA);
-        updatePoseEstimate(VisionConstants.BACK_LEFT_CAMERA);
-        updatePoseEstimate(VisionConstants.BACK_RIGHT_CAMERA);
+        for (Camera camera : cameras) {
+                updatePoseEstimate(camera.name);
+            };
+        // updatePoseEstimate(VisionConstants.FRONT_CAMERA);
+        // updatePoseEstimate(VisionConstants.BACK_LEFT_CAMERA);
+        // updatePoseEstimate(VisionConstants.BACK_RIGHT_CAMERA);
 
         // Update Field2d with all poses (fused, and one for each camera) for Elastic
         // dashboard visualization
         fusedPose = drivetrain.getLocalizer().getPose();
         field.getRobotObject().setPose(fusedPose); // Fused pose (odometry + vision)
-        if (frontCameraPose != null) {
-            field.getObject(VisionConstants.FRONT_CAMERA).setPose(frontCameraPose);
-        }
-        if (backLeftCameraPose != null) {
-            field.getObject(VisionConstants.BACK_LEFT_CAMERA).setPose(backLeftCameraPose);
-        }
-        if (backRightCameraPose != null) {
-            field.getObject(VisionConstants.BACK_RIGHT_CAMERA).setPose(backRightCameraPose);
-        }
+        for (Camera camera : cameras) {
+            if (camera.visionPose != null) {
+                field.getObject(camera.name).setPose(camera.visionPose);
+            }
+        };
+        // if (frontCameraPose != null) {
+        //     field.getObject(VisionConstants.FRONT_CAMERA).setPose(frontCameraPose);
+        // }
+        // if (backLeftCameraPose != null) {
+        //     field.getObject(VisionConstants.BACK_LEFT_CAMERA).setPose(backLeftCameraPose);
+        // }
+        // if (backRightCameraPose != null) {
+        //     field.getObject(VisionConstants.BACK_RIGHT_CAMERA).setPose(backRightCameraPose);
+        // }
 
         // Log vision data once per second
         double currentTime = Timer.getFPGATimestamp();
@@ -189,17 +206,23 @@ public class Vision extends SubsystemBase {
 
         Pose2d visionPose = estimate.pose;
         int tagCount = estimate.tagCount;     
-        
-        if (cameraName.equals(VisionConstants.FRONT_CAMERA)) {
-            frontCameraPose = visionPose;
-            frontCameraEstimate = estimate;
-        } else if (cameraName.equals(VisionConstants.BACK_LEFT_CAMERA)) {
-            backLeftCameraPose = visionPose;
-            backLeftCameraEstimate = estimate;
-        } else if (cameraName.equals(VisionConstants.BACK_RIGHT_CAMERA)) {
-            backRightCameraPose = visionPose;
-            backRightCameraEstimate = estimate;
+        for (Camera camera : cameras) {
+            if (cameraName.equals(camera.name)) {
+                camera.visionPose = visionPose;
+                camera.estimate = estimate;
+            }
         }
+
+        // if (cameraName.equals(VisionConstants.FRONT_CAMERA)) {
+        //     frontCameraPose = visionPose;
+        //     frontCameraEstimate = estimate;
+        // } else if (cameraName.equals(VisionConstants.BACK_LEFT_CAMERA)) {
+        //     backLeftCameraPose = visionPose;
+        //     backLeftCameraEstimate = estimate;
+        // } else if (cameraName.equals(VisionConstants.BACK_RIGHT_CAMERA)) {
+        //     backRightCameraPose = visionPose;
+        //     backRightCameraEstimate = estimate;
+        // }
 
         // Only use vision data if we have enough tags
         if (tagCount < VisionConstants.MIN_TAG_COUNT) {
@@ -289,41 +312,56 @@ public class Vision extends SubsystemBase {
      */
     public boolean isTagDetected() {
         // Check all cameras for valid pose estimates with tags
-        if (frontCameraEstimate != null && frontCameraEstimate.tagCount > 0) {
-            return true;
+        
+        for (Camera camera : cameras) {
+            if (camera.estimate != null && camera.estimate.tagCount > 0) {
+                return true;
+            }
         }
-        if (backLeftCameraEstimate != null && backLeftCameraEstimate.tagCount > 0) {
-            return true;
-        }
-        if (backRightCameraEstimate != null && backRightCameraEstimate.tagCount > 0) {
-            return true;
-        }
+        // if (frontCameraEstimate != null && frontCameraEstimate.tagCount > 0) {
+        //     return true;
+        // }
+        // if (backLeftCameraEstimate != null && backLeftCameraEstimate.tagCount > 0) {
+        //     return true;
+        // }
+        // if (backRightCameraEstimate != null && backRightCameraEstimate.tagCount > 0) {
+        //     return true;
+        // }
         return false;
     }
 
     public boolean isTagDetected(int targetTagId) {
         // Check all cameras for valid pose estimates with tags
-        if (frontCameraEstimate != null && frontCameraEstimate.rawFiducials != null) {
-            for (var i : frontCameraEstimate.rawFiducials) {
-                if (i.id == targetTagId) {
-                    return true;
+        for (Camera camera : cameras) {
+            if (camera.estimate != null && camera.estimate.rawFiducials != null) {
+                for (var i : camera.estimate.rawFiducials) {
+                    if (i.id == targetTagId) {
+                        return true;
+                    }
                 }
             }
         }
-        if (backLeftCameraEstimate != null && backLeftCameraEstimate.rawFiducials != null) {
-            for (var i : backLeftCameraEstimate.rawFiducials) {
-                if (i.id == targetTagId) {
-                    return true;
-                }
-            }
-        }
-        if (backRightCameraEstimate != null && backRightCameraEstimate.rawFiducials != null) {
-            for (var i : backRightCameraEstimate.rawFiducials) {
-                if (i.id == targetTagId) {
-                    return true;
-                }
-            }
-        }
+        // if (frontCameraEstimate != null && frontCameraEstimate.rawFiducials != null) {
+        //     for (var i : frontCameraEstimate.rawFiducials) {
+        //         if (i.id == targetTagId) {
+        //             return true;
+        //         }
+        //     }
+        // }
+        // if (backLeftCameraEstimate != null && backLeftCameraEstimate.rawFiducials != null) {
+        //     for (var i : backLeftCameraEstimate.rawFiducials) {
+        //         if (i.id == targetTagId) {
+        //             return true;
+        //         }
+        //     }
+        // }
+        // if (backRightCameraEstimate != null && backRightCameraEstimate.rawFiducials != null) {
+        //     for (var i : backRightCameraEstimate.rawFiducials) {
+        //         if (i.id == targetTagId) {
+        //             return true;
+        //         }
+        //     }
+        // }
         return false;
     }
 
@@ -332,18 +370,23 @@ public class Vision extends SubsystemBase {
      * Checks all cameras and returns the first tag found.
      */
     public int getDetectedTagId() {
+        for (Camera camera : cameras) {
+            if (camera.estimate != null && camera.estimate.rawFiducials != null && camera.estimate.rawFiducials.length > 0) {
+                return (int) camera.estimate.rawFiducials[0].id;
+            }
+        }
         // Check front camera first
-        if (frontCameraEstimate != null && frontCameraEstimate.rawFiducials != null && frontCameraEstimate.rawFiducials.length > 0) {
-            return (int) frontCameraEstimate.rawFiducials[0].id;
-        }
-        // Check back-left camera
-        if (backLeftCameraEstimate != null && backLeftCameraEstimate.rawFiducials != null && backLeftCameraEstimate.rawFiducials.length > 0) {
-            return (int) backLeftCameraEstimate.rawFiducials[0].id;
-        }
-        // Check back-right camera
-        if (backRightCameraEstimate != null && backRightCameraEstimate.rawFiducials != null && backRightCameraEstimate.rawFiducials.length > 0) {
-            return (int) backRightCameraEstimate.rawFiducials[0].id;
-        }
+        // if (frontCameraEstimate != null && frontCameraEstimate.rawFiducials != null && frontCameraEstimate.rawFiducials.length > 0) {
+        //     return (int) frontCameraEstimate.rawFiducials[0].id;
+        // }
+        // // Check back-left camera
+        // if (backLeftCameraEstimate != null && backLeftCameraEstimate.rawFiducials != null && backLeftCameraEstimate.rawFiducials.length > 0) {
+        //     return (int) backLeftCameraEstimate.rawFiducials[0].id;
+        // }
+        // // Check back-right camera
+        // if (backRightCameraEstimate != null && backRightCameraEstimate.rawFiducials != null && backRightCameraEstimate.rawFiducials.length > 0) {
+        //     return (int) backRightCameraEstimate.rawFiducials[0].id;
+        // }
         return -1; // No tag detected
     }
 
@@ -354,36 +397,48 @@ public class Vision extends SubsystemBase {
     public int getNearestDetectedTagId() {
         int nearestTagId = -1;
         double minDistance = Double.POSITIVE_INFINITY;
-        if (frontCameraEstimate != null && frontCameraEstimate.rawFiducials != null) {
-            for (var f : frontCameraEstimate.rawFiducials) {
-                int id = (int) f.id;
-                double d = getDistanceToTag(id);
-                if (d >= 0 && d < minDistance) {
-                    minDistance = d;
-                    nearestTagId = id;
+        for (Camera camera : cameras) {
+            if (camera.estimate != null && camera.estimate.rawFiducials != null) {
+                for (var f : camera.estimate.rawFiducials) {
+                    int id = (int) f.id;
+                    double d = getDistanceToTag(id);
+                    if (d >= 0 && d < minDistance) {
+                        minDistance = d;
+                        nearestTagId = id;
+                    }
                 }
             }
         }
-        if (backLeftCameraEstimate != null && backLeftCameraEstimate.rawFiducials != null) {
-            for (var f : backLeftCameraEstimate.rawFiducials) {
-                int id = (int) f.id;
-                double d = getDistanceToTag(id);
-                if (d >= 0 && d < minDistance) {
-                    minDistance = d;
-                    nearestTagId = id;
-                }
-            }
-        }
-        if (backRightCameraEstimate != null && backRightCameraEstimate.rawFiducials != null) {
-            for (var f : backRightCameraEstimate.rawFiducials) {
-                int id = (int) f.id;
-                double d = getDistanceToTag(id);
-                if (d >= 0 && d < minDistance) {
-                    minDistance = d;
-                    nearestTagId = id;
-                }
-            }
-        }
+        // if (frontCameraEstimate != null && frontCameraEstimate.rawFiducials != null) {
+        //     for (var f : frontCameraEstimate.rawFiducials) {
+        //         int id = (int) f.id;
+        //         double d = getDistanceToTag(id);
+        //         if (d >= 0 && d < minDistance) {
+        //             minDistance = d;
+        //             nearestTagId = id;
+        //         }
+        //     }
+        // }
+        // if (backLeftCameraEstimate != null && backLeftCameraEstimate.rawFiducials != null) {
+        //     for (var f : backLeftCameraEstimate.rawFiducials) {
+        //         int id = (int) f.id;
+        //         double d = getDistanceToTag(id);
+        //         if (d >= 0 && d < minDistance) {
+        //             minDistance = d;
+        //             nearestTagId = id;
+        //         }
+        //     }
+        // }
+        // if (backRightCameraEstimate != null && backRightCameraEstimate.rawFiducials != null) {
+        //     for (var f : backRightCameraEstimate.rawFiducials) {
+        //         int id = (int) f.id;
+        //         double d = getDistanceToTag(id);
+        //         if (d >= 0 && d < minDistance) {
+        //             minDistance = d;
+        //             nearestTagId = id;
+        //         }
+        //     }
+        // }
         return nearestTagId;
     }
 
@@ -691,13 +746,18 @@ public class Vision extends SubsystemBase {
      * Updates the comprehensive status for a camera (includes accepted and rejected measurements).
      */
     private void updateStatus(String cameraName, String status) {
-        if (cameraName.equals(VisionConstants.FRONT_CAMERA)) {
-            frontCameraStatus = status;
-        } else if (cameraName.equals(VisionConstants.BACK_LEFT_CAMERA)) {
-            backLeftCameraStatus = status;
-        } else if (cameraName.equals(VisionConstants.BACK_RIGHT_CAMERA)) {
-            backRightCameraStatus = status;
+        for (Camera camera : cameras) {
+            if (cameraName.equals(camera.name)) {
+                camera.status = status;
+            }
         }
+        // if (cameraName.equals(VisionConstants.FRONT_CAMERA)) {
+        //     frontCameraStatus = status;
+        // } else if (cameraName.equals(VisionConstants.BACK_LEFT_CAMERA)) {
+        //     backLeftCameraStatus = status;
+        // } else if (cameraName.equals(VisionConstants.BACK_RIGHT_CAMERA)) {
+        //     backRightCameraStatus = status;
+        // }
     }
 
     /**
@@ -708,13 +768,18 @@ public class Vision extends SubsystemBase {
         String rejectionMessage = "REJECTED: " + reason;
         
         // Store the rejection reason
-        if (cameraName.equals(VisionConstants.FRONT_CAMERA)) {
-            frontCameraLastRejection = rejectionMessage;
-        } else if (cameraName.equals(VisionConstants.BACK_LEFT_CAMERA)) {
-            backLeftCameraLastRejection = rejectionMessage;
-        } else if (cameraName.equals(VisionConstants.BACK_RIGHT_CAMERA)) {
-            backRightCameraLastRejection = rejectionMessage;
+        for (Camera camera : cameras) {
+            if (cameraName.equals(camera.name)) {
+                camera.lastRejection = rejectionMessage;
+            }
         }
+        // if (cameraName.equals(VisionConstants.FRONT_CAMERA)) {
+        //     frontCameraLastRejection = rejectionMessage;
+        // } else if (cameraName.equals(VisionConstants.BACK_LEFT_CAMERA)) {
+        //     backLeftCameraLastRejection = rejectionMessage;
+        // } else if (cameraName.equals(VisionConstants.BACK_RIGHT_CAMERA)) {
+        //     backRightCameraLastRejection = rejectionMessage;
+        // }
         
         // Update the comprehensive status
         updateStatus(cameraName, rejectionMessage);

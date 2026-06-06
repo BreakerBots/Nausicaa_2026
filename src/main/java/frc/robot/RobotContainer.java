@@ -466,7 +466,7 @@ public class RobotContainer {
                         intake.setState(Intake.State.EXTENDED_IDLE);
                         if (interrupted) {
                             CommandScheduler.getInstance().schedule(
-                        hoodDown);
+                        hood.downCommand().withTimeout(0.5));
                 }
             });
         
