@@ -540,6 +540,9 @@ public class BreakerLog extends DogLog implements Subsystem {
             filteredEffectiveResistance = 0.0;
             hasFilteredEffectiveResistance = false;
             lastCurrentSampleAtSec = nowSec;
+            brownoutCount = 0;
+            currentBrownoutStartSec = Double.NaN;
+            wasBrownedOut = false;
         }
 
         if (Double.isNaN(lastCurrentSampleAtSec)) {
@@ -617,13 +620,13 @@ public class BreakerLog extends DogLog implements Subsystem {
         if (isBrownedOut && !wasBrownedOut) {
             brownoutCount++;
             currentBrownoutStartSec = nowSec;
-            log("Electrical/Brownout/Count", brownoutCount);
             log("Electrical/Brownout/LastStartTimestampSec", currentBrownoutStartSec);
         } else if (!isBrownedOut && wasBrownedOut) {
             log("Electrical/Brownout/LastEndTimestampSec", nowSec);
             log("Electrical/Brownout/LastDurationSec", nowSec - currentBrownoutStartSec);
         }
 
+        log("Electrical/Brownout/Count", brownoutCount);
         wasBrownedOut = isBrownedOut;
     }
 
