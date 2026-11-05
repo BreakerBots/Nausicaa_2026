@@ -303,8 +303,8 @@ public class BreakerSwerveDrivetrain extends SwerveDrivetrain<TalonFX, TalonFX, 
       var drivetrainModules = getModules();
       for (int i = 0; i < drivetrainModules.length; i++) {
           String moduleName = i < moduleNames.length ? moduleNames[i] : "Module" + i;
-          BreakerLog.log("Electrical/Drivetrain/" + moduleName + "/Drive", drivetrainModules[i].getDriveMotor(), true);
-          BreakerLog.log("Electrical/Drivetrain/" + moduleName + "/Steer", drivetrainModules[i].getSteerMotor(), true);
+          BreakerLog.log("Electrical/Drivetrain/" + moduleName + "/Drive", drivetrainModules[i].getDriveMotor(), BreakerLog.DEFAULT_ELECTRICAL_LOG_INTERVAL_SECONDS);
+          BreakerLog.log("Electrical/Drivetrain/" + moduleName + "/Steer", drivetrainModules[i].getSteerMotor(), BreakerLog.DEFAULT_ELECTRICAL_LOG_INTERVAL_SECONDS);
       }
 
       /* Periodically try to apply the operator perspective */

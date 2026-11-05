@@ -290,7 +290,7 @@ public class Climb extends SubsystemBase {
         
         double position = getEncoderRotations();
         double velocity = climbMotor.getVelocity().getValueAsDouble();
-        BreakerLog.log("Electrical/Climb/climb", climbMotor, true);
+        BreakerLog.log("Electrical/Climb/climb", climbMotor, BreakerLog.DEFAULT_ELECTRICAL_LOG_INTERVAL_SECONDS);
         if (BreakerLog.isVerboseLogging()) {
             BreakerLog.log("Climb/Homing", detectHome());
         }

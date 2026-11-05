@@ -194,8 +194,8 @@ public class Intake extends SubsystemBase {
         BreakerLog.log("Intake/PivotTargetPosition", state.getRotation2d().getRotations(), true); // Setpoint, not from the encoder.
         BreakerLog.log("Intake/PivotEncoderAbsolutePosition", pivotEncoder.getAbsolutePosition().getValueAsDouble(), true); // CANcoder absolute position (magnet angle)
         BreakerLog.log("Intake/PivotEncoderPosition", this.getPivotPositionRotations(), true); // The one we actually use, compare to the Motion Magic target.
-        BreakerLog.log("Electrical/Intake/roller", rollerMotor, true);
-        BreakerLog.log("Electrical/Intake/pivot", pivotMotor, true);
+        BreakerLog.log("Electrical/Intake/roller", rollerMotor, BreakerLog.DEFAULT_ELECTRICAL_LOG_INTERVAL_SECONDS);
+        BreakerLog.log("Electrical/Intake/pivot", pivotMotor, BreakerLog.DEFAULT_ELECTRICAL_LOG_INTERVAL_SECONDS);
     }
 
 

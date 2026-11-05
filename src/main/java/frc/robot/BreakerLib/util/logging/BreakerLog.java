@@ -73,8 +73,10 @@ public class BreakerLog extends DogLog implements Subsystem {
     /** Global verbose logging control - when false, high-frequency logging is disabled */
     private static boolean verboseLogging = true;
 
-    /** Interval (seconds) for throttled logs - limits to 2 Hz per key */
-    private static final double THROTTLE_INTERVAL_SEC = 0.5;
+    /** Default interval (seconds) for throttled logs - limits to 2 Hz per key. */
+    public static final double DEFAULT_THROTTLE_INTERVAL_SECONDS = 0.5;
+    /** Default interval (seconds) for electrical motor telemetry - limits to 60 Hz per key. */
+    public static final double DEFAULT_ELECTRICAL_LOG_INTERVAL_SECONDS = 1.0 / 60.0;
     private static final Map<String, Double> lastThrottledLogTime = new ConcurrentHashMap<>();
 
     // Electrical
@@ -132,9 +134,21 @@ public class BreakerLog extends DogLog implements Subsystem {
             logToParent(key, value);
             return;
         }
+        log(key, value, DEFAULT_THROTTLE_INTERVAL_SECONDS);
+    }
+
+    /**
+     * Log a value at a caller-selected throttle interval.
+     * Use 0 or a negative value to publish every call.
+     */
+    public static void log(String key, Object value, double throttleIntervalSeconds) {
+        if (throttleIntervalSeconds <= 0.0) {
+            logToParent(key, value);
+            return;
+        }
         double now = Timer.getFPGATimestamp();
         Double last = lastThrottledLogTime.get(key);
-        if (last == null || now - last >= THROTTLE_INTERVAL_SEC) {
+        if (last == null || now - last >= throttleIntervalSeconds) {
             lastThrottledLogTime.put(key, now);
             logToParent(key, value);
         }
@@ -216,6 +230,19 @@ public class BreakerLog extends DogLog implements Subsystem {
         // Update and log motor energy
         updateAndLogMotorEnergy(key, value, throttle);
         logMotorEnergySummary(throttle);
+    }
+
+    public static void log(String key, TalonFX value, double throttleIntervalSeconds) {
+        if (isVerboseLogging()) {
+            log(key + "/StatorCurrent", value.getStatorCurrent().getValueAsDouble(), throttleIntervalSeconds);
+            log(key + "/SupplyCurrent", value.getSupplyCurrent().getValueAsDouble(), throttleIntervalSeconds);
+            log(key + "/Position", value.getPosition().getValueAsDouble(), throttleIntervalSeconds);
+            log(key + "/Velocity", value.getVelocity().getValueAsDouble(), throttleIntervalSeconds);
+        }
+
+        // Update and log motor energy
+        updateAndLogMotorEnergy(key, value, throttleIntervalSeconds);
+        logMotorEnergySummary(throttleIntervalSeconds);
     }
 
     public static void log(String key, CANcoder value) {
@@ -390,6 +417,10 @@ public class BreakerLog extends DogLog implements Subsystem {
      * Integrates that motor's supply power into match-to-date Watt Hours, then publishes the motor total.
      */
     private static void updateAndLogMotorEnergy(String key, TalonFX motor, boolean throttle) {
+        updateAndLogMotorEnergy(key, motor, throttle ? DEFAULT_THROTTLE_INTERVAL_SECONDS : 0.0);
+    }
+
+    private static void updateAndLogMotorEnergy(String key, TalonFX motor, double throttleIntervalSeconds) {
         EnergyTracker tracker = trackedMotorEnergy.computeIfAbsent(key, unused -> new EnergyTracker());
         double nowSec = Timer.getFPGATimestamp();
         boolean enabled = DriverStation.isEnabled();
@@ -420,13 +451,12 @@ public class BreakerLog extends DogLog implements Subsystem {
         tracker.wasEnabledLastCall = enabled;
 
         String cumulativeWattHoursKey = key + "CumulativeWattHours";
-        if (!throttle) {
+        if (throttleIntervalSeconds <= 0.0) {
             log(cumulativeWattHoursKey, tracker.cumulativeWattHours);
             return;
         }
 
-        // Match the standard BreakerLog throttle cadence (2 Hz, twice per second).
-        if (nowSec - tracker.lastLoggedAtSec >= THROTTLE_INTERVAL_SEC) {
+        if (nowSec - tracker.lastLoggedAtSec >= throttleIntervalSeconds) {
             log(cumulativeWattHoursKey, tracker.cumulativeWattHours);
             tracker.lastLoggedAtSec = nowSec;
         }
@@ -446,8 +476,12 @@ public class BreakerLog extends DogLog implements Subsystem {
      * This is summary-only: it does not sample motors or integrate any new energy.
      */
     private static void logMotorEnergySummary(boolean throttle) {
+        logMotorEnergySummary(throttle ? DEFAULT_THROTTLE_INTERVAL_SECONDS : 0.0);
+    }
+
+    private static void logMotorEnergySummary(double throttleIntervalSeconds) {
         double nowSec = Timer.getFPGATimestamp();
-        if (throttle && nowSec - lastEnergySummaryLoggedAtSec < THROTTLE_INTERVAL_SEC) {
+        if (throttleIntervalSeconds > 0.0 && nowSec - lastEnergySummaryLoggedAtSec < throttleIntervalSeconds) {
             return;
         }
         lastEnergySummaryLoggedAtSec = nowSec;

@@ -184,6 +184,6 @@ public class Hood extends SubsystemBase {
         double hoodVel = hoodMotor.getVelocity().getValueAsDouble();
         BreakerLog.log("Hood/PositionRot", hoodPos, true);
         BreakerLog.log("Hood/VelocityRps", hoodVel, true);
-        BreakerLog.log("Electrical/Hood/motor", hoodMotor, true);
+        BreakerLog.log("Electrical/Hood/motor", hoodMotor, BreakerLog.DEFAULT_ELECTRICAL_LOG_INTERVAL_SECONDS);
     }
 }
