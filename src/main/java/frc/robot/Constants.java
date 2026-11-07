@@ -583,8 +583,10 @@ public final class Constants {
         // Current limits = adjust if motors brown out (lower) or need more power (higher)
         private static final int DRIVE_STATOR_CURRENT_LIMIT = 65; //90 ,80
         private static final int DRIVE_SUPPLY_CURRENT_LIMIT = 50; //80 ,60
-        private static final int STEER_STATOR_CURRENT_LIMIT = 60; //60
-        private static final int STEER_SUPPLY_CURRENT_LIMIT = 40; //60, 45
+        private static final int DRIVE_SUPPLY_CURRENT_LOWER_LIMIT = 35;
+        private static final double DRIVE_SUPPLY_CURRENT_LOWER_TIME = 1.0;
+        private static final int STEER_STATOR_CURRENT_LIMIT = 30; //60
+        private static final int STEER_SUPPLY_CURRENT_LIMIT = 20; //60, 45
         
         private static final TalonFXConfiguration driveInitialConfigs = new TalonFXConfiguration()
             .withMotorOutput(new MotorOutputConfigs().withNeutralMode(NeutralModeValue.Brake))
@@ -593,6 +595,8 @@ public final class Constants {
                     .withStatorCurrentLimit(DRIVE_STATOR_CURRENT_LIMIT)
                     .withStatorCurrentLimitEnable(true)
                     .withSupplyCurrentLimit(DRIVE_SUPPLY_CURRENT_LIMIT)
+                    .withSupplyCurrentLowerLimit(DRIVE_SUPPLY_CURRENT_LOWER_LIMIT)
+                    .withSupplyCurrentLowerTime(DRIVE_SUPPLY_CURRENT_LOWER_TIME)
                     .withSupplyCurrentLimitEnable(true));
         private static final TalonFXConfiguration steerInitialConfigs = new TalonFXConfiguration()
             .withCurrentLimits(
