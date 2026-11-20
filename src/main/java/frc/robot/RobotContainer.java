@@ -359,7 +359,7 @@ public class RobotContainer {
                 aimContinuouslyCommand(false),
                 Commands.sequence(waitUntilHoodPositioned, shootForTeleopCommand(false)))
                 .finallyDo((interrupted) -> {
-                    CommandScheduler.getInstance().schedule(hood.downCommand());
+                    CommandScheduler.getInstance().schedule(hood.downCommand().withTimeout(0.5));
                 });
                 //return Commands.parallel(aimContinuouslyCommand(false), shootForTeleopCommand(false));
     }
@@ -465,10 +465,9 @@ public class RobotContainer {
                         shooter.setState(Shooter.State.SPINNING_UP);
                         intake.setState(Intake.State.EXTENDED_IDLE);
                         if (interrupted) {
-                            CommandScheduler.getInstance().schedule(
-                        hoodDown);
-                }
-            });
+                            CommandScheduler.getInstance().schedule(hood.downCommand().withTimeout(0.5));
+                        }
+                    });
         
         // TELEOP: can't have hood in-sequence (because aimContinuouslyCommand, running in parallel, also needs it)
         } else {
@@ -476,7 +475,7 @@ public class RobotContainer {
                 hopper.setState(Hopper.State.INACTIVE);
                 shooter.setState(Shooter.State.SPINNING_UP);
                 intake.setState(Intake.State.EXTENDED_IDLE);
-                CommandScheduler.getInstance().schedule(hood.downCommand());
+                CommandScheduler.getInstance().schedule(hood.downCommand().withTimeout(0.5));
             });
         }
    }
@@ -604,7 +603,7 @@ public class RobotContainer {
         // //climb.setState(Climb.State.INACTIVE);
          shooter.setState(Shooter.State.INACTIVE);
         // hopper.setState(Hopper.State.INACTIVE);
-        CommandScheduler.getInstance().schedule(hood.downCommand());
+        CommandScheduler.getInstance().schedule(hood.downCommand().withTimeout(0.5));
     }                           
 
     /** Called once when the robot enters teleop. */
@@ -619,6 +618,6 @@ public class RobotContainer {
         climb.setState(Climb.State.INACTIVE);
         shooter.setState(Shooter.State.SPINNING_UP);
         hopper.setState(Hopper.State.INACTIVE);
-        CommandScheduler.getInstance().schedule(hood.downCommand());
+        CommandScheduler.getInstance().schedule(hood.downCommand().withTimeout(0.5));
     }
 }
